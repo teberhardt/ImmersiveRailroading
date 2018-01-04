@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.Tender;
 import cam72cam.immersiverailroading.library.Gauge;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 public class TenderDefinition extends CarTankDefinition {
@@ -31,10 +30,10 @@ public class TenderDefinition extends CarTankDefinition {
 	}
 	
 	public int getInventorySize(Gauge gauge) {
-		return MathHelper.ceil(numSlots * gauge.scale());
+		return (int) Math.ceil(numSlots * gauge.scale());
 	}
 
 	public int getInventoryWidth(Gauge gauge) {
-		return MathHelper.ceil(width * gauge.scale());
+		return (int) Math.ceil(width * gauge.scale());
 	}
 }

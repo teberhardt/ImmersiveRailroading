@@ -25,7 +25,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -112,7 +111,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
 	@Override
 	public AxisAlignedBB getCollisionBoundingBox() {
-		return this.getEntityBoundingBox().contract(0, 0.5, 0).offset(0, 0.5, 0);
+		return this.getEntityBoundingBox().offset(0, 0.5, 0);
 	}
 
 	@Override
@@ -127,7 +126,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	@SideOnly(Side.CLIENT)
     public AxisAlignedBB getRenderBoundingBox()
     {
-        return this.getEntityBoundingBox().grow(50);
+        return this.getEntityBoundingBox().expandXyz(50);
     }
 	
 	/*
@@ -153,7 +152,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 		if (currentSpeed == null) {
 			//Fallback
 			// does not work for curves
-			float speed = MathHelper.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
+			float speed = (float) Math.sqrt(motionX * motionX + motionY * motionY + motionZ * motionZ);
 			if (Float.isNaN(speed)) {
 				speed = 0;
 			}
@@ -207,13 +206,13 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	}
 	
 	private double skewScalar(double curr, double next) {
-		if (world.isRemote) {
+		if (worldObj.isRemote) {
 			return curr + (next - curr) * ImmersiveRailroading.proxy.serverTicksPerClientTick();
 		}
 		return next;
 	}
 	private float skewScalar(float curr, float next) {
-		if (world.isRemote) {
+		if (worldObj.isRemote) {
 			return curr + (next - curr) * (float)ImmersiveRailroading.proxy.serverTicksPerClientTick();
 		}
 		return next;
@@ -233,7 +232,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	public void onUpdate() {
 		super.onUpdate();
 		
-		this.tickPosID += world.isRemote ? ImmersiveRailroading.proxy.serverTicksPerClientTick() : 1;
+		this.tickPosID += worldObj.isRemote ? ImmersiveRailroading.proxy.serverTicksPerClientTick() : 1;
 		
 		// Apply position tick
 		TickPos currentPos = getCurrentTickPosAndPrune();
@@ -253,11 +252,11 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	    this.prevRotationPitch = this.rotationPitch;
 		
 
-	    this.posX = skewScalar(this.posX, currentPos.position.x);
-	    this.posY = skewScalar(this.posY, currentPos.position.y);
-	    this.posZ = skewScalar(this.posZ, currentPos.position.z);
+	    this.posX = skewScalar(this.posX, currentPos.position.xCoord);
+	    this.posY = skewScalar(this.posY, currentPos.position.yCoord);
+	    this.posZ = skewScalar(this.posZ, currentPos.position.zCoord);
 
-	    if (world.isRemote) {
+	    if (worldObj.isRemote) {
 	    	this.prevRotationYaw = fixAngleInterp(this.prevRotationYaw, currentPos.rotationYaw);
 	    	this.rotationYaw = fixAngleInterp(this.rotationYaw, currentPos.rotationYaw);
 	    	this.frontYaw = fixAngleInterp(this.frontYaw == null ? this.rotationYaw : this.frontYaw, currentPos.frontYaw);
@@ -280,7 +279,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	    	this.clearPositionCache();
 	    }
 
-		List<Entity> entitiesWithin = world.getEntitiesWithinAABB(Entity.class, this.getCollisionBoundingBox());
+		List<Entity> entitiesWithin = worldObj.getEntitiesWithinAABB(Entity.class, this.getCollisionBoundingBox());
 		for (Entity entity : entitiesWithin) {
 			if (entity instanceof EntityMoveableRollingStock) {
 				// rolling stock collisions handled by looking at the front and
@@ -300,7 +299,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 			
 			// Chunk.getEntitiesOfTypeWithinAABB() does a reverse aabb intersect
 			// We need to do a forward lookup
-			if (!this.getCollisionBoundingBox().intersects(entity.getEntityBoundingBox())) {
+			if (!this.getCollisionBoundingBox().intersectsWith(entity.getEntityBoundingBox())) {
 				// miss
 				continue;
 			}
@@ -322,7 +321,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 		// Riding on top of cars
 		AxisAlignedBB bb = this.getCollisionBoundingBox();
 		bb = bb.offset(0, this.getDefinition().getHeight(gauge)+1, 0);
-		List<Entity> entitiesAbove = world.getEntitiesWithinAABB(Entity.class, bb);
+		List<Entity> entitiesAbove = worldObj.getEntitiesWithinAABB(Entity.class, bb);
 		for (Entity entity : entitiesAbove) {
 			if (entity instanceof EntityMoveableRollingStock) {
 				continue;
@@ -337,32 +336,32 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
 			// Chunk.getEntitiesOfTypeWithinAABB() does a reverse aabb intersect
 			// We need to do a forward lookup
-			if (!bb.intersects(entity.getEntityBoundingBox())) {
+			if (!bb.intersectsWith(entity.getEntityBoundingBox())) {
 				// miss
 				continue;
 			}
 			
 			Vec3d pos = entity.getPositionVector();
 			pos = pos.addVector(this.motionX, this.motionY, this.motionZ);
-			entity.setPosition(pos.x, pos.y, pos.z);
+			entity.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 		}
-		if (!world.isRemote && this.ticksExisted % 10 != 0 && Config.TrainsBreakBlocks && this.getCurrentSpeed().metric() > 0.5) {
+		if (!worldObj.isRemote && this.ticksExisted % 10 != 0 && Config.TrainsBreakBlocks && this.getCurrentSpeed().metric() > 0.5) {
 			bb = this.getCollisionBoundingBox();
 			
 			for (Vec3d pos : this.getDefinition().getBlocksInBounds(gauge)) {
 				pos = VecUtil.rotateYaw(pos, this.rotationYaw);
 				pos = pos.add(this.getPositionVector());
 				BlockPos bp = new BlockPos(pos);
-				IBlockState state = world.getBlockState(bp);
+				IBlockState state = worldObj.getBlockState(bp);
 				if (state.getBlock() != Blocks.AIR) {
-					if (!BlockUtil.isRail(world, bp)) {
-						if (bb.contains(pos)) { // This is slow, do it as little as possible
-							if (!BlockUtil.isRail(world, bp.up())) {
-								world.destroyBlock(bp, true);										
+					if (!BlockUtil.isRail(worldObj, bp)) {
+						if (bb.intersects(pos, pos)) { // This is slow, do it as little as possible
+							if (!BlockUtil.isRail(worldObj, bp.up())) {
+								worldObj.destroyBlock(bp, true);										
 							}
 						}
 					} else {
-						TileRailBase te = TileRailBase.get(world, bp);
+						TileRailBase te = TileRailBase.get(worldObj, bp);
 						if (te != null) {
 							te.cleanSnow();
 							continue;
@@ -379,7 +378,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
 	public TickPos moveRollingStock(double moveDistance, int lastTickID) {
 		TickPos lastPos = this.getTickPos(lastTickID);
-		return new MovementSimulator(world, lastPos, this.getDefinition().getBogeyFront(gauge), this.getDefinition().getBogeyRear(gauge), gauge.value()).nextPosition(moveDistance);
+		return new MovementSimulator(worldObj, lastPos, this.getDefinition().getBogeyFront(gauge), this.getDefinition().getBogeyRear(gauge), gauge.value()).nextPosition(moveDistance);
 	}
 	
 	/*
@@ -393,7 +392,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 			this.rotation = rotation;
 		}
 		public PosRot(Vec3d nextFront, float yaw) {
-			this(nextFront.x, nextFront.y, nextFront.z, yaw);
+			this(nextFront.xCoord, nextFront.yCoord, nextFront.zCoord, yaw);
 		}
 		public float getRotation() {
 			return rotation;
@@ -423,7 +422,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 		return predictFrontBogeyPosition(getCurrentTickPosOrFake(), offset);
 	}
 	public PosRot predictFrontBogeyPosition(TickPos pos, float offset) {		
-		MovementSimulator sim = new MovementSimulator(world, pos, this.getDefinition().getBogeyFront(gauge), this.getDefinition().getBogeyRear(gauge), gauge.value());
+		MovementSimulator sim = new MovementSimulator(worldObj, pos, this.getDefinition().getBogeyFront(gauge), this.getDefinition().getBogeyRear(gauge), gauge.value());
 		
 		Vec3d front = sim.frontBogeyPosition();
 		Vec3d nextFront = front;
@@ -439,7 +438,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 		return predictRearBogeyPosition(getCurrentTickPosOrFake(), offset);
 	}
 	public PosRot predictRearBogeyPosition(TickPos pos, float offset) {
-		MovementSimulator sim = new MovementSimulator(world, pos, this.getDefinition().getBogeyFront(gauge), this.getDefinition().getBogeyRear(gauge), gauge.value());
+		MovementSimulator sim = new MovementSimulator(worldObj, pos, this.getDefinition().getBogeyFront(gauge), this.getDefinition().getBogeyRear(gauge), gauge.value());
 		
 		Vec3d rear = sim.rearBogeyPosition();
 		Vec3d nextRear = rear;
@@ -459,10 +458,10 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 			pos = pos.add(latest.position);
 			BlockPos bp = new BlockPos(pos);
 			bp = bp.down();
-			IBlockState state = world.getBlockState(bp);
+			IBlockState state = worldObj.getBlockState(bp);
 			if (state.getBlock() != Blocks.AIR) {
-				if (BlockUtil.isIRRail(world, bp)) {
-					TileRailBase te = TileRailBase.get(world, bp);
+				if (BlockUtil.isIRRail(worldObj, bp)) {
+					TileRailBase te = TileRailBase.get(worldObj, bp);
 					if (te != null && te.getAugment() == Augment.SPEED_RETARDER) {
 						TileRail parent = te.getParentTile();
 						if (parent != null) {
@@ -470,18 +469,18 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 							BlockPos tmpPos = bp;
 							while(true) {
 								tmpPos = tmpPos.offset(parent.getFacing());
-								TileRailBase tmp = TileRailBase.get(world, tmpPos);
+								TileRailBase tmp = TileRailBase.get(worldObj, tmpPos);
 								if (tmp != null && tmp.getAugment() == Augment.SPEED_RETARDER) {
-									max = Math.max(max, RedstoneUtil.getPower(world, tmpPos));
+									max = Math.max(max, RedstoneUtil.getPower(worldObj, tmpPos));
 								} else {
 									break;
 								}
 							}
 							while(true) {
 								tmpPos = tmpPos.offset(parent.getFacing().getOpposite());
-								TileRailBase tmp = TileRailBase.get(world, tmpPos);
+								TileRailBase tmp = TileRailBase.get(worldObj, tmpPos);
 								if (tmp != null && tmp.getAugment() == Augment.SPEED_RETARDER) {
-									max = Math.max(max, RedstoneUtil.getPower(world, tmpPos));
+									max = Math.max(max, RedstoneUtil.getPower(worldObj, tmpPos));
 								} else {
 									break;
 								}

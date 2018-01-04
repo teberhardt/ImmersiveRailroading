@@ -14,6 +14,7 @@ import cam72cam.immersiverailroading.util.GLBoolTracker;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
@@ -37,7 +38,7 @@ public class StockItemModel implements IBakedModel {
 		String defID = ItemDefinition.getID(stack);
 		model = StockRenderCache.getRender(defID);
 		if (model == null) {
-			stack.setCount(0);
+			stack.stackSize = (0);
 		}
 	}
 	
@@ -107,6 +108,7 @@ public class StockItemModel implements IBakedModel {
 		return new ItemOverrideListHack();
 	}
 
+	/* TODO1.10
 	@Override
 	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
 		Pair<? extends IBakedModel, Matrix4f> defaultVal = ForgeHooksClient.handlePerspective(this, cameraTransformType);
@@ -133,5 +135,12 @@ public class StockItemModel implements IBakedModel {
 			return defaultVal;
 		}
 		return defaultVal;
+	}
+	*/
+
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() {
+		// TODO Auto-generated method stub
+		return ItemCameraTransforms.DEFAULT;
 	}
 }

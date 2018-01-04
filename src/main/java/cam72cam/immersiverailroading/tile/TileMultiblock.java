@@ -44,7 +44,7 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	
 	//Crafting
 	private int craftProgress = 0;
-	private ItemStack craftItem = ItemStack.EMPTY;
+	private ItemStack craftItem = null;
 	private ItemStackHandler container = new ItemStackHandler(0) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -52,9 +52,9 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
         }
 
 		@Override
-		public int getSlotLimit(int slot) {
+		protected int getStackLimit(int slot, ItemStack stack) {
 			if (isLoaded()) {
-				return Math.min(super.getSlotLimit(slot), getMultiblock().getSlotLimit(offset, slot));
+				return Math.min(super.getStackLimit(slot, stack), getMultiblock().getSlotLimit(offset, slot));
 			}
 			return 0;
 		}
@@ -119,7 +119,7 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 		replaced = NBTUtil.readBlockState(nbt.getCompoundTag("replaced"));
 		
 		container.deserializeNBT(nbt.getCompoundTag("inventory"));
-		craftItem = new ItemStack(nbt.getCompoundTag("craftItem"));
+		craftItem = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("craftItem"));
 		craftProgress = nbt.getInteger("craftProgress");
 		
 		// Empty and then refill energy storage
@@ -144,12 +144,12 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
     }
 	
 	public BlockPos getOrigin() {
-		return pos.subtract(offset.rotate(rotation));
+		return pos.subtract(offset); //TODO1.10 .rotate(rotation)
 	}
 	
 	public MultiblockInstance getMultiblock() {
 		if (this.mb == null) {
-			this.mb = MultiblockRegistry.get(name).instance(world, getOrigin(), rotation);
+			this.mb = MultiblockRegistry.get(name).instance(worldObj, getOrigin(), rotation);
 		}
 		return this.mb;
 	}
@@ -184,12 +184,12 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	public void onBreak() {
 		for (int slot = 0; slot < container.getSlots(); slot ++) {
 			ItemStack item = container.extractItem(slot, Integer.MAX_VALUE, false);
-			if (!item.isEmpty()) {
-				world.spawnEntity(new EntityItem(world, pos.getX(), pos.getY(), pos.getZ(), item));
+			if (!(item == null)) {
+				worldObj.spawnEntityInWorld(new EntityItem(worldObj, pos.getX(), pos.getY(), pos.getZ(), item));
 			}
 		}
-		world.removeTileEntity(pos);
-		world.setBlockState(pos, replaced, 3);
+		worldObj.removeTileEntity(pos);
+		worldObj.setBlockState(pos, replaced, 3);
 	}
 
 	public boolean isRender() {
@@ -266,12 +266,8 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	        	        	if (getMultiblock().isOutputSlot(offset, slot)) {
 	        	        		return container.extractItem(slot, amount, simulate);
 	        	        	}
-	        	        	return ItemStack.EMPTY;
+	        	        	return null;
 	        	        }
-						@Override
-						public int getSlotLimit(int slot) {
-							return container.getSlotLimit(slot);
-						}
 						
 						@Override
 						public void setStackInSlot(int slot, ItemStack stack) {

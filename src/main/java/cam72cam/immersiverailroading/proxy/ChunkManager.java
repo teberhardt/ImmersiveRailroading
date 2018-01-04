@@ -118,7 +118,7 @@ public class ChunkManager implements ForgeChunkManager.LoadingCallback, ForgeChu
 			boolean shouldChunkLoad = false;
 			
 			for (ChunkPos pos : loaded) {
-				if (chunk.x == pos.chunkX && chunk.z == pos.chunkZ) {
+				if (chunk.chunkXPos == pos.chunkX && chunk.chunkZPos == pos.chunkZ) {
 					shouldChunkLoad = true;
 					loaded.remove(pos);
 					break;
@@ -129,7 +129,7 @@ public class ChunkManager implements ForgeChunkManager.LoadingCallback, ForgeChu
 				// Leave chunk loaded
 				//System.out.println(String.format("NOP CHUNK %s %s", chunk.x, chunk.z));
 			} else {
-				ImmersiveRailroading.debug("UNLOADED CHUNK %s %s", chunk.x, chunk.z);
+				ImmersiveRailroading.debug("UNLOADED CHUNK %s %s", chunk.chunkXPos, chunk.chunkZPos);
 				ForgeChunkManager.unforceChunk(ticket, chunk);
 			}
 		}

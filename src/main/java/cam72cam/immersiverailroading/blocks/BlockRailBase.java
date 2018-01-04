@@ -1,6 +1,7 @@
 package cam72cam.immersiverailroading.blocks;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import cam72cam.immersiverailroading.items.ItemTabs;
 import cam72cam.immersiverailroading.library.Augment;
@@ -13,7 +14,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
-import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -122,11 +122,6 @@ public abstract class BlockRailBase extends Block {
         return state;
     }
 	
-	@Override
-	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		this.onNeighborChange(worldIn, pos, fromPos);
-	}
-	
 	public static boolean tryBreakRail(IBlockAccess world, BlockPos pos) {
 		TileRailBase rail = TileRailBase.get(world, pos);
 		if (rail != null) {
@@ -190,7 +185,7 @@ public abstract class BlockRailBase extends Block {
 	}
 	
 	@Override
-	public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+	public AxisAlignedBB getCollisionBoundingBox(IBlockState state, World source, BlockPos pos) {
 		TileRailBase te = TileRailBase.get(source, pos);
 		return new AxisAlignedBB(0.0F, 0.0F, 0.0F, 1.0F, (te == null ? 0 : te.getFullHeight())+0.1, 1.0F);
 	}
@@ -213,27 +208,12 @@ public abstract class BlockRailBase extends Block {
 		return 0;
 	}
 	
-	/*
-	 * Fence, glass override
-	 */
 	@Override
-    public boolean canBeConnectedTo(IBlockAccess world, BlockPos pos, EnumFacing facing) {
-		return false;
-	}
-	@Deprecated
-	@Override
-    public BlockFaceShape getBlockFaceShape(IBlockAccess p_193383_1_, IBlockState p_193383_2_, BlockPos p_193383_3_, EnumFacing p_193383_4_)
-    {
-		if (p_193383_4_ == EnumFacing.UP) {
-			// SNOW ONLY?
-			return BlockFaceShape.SOLID;
-		}
-        return BlockFaceShape.UNDEFINED;
-    }
-	
-	@Override
-	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
 		ItemStack stack = playerIn.getHeldItem(hand);
+		if (stack == null) {
+			return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
+		}
 		Block block = Block.getBlockFromItem(stack.getItem());
 		TileRailBase te = TileRailBase.get(worldIn, pos);
 		if (te != null) {
@@ -259,7 +239,7 @@ public abstract class BlockRailBase extends Block {
 				}
 			}
 		}
-		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
 		
 	}
 

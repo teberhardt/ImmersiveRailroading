@@ -10,6 +10,6 @@ public class ParticleUtil {
 	}
 	
 	public static void spawnParticle(World world, EnumParticleTypes type, Vec3d position) {
-		world.spawnParticle(type, position.x, position.y, position.z, 0, 0, 0);
+		world.spawnParticle(type, position.xCoord, position.yCoord, position.zCoord, 0, 0, 0);
 	}
 }

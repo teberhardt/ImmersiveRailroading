@@ -45,7 +45,7 @@ public class MultiblockSelectCraftPacket implements IMessage {
 		}
 
 		private void handle(MultiblockSelectCraftPacket message, MessageContext ctx) {
-			TileMultiblock tile = TileMultiblock.get(ctx.getServerHandler().player.world, message.tilePreviewPos);
+			TileMultiblock tile = TileMultiblock.get(ctx.getServerHandler().playerEntity.worldObj, message.tilePreviewPos);
 			if (tile == null) {
 				ImmersiveRailroading.warn("Got invalid craft update packet at %s", message.tilePreviewPos);
 				return;

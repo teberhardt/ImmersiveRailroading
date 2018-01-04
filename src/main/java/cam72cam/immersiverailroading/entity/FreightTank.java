@@ -22,7 +22,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.*;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 
 public abstract class FreightTank extends Freight {
 	private static final DataParameter<Integer> FLUID_AMOUNT = EntityDataManager.createKey(FreightTank.class, DataSerializers.VARINT);
@@ -35,7 +34,7 @@ public abstract class FreightTank extends Freight {
 		
 		@Override
 		public void onContentsChanged() {
-			if (!world.isRemote) {
+			if (!worldObj.isRemote) {
 				FreightTank.this.onTankContentsChanged();
 			}
 		}
@@ -122,7 +121,7 @@ public abstract class FreightTank extends Freight {
 	}
 
 	protected void onTankContentsChanged() {
-		if (world.isRemote) {
+		if (worldObj.isRemote) {
 			return;
 		}
 		
@@ -169,7 +168,7 @@ public abstract class FreightTank extends Freight {
 
 	protected void checkInvent() {
 
-		if (world.isRemote) {
+		if (worldObj.isRemote) {
 			return;
 		}
 		
@@ -189,7 +188,7 @@ public abstract class FreightTank extends Freight {
 			}
 
 			ItemStack inputCopy = ItemHandlerHelper.copyStackWithSize(input, 1);
-			IFluidHandlerItem containerFluidHandler = FluidUtil.getFluidHandler(inputCopy);
+			net.minecraftforge.fluids.capability.IFluidHandler containerFluidHandler = FluidUtil.getFluidHandler(inputCopy);
 
 			if (containerFluidHandler == null) {
 				continue;
@@ -197,13 +196,13 @@ public abstract class FreightTank extends Freight {
 
 			// This is kind of funky but it works
 			// WILL BE CALLED RECUSIVELY from onInventoryChanged
-			if (input.getCount() > 0) {
+			if (input.stackSize > 0) {
 				// First try to drain the container, if we can't do that we try
 				// to fill it
 
 				for (Boolean doFill : new Boolean[] { false, true }) {
 
-					FluidActionResult inputAttempt;
+					ItemStack inputAttempt;
 
 					if (doFill) {
 						inputAttempt = FluidUtil.tryFillContainer(inputCopy, theTank, Integer.MAX_VALUE, null, false);
@@ -211,13 +210,12 @@ public abstract class FreightTank extends Freight {
 						inputAttempt = FluidUtil.tryEmptyContainer(inputCopy, theTank, Integer.MAX_VALUE, null, false);
 					}
 
-					if (inputAttempt.isSuccess()) {
+					if (inputAttempt != null) {
 						// We were able to drain into the container
 
 						// Can we move it to an output slot?
-						ItemStack out = inputAttempt.getResult();
 						for (Integer slot : this.getContainertOutputSlots()) {
-							if (this.cargoItems.insertItem(slot, out, true).getCount() == 0) {
+							if (this.cargoItems.insertItem(slot, inputAttempt, true) == null) {
 								// Move Liquid
 								if (doFill) {
 									FluidUtil.tryFillContainer(inputCopy, theTank, Integer.MAX_VALUE, null, true);
@@ -229,7 +227,7 @@ public abstract class FreightTank extends Freight {
 									cargoItems.extractItem(inputSlot, 1, false);
 									
 									// Increase output
-									this.cargoItems.insertItem(slot, out, false);
+									this.cargoItems.insertItem(slot, inputAttempt, false);
 									break;
 								}
 							}
@@ -259,7 +257,7 @@ public abstract class FreightTank extends Freight {
 	@Override
 	protected void onInventoryChanged() {
 		super.onInventoryChanged();
-		if (!world.isRemote) {
+		if (!worldObj.isRemote) {
 			for(ISyncableSlots container : listners) {
 				container.syncSlots();;
 			}

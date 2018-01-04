@@ -89,23 +89,23 @@ public class RenderComponent {
 	public Vec3d center() {
 		Vec3d min = min();
 		Vec3d max = max();
-		return new Vec3d((min.x + max.x)/2, (min.y + max.y)/2, (min.z + max.z)/2);
+		return new Vec3d((min.xCoord + max.xCoord)/2, (min.yCoord + max.yCoord)/2, (min.zCoord + max.zCoord)/2);
 	}
 	public double height() {
 		Vec3d min = min();
 		Vec3d max = max();
-		return max.y - min.y;
+		return max.yCoord - min.yCoord;
 	}
 	public double length() {
 		Vec3d min = min();
 		Vec3d max = max();
-		return max.x - min.x;
+		return max.xCoord - min.xCoord;
 	}
 
 	public double width() {
 		Vec3d min = min();
 		Vec3d max = max();
-		return max.z - min.z;
+		return max.zCoord - min.zCoord;
 	}
 
 	public RenderComponent scale(Gauge gauge) {

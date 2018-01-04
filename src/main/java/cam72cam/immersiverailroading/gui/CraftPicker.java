@@ -11,23 +11,22 @@ import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.library.CraftingType;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 
 public class CraftPicker extends GuiScreen {
 	private ItemPickerGUI stockSelector;
 	private ItemPickerGUI itemSelector;
-	private NonNullList<ItemStack> items;
+	private List<ItemStack> items;
 	private Consumer<ItemStack> onChoose;
 	
 	public CraftPicker(ItemStack current, CraftingType craftType, Consumer<ItemStack> onChoose) {
 		this.onChoose = onChoose;
-		this.items = NonNullList.create();
+		this.items = new ArrayList<ItemStack>();
 		
-        ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getSubItems(ItemTabs.COMPONENT_TAB, items);
+        ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getSubItems(null, ItemTabs.COMPONENT_TAB, items);
         
-        NonNullList<ItemStack> stock = NonNullList.create();
+        List<ItemStack> stock = new ArrayList<ItemStack>();
         
-        ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(ItemTabs.STOCK_TAB, stock);
+        ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(null, ItemTabs.STOCK_TAB, stock);
 
 		stockSelector = new ItemPickerGUI(stock, this::onStockExit);
 		List<ItemStack> toRemove = new ArrayList<ItemStack>();
@@ -57,7 +56,7 @@ public class CraftPicker extends GuiScreen {
 		
 		if (craftType == CraftingType.CASTING) {
         	stock.add(new ItemStack(ImmersiveRailroading.ITEM_CAST_RAIL, 1));
-	        ImmersiveRailroading.ITEM_AUGMENT.getSubItems(ItemTabs.MAIN_TAB, stock);
+	        ImmersiveRailroading.ITEM_AUGMENT.getSubItems(null, ItemTabs.MAIN_TAB, stock);
 		}
 		
 		toRemove = new ArrayList<ItemStack>();
@@ -72,7 +71,7 @@ public class CraftPicker extends GuiScreen {
 		}
 		items.removeAll(toRemove);
 		
-		itemSelector = new ItemPickerGUI(NonNullList.create(), this::onItemExit);
+		itemSelector = new ItemPickerGUI(new ArrayList<ItemStack>(), this::onItemExit);
 		if (current != null && current.getItem() == ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT) {
 			itemSelector.choosenItem = current;
 		}
@@ -93,7 +92,7 @@ public class CraftPicker extends GuiScreen {
     }
 	
 	private void setupItemSelector() {
-		NonNullList<ItemStack> filteredItems = NonNullList.create();
+		List<ItemStack> filteredItems = new ArrayList<ItemStack>();
 		for (ItemStack item : items) {
 			if (isPartOf(stockSelector.choosenItem, item)) {
 				filteredItems.add(item);

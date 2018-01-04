@@ -54,17 +54,17 @@ public class SteamLocomotiveContainer extends ContainerBase {
             itemstack = itemstack1.copy();
             if (index <= 2) {
             	if (!this.mergeItemStack(itemstack1, 2, this.inventorySlots.size(), false)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             } else {
             	if (!this.mergeItemStack(itemstack1, 0, 1, false)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             }
             
 
-            if (itemstack1.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+            if (itemstack1 == null) {
+                slot.putStack(null);
             } else {
                 slot.onSlotChanged();
             }

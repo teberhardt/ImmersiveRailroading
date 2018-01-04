@@ -2,14 +2,11 @@ package cam72cam.immersiverailroading.items;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.nbt.ItemMultiblockType;
 import cam72cam.immersiverailroading.library.GuiText;
 import cam72cam.immersiverailroading.multiblock.MultiblockRegistry;
 import cam72cam.immersiverailroading.util.BlockUtil;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -37,14 +34,13 @@ public class ItemManual extends Item {
 	}
 	
 	@SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean flagIn)
     {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
         tooltip.add(GuiText.SELECTOR_TYPE.toString(ItemMultiblockType.get(stack)));
     }
 	
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
+	public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World world, EntityPlayer player, EnumHand hand) {
 		if (player.isSneaking()) {
 			if (!world.isRemote) {
 				ItemStack item = player.getHeldItem(hand);
@@ -52,18 +48,18 @@ public class ItemManual extends Item {
 				List<String> keys = MultiblockRegistry.keys();
 				current = keys.get((keys.indexOf(current) + 1) % (keys.size()));
 				ItemMultiblockType.set(item, current);
-				player.sendMessage(new TextComponentString("Placing: " + current));
+				player.addChatMessage(new TextComponentString("Placing: " + current));
 			}
 		} else {
 			if (world.isRemote) {
-				player.sendMessage(new TextComponentString("Coming Soon..."));
+				player.addChatMessage(new TextComponentString("Coming Soon..."));
 			}
 		}
-		return super.onItemRightClick(world, player, hand);
+		return super.onItemRightClick(itemStackIn, world, player, hand);
 	}
 	
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public EnumActionResult onItemUse(ItemStack stackIn, EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		if (!world.isRemote) {
 			ItemStack item = player.getHeldItem(hand);
 			String current = ItemMultiblockType.get(item);

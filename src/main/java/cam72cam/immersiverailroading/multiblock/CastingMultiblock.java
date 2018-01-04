@@ -134,12 +134,12 @@ public class CastingMultiblock extends Multiblock {
 			if (craftTe == null) {
 				return false;
 			}
-			if (!outTe.getContainer().getStackInSlot(0).isEmpty()) {
+			if (!(outTe.getContainer().getStackInSlot(0) == null)) {
 				if (!world.isRemote) {
-					world.spawnEntity(new EntityItem(world, player.posX, player.posY, player.posZ, outTe.getContainer().getStackInSlot(0)));
-					outTe.getContainer().setStackInSlot(0, ItemStack.EMPTY);
+					world.spawnEntityInWorld(new EntityItem(world, player.posX, player.posY, player.posZ, outTe.getContainer().getStackInSlot(0)));
+					outTe.getContainer().setStackInSlot(0, null);
 				}
-			} else if (craftTe.getCraftItem() != null && !craftTe.getCraftItem().isEmpty()){
+			} else if (craftTe.getCraftItem() != null && !(craftTe.getCraftItem() == null)){
 				//TODO user message
 				System.out.println("CRAFTING");
 			} else {
@@ -173,7 +173,7 @@ public class CastingMultiblock extends Multiblock {
 						ParticleUtil.spawnParticle(world, EnumParticleTypes.SMOKE_NORMAL, pos);
 					}
 					if (Math.random() < 0.001) {
-						world.playSound(pos.x, pos.y, pos.z, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 0.25f, false);
+						world.playSound(pos.xCoord, pos.yCoord, pos.zCoord, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 0.25f, false);
 					}
 				}
 				
@@ -185,17 +185,17 @@ public class CastingMultiblock extends Multiblock {
 				if (fluidTe == null) {
 					return;
 				}
-				AxisAlignedBB bb = new AxisAlignedBB(getPos(offset.add(0, 1, 0))).grow(3, 0, 3);
+				AxisAlignedBB bb = new AxisAlignedBB(getPos(offset.add(0, 1, 0))).expand(3, 3, 3);
 				List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, bb);
 				for (EntityItem item : items) {
-					ItemStack stack = item.getItem();
+					ItemStack stack = item.getEntityItem();
 					if(steelBlock().isItemEqual(stack)) {
 						// TODO drain more power on melt
-						while(stack.getCount() != 0 && fluidTe.getCraftProgress() < max_volume + 9) {
+						while(stack.stackSize != 0 && fluidTe.getCraftProgress() < max_volume + 9) {
 							if (!hasPower()) {
 								break;
 							}
-							stack.shrink(1);
+							stack.stackSize -= 1;
 							fluidTe.setCraftProgress(fluidTe.getCraftProgress() + 9);
 						}
 					} else {
@@ -205,7 +205,7 @@ public class CastingMultiblock extends Multiblock {
 						}
 					}
 				}
-				List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, bb.grow(0,2,0));
+				List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, bb.expand(0,2,0));
 				for (EntityLivingBase alive : living) {
 					alive.attackEntityFrom(new DamageSource("immersiverailroading:casting"), 5);
 				}
@@ -230,7 +230,7 @@ public class CastingMultiblock extends Multiblock {
 				}
 				
 				ItemStack item = craftTe.getCraftItem();
-				if (item == null || item.isEmpty()) {
+				if (item == null || item == null) {
 					return;
 				}
 				
@@ -243,19 +243,19 @@ public class CastingMultiblock extends Multiblock {
 					cost = (int) Math.ceil(20 * ItemGauge.get(item).scale());
 				} else if (item.getItem() == ImmersiveRailroading.ITEM_AUGMENT) {
 					cost = (int) Math.ceil(8 * ItemGauge.get(item).scale());
-					item.setCount(8);
+					item.stackSize = (8);
 				} else {
 					System.out.println("BAD CAST");
 					cost = 10;
 				}
 				if (craftTe.getCraftProgress() >= cost) {
 					craftTe.setCraftProgress(0);
-					craftTe.setCraftItem(ItemStack.EMPTY);
+					craftTe.setCraftItem(null);
 					outTe.getContainer().setStackInSlot(0, item.copy());
 				} else {
 					if (craftTe.getRenderTicks() % 10 == 0) {
 						if (craftTe.getCraftProgress() + fluidTe.getCraftProgress() >= cost) {
-							if (outTe.getContainer().getStackInSlot(0).isEmpty()) {
+							if (outTe.getContainer().getStackInSlot(0) == null) {
 								if (fluidTe.getCraftProgress() > 0) {
 									fluidTe.setCraftProgress(fluidTe.getCraftProgress()-1);
 									craftTe.setCraftProgress(craftTe.getCraftProgress()+1);
@@ -332,7 +332,7 @@ public class CastingMultiblock extends Multiblock {
 		public ItemStack getCraftItem() {
 			TileMultiblock craftingTe = getTile(craft);
 			if (craftingTe == null) {
-				return ItemStack.EMPTY;
+				return null;
 			}
 			return craftingTe.getCraftItem();
 		}

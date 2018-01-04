@@ -9,7 +9,6 @@ import com.google.gson.JsonObject;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.entity.CarFreight;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 public class CarFreightDefinition extends EntityRollingStockDefinition {
@@ -44,10 +43,10 @@ public class CarFreightDefinition extends EntityRollingStockDefinition {
 	}
 	
 	public int getInventorySize(Gauge gauge) {
-		return MathHelper.ceil(numSlots * gauge.scale());
+		return (int) Math.ceil(numSlots * gauge.scale());
 	}
 
 	public int getInventoryWidth(Gauge gauge) {
-		return MathHelper.ceil(width * gauge.scale());
+		return (int) Math.ceil(width * gauge.scale());
 	}
 }

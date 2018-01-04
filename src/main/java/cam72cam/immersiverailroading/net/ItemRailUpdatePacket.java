@@ -106,9 +106,9 @@ public class ItemRailUpdatePacket implements IMessage {
 			ItemStack stack;
 			TileRailPreview te = null;
 			if (message.tilePreviewPos == null) {
-				stack = ctx.getServerHandler().player.inventory.getStackInSlot(message.slot);
+				stack = ctx.getServerHandler().playerEntity.inventory.getStackInSlot(message.slot);
 			} else {
-				te = TileRailPreview.get(ctx.getServerHandler().player.world, message.tilePreviewPos);
+				te = TileRailPreview.get(ctx.getServerHandler().playerEntity.worldObj, message.tilePreviewPos);
 				if (te == null) {
 					ImmersiveRailroading.warn("Got invalid item rail update packet at %s", message.tilePreviewPos);
 					return;
@@ -124,7 +124,7 @@ public class ItemRailUpdatePacket implements IMessage {
 			ItemTrackBlueprint.setBedFill(stack, message.railBedFill);
 			ItemTrackBlueprint.setPreview(stack, message.isPreview);
 			if (message.tilePreviewPos == null) {
-				ctx.getServerHandler().player.inventory.setInventorySlotContents(message.slot, stack);
+				ctx.getServerHandler().playerEntity.inventory.setInventorySlotContents(message.slot, stack);
 			} else {
 				te.setItem(stack);
 			}

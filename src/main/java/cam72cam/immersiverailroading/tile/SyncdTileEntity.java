@@ -9,14 +9,14 @@ public class SyncdTileEntity extends TileEntity {
 	public boolean hasTileData;
 	
 	public boolean isLoaded() {
-		return this.hasWorld() && (!world.isRemote || hasTileData);
+		return this.hasWorldObj() && (!worldObj.isRemote || hasTileData);
 	}
 
 	@Override
 	public void markDirty() {
 		super.markDirty();
-		world.notifyBlockUpdate(getPos(), world.getBlockState(getPos()), world.getBlockState(getPos()), 1 + 2 + 8);
-		world.notifyNeighborsOfStateChange(pos, this.getBlockType(), true);
+		worldObj.notifyBlockUpdate(getPos(), worldObj.getBlockState(getPos()), worldObj.getBlockState(getPos()), 1 + 2 + 8);
+		worldObj.notifyNeighborsOfStateChange(pos, this.getBlockType());
 	}
 	
 	public void writeUpdateNBT(NBTTagCompound nbt) {
@@ -39,7 +39,7 @@ public class SyncdTileEntity extends TileEntity {
 		this.readFromNBT(pkt.getNbtCompound());
 		this.readUpdateNBT(pkt.getNbtCompound());
 		super.onDataPacket(net, pkt);
-		world.markBlockRangeForRenderUpdate(getPos(), getPos());
+		worldObj.markBlockRangeForRenderUpdate(getPos(), getPos());
 		hasTileData = true;
 	}
 	
@@ -56,7 +56,7 @@ public class SyncdTileEntity extends TileEntity {
 		this.readFromNBT(tag);
 		this.readUpdateNBT(tag);
 		super.handleUpdateTag(tag);
-		world.markBlockRangeForRenderUpdate(getPos(), getPos());
+		worldObj.markBlockRangeForRenderUpdate(getPos(), getPos());
 		hasTileData = true;
 	}
 }

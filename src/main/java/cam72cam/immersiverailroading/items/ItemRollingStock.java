@@ -2,8 +2,6 @@ package cam72cam.immersiverailroading.items;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
@@ -15,16 +13,15 @@ import cam72cam.immersiverailroading.registry.DefinitionManager;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.tile.TileRailBase;
 import cam72cam.immersiverailroading.util.BlockUtil;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -45,9 +42,9 @@ public class ItemRollingStock extends BaseItemRollingStock {
 	}
 	
 	@Override
-	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items)
+	public void getSubItems(Item itemIn, CreativeTabs tab, List<ItemStack> items)
     {
-        if (this.isInCreativeTab(tab))
+        if (this.getCreativeTab() == (tab))
         {
         	for (String defID : DefinitionManager.getDefinitionNames()) {
         		ItemStack stack = new ItemStack(this);
@@ -59,13 +56,12 @@ public class ItemRollingStock extends BaseItemRollingStock {
     }
 	
 	@SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean flagIn)
     {
 		overrideStackDisplayName(stack);
 		
 		Gauge gauge = ItemGauge.get(stack);
 		
-        super.addInformation(stack, worldIn, tooltip, flagIn);
         EntityRollingStockDefinition def = ItemDefinition.get(stack);
         if (def != null) {
         	tooltip.addAll(def.getTooltip(gauge));
@@ -74,7 +70,7 @@ public class ItemRollingStock extends BaseItemRollingStock {
     }
 	
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public EnumActionResult onItemUse(ItemStack stackIn, EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		if (BlockUtil.isIRRail(worldIn, pos)) {
 			TileRailBase te = TileRailBase.get(worldIn, pos);
 			if (te.getAugment() != null) {
@@ -87,9 +83,9 @@ public class ItemRollingStock extends BaseItemRollingStock {
 					if (!worldIn.isRemote) {
 						boolean set = te.setAugmentFilter(ItemDefinition.getID(player.getHeldItem(hand)));
 						if (set) {
-							player.sendMessage(ChatText.SET_AUGMENT_FILTER.getMessage(ItemDefinition.get(player.getHeldItem(hand)).name));
+							player.addChatMessage(ChatText.SET_AUGMENT_FILTER.getMessage(ItemDefinition.get(player.getHeldItem(hand)).name));
 						} else {
-							player.sendMessage(ChatText.RESET_AUGMENT_FILTER.getMessage());
+							player.addChatMessage(ChatText.RESET_AUGMENT_FILTER.getMessage());
 						}
 					}
 					return EnumActionResult.SUCCESS;

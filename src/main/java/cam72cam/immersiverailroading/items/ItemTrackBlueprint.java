@@ -2,8 +2,6 @@ package cam72cam.immersiverailroading.items;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.blocks.BlockRailBase;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
@@ -13,7 +11,6 @@ import cam72cam.immersiverailroading.library.TrackItems;
 import cam72cam.immersiverailroading.library.TrackPositionType;
 import cam72cam.immersiverailroading.tile.TileRailPreview;
 import cam72cam.immersiverailroading.util.RailInfo;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -38,15 +35,16 @@ public class ItemTrackBlueprint extends Item {
         this.setCreativeTab(ItemTabs.MAIN_TAB);
 	}
 	
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
+	@Override
+	public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand handIn) {
 		if (worldIn.isRemote) {
             playerIn.openGui(ImmersiveRailroading.instance, GuiTypes.RAIL.ordinal(), worldIn, (int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
         }
-        return super.onItemRightClick(worldIn, playerIn, handIn);
+        return super.onItemRightClick(itemStackIn, worldIn, playerIn, handIn);
 	}
 	
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public EnumActionResult onItemUse(ItemStack stackIn, EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		pos = pos.up();
 		
 		ItemStack stack = player.getHeldItem(hand);
@@ -62,21 +60,20 @@ public class ItemTrackBlueprint extends Item {
 			pos = pos.down();
 		}
 		
-		RailInfo info = new RailInfo(stack, player.world, player.getRotationYawHead(), pos, hitX, hitY, hitZ); 
+		RailInfo info = new RailInfo(stack, player.worldObj, player.getRotationYawHead(), pos, hitX, hitY, hitZ); 
 		info.build(player, pos);
 		return EnumActionResult.SUCCESS;
     }
 
 	@Override
-	public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean flagIn) {
         tooltip.add(GuiText.TRACK_TYPE.toString(getType(stack)));
         tooltip.add(GuiText.TRACK_GAUGE.toString(ItemGauge.get(stack)));
         tooltip.add(GuiText.TRACK_LENGTH.toString(getLength(stack)));
         tooltip.add(GuiText.TRACK_QUARTERS.toString(getQuarters(stack)));
         tooltip.add(GuiText.TRACK_POSITION.toString(getPosType(stack)));
-        tooltip.add(GuiText.TRACK_RAIL_BED.toString(getBed(stack).getDisplayName()));
-        tooltip.add(GuiText.TRACK_RAIL_BED_FILL.toString(getBedFill(stack).getDisplayName()));
+        tooltip.add(GuiText.TRACK_RAIL_BED.toString(getBed(stack) != null ? getBed(stack).getDisplayName() : ""));
+        tooltip.add(GuiText.TRACK_RAIL_BED_FILL.toString(getBedFill(stack) != null ? getBedFill(stack).getDisplayName() : ""));
         tooltip.add((isPreview(stack) ? GuiText.TRACK_PLACE_BLUEPRINT_TRUE : GuiText.TRACK_PLACE_BLUEPRINT_FALSE).toString());
 	}
 
@@ -137,10 +134,10 @@ public class ItemTrackBlueprint extends Item {
 	}
 
 	public static ItemStack getBed(ItemStack stack) {
-		if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("bedItem")) { 
-			return new ItemStack(stack.getTagCompound().getCompoundTag("bedItem"));
+		if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("bedItem")) {
+			return ItemStack.loadItemStackFromNBT(stack.getTagCompound().getCompoundTag("bedItem"));
 		} else {
-			return ItemStack.EMPTY;
+			return null;
 		}
 	}
 	
@@ -150,9 +147,9 @@ public class ItemTrackBlueprint extends Item {
 
 	public static ItemStack getBedFill(ItemStack stack) {
 		if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("bedFill")) { 
-			return new ItemStack(stack.getTagCompound().getCompoundTag("bedFill"));
+			return ItemStack.loadItemStackFromNBT(stack.getTagCompound().getCompoundTag("bedFill"));
 		} else {
-			return ItemStack.EMPTY;
+			return null;
 		}
 	}
 	public static void setBedFill(ItemStack stack, ItemStack base) {

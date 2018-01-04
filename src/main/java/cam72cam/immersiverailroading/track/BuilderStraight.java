@@ -40,8 +40,8 @@ public class BuilderStraight extends BuilderBase {
 			Vec3d gagPos = VecUtil.fromYaw(dist, angle);
 			for (double q = -gauge.value(); q <= gauge.value(); q+=0.1) {
 				Vec3d nextUp = VecUtil.fromYaw(q, 90);
-				int posX = (int)(gagPos.x+nextUp.x);
-				int posZ = (int)(gagPos.z+nextUp.z);
+				int posX = (int)(gagPos.xCoord+nextUp.xCoord);
+				int posZ = (int)(gagPos.zCoord+nextUp.zCoord);
 				positions.add(Pair.of(posX, posZ));
 				if (dist < 3 || dist > actualLength - 3) {
 					flexPositions.add(Pair.of(posX, posZ));
@@ -49,13 +49,13 @@ public class BuilderStraight extends BuilderBase {
 			}
 			if (endOfTrack) {
 				if (Math.ceil(dist) == Math.ceil(actualLength)) {
-					mainX = (int) gagPos.x;
-					mainZ = (int) gagPos.z;
+					mainX = (int) gagPos.xCoord;
+					mainZ = (int) gagPos.zCoord;
 				}
 			} else {
 				if (Math.ceil(dist) == Math.ceil(actualLength/2)) {
-					mainX = (int) gagPos.x;
-					mainZ = (int) gagPos.z;
+					mainX = (int) gagPos.xCoord;
+					mainZ = (int) gagPos.zCoord;
 				}
 			}
 		}
@@ -88,11 +88,11 @@ public class BuilderStraight extends BuilderBase {
 		List<VecYawPitch> data = new ArrayList<VecYawPitch>();
 		
 		Vec3d pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, 0), angle-90);
-		data.add(new VecYawPitch(pos.x, pos.y, pos.z, -angle, 0, info.length, "RAIL_RIGHT", "RAIL_LEFT"));
+		data.add(new VecYawPitch(pos.xCoord, pos.yCoord, pos.zCoord, -angle, 0, info.length, "RAIL_RIGHT", "RAIL_LEFT"));
 		
 		for (double i = 0; i < info.length-gauge.scale()/2; i+=gauge.scale()) {
 			pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, i), angle-90);
-			data.add(new VecYawPitch(pos.x, pos.y, pos.z, -angle, "RAIL_BASE"));
+			data.add(new VecYawPitch(pos.xCoord, pos.yCoord, pos.zCoord, -angle, "RAIL_BASE"));
 		}
 		return data;
 	}

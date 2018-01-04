@@ -13,6 +13,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.init.Blocks;
@@ -42,7 +43,7 @@ public class RailBaseModel implements IBakedModel {
 				if (augment != null) {
 					height = height + 0.1f * (float)gauge.scale() * 1.25f;
 
-					state = Blocks.CONCRETE.getDefaultState();
+					state = Blocks.WOOL.getDefaultState();
 					state = state.withProperty(BlockColored.COLOR, augment.tempColor());
 					IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
 					List<BakedQuad> quads = new ArrayList<BakedQuad>();
@@ -62,7 +63,7 @@ public class RailBaseModel implements IBakedModel {
 							quads.addAll(container.getQuads(state, side, rand));
 						} else if (liquid > 0) {
 							state = state.withProperty(BlockColored.COLOR, EnumDyeColor.BLUE);
-							scale = new Vec3d(scale.x, scale.y * liquid, scale.z);
+							scale = new Vec3d(scale.xCoord, scale.yCoord * liquid, scale.zCoord);
 							IBakedModel water = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
 							IBakedModel waterScaled = new BakedScaledModel(water, scale, pos);
 							quads.addAll(waterScaled.getQuads(state, side, rand));
@@ -78,7 +79,7 @@ public class RailBaseModel implements IBakedModel {
 					state = Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS, snow);
 					IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
 					return model.getQuads(state, side, rand);
-				} else if (bed.getItem() != Items.AIR) {
+				} else if (bed.getItem() != Items.NAME_TAG) {
 					ItemStack item = bed;
 					state = BlockUtil.itemToBlockState(item);
 					IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
@@ -112,5 +113,10 @@ public class RailBaseModel implements IBakedModel {
 	@Override
 	public ItemOverrideList getOverrides() {
 		return null;
+	}
+	
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() {
+		return ItemCameraTransforms.DEFAULT;
 	}
 }

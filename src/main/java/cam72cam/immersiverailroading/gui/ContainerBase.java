@@ -107,7 +107,7 @@ public abstract class ContainerBase extends Container implements ISyncableSlots 
         for (int i = 0; i < this.inventorySlots.size(); ++i)
         {
             ItemStack itemstack = ((Slot)this.inventorySlots.get(i)).getStack();
-            itemstack = itemstack.isEmpty() ? ItemStack.EMPTY : itemstack.copy();
+            itemstack = itemstack == null ? null : itemstack.copy();
 
             for (int j = 0; j < this.listeners.size(); ++j)
             {
@@ -122,7 +122,7 @@ public abstract class ContainerBase extends Container implements ISyncableSlots 
 			return super.slotClick(slotId, dragType, clickTypeIn, player);
 		} catch (Exception ex) {
 			// This is a crappy hack
-			return ItemStack.EMPTY; 
+			return null; 
 		}
 	}
 }

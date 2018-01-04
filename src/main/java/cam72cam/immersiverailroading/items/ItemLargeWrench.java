@@ -30,7 +30,7 @@ public class ItemLargeWrench extends Item {
         this.setCreativeTab(ItemTabs.MAIN_TAB);
 	}
 	@Override
-	public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	public EnumActionResult onItemUse(ItemStack stackIn, EntityPlayer playerIn, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 			if (BlockUtil.isIRRail(world, pos)) {
 				TileRailBase te = TileRailBase.get(world, pos);
 				if (te != null) {
@@ -42,7 +42,7 @@ public class ItemLargeWrench extends Item {
 							ItemStack stack = new ItemStack(ImmersiveRailroading.ITEM_AUGMENT, 1);
 							ItemAugmentType.set(stack, augment);
 							ItemGauge.set(stack, Gauge.from(te.getTrackGauge()));
-							world.spawnEntity(new EntityItem(world, pos.getX(), pos.getY(), pos.getZ(), stack));
+							world.spawnEntityInWorld(new EntityItem(world, pos.getX(), pos.getY(), pos.getZ(), stack));
 						}
 					}
 				}

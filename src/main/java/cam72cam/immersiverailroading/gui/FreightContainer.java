@@ -43,17 +43,17 @@ public class FreightContainer extends ContainerBase {
             itemstack = itemstack1.copy();
             if (index <= freight.getInventorySize()) {
             	if (!this.mergeItemStack(itemstack1, freight.getInventorySize(), this.inventorySlots.size(), false)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             } else {
             	if (!this.mergeItemStack(itemstack1, 0, freight.getInventorySize()-1, false)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             }
             
 
-            if (itemstack1.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+            if (itemstack1 == null) {
+                slot.putStack(null);
             } else {
                 slot.onSlotChanged();
             }

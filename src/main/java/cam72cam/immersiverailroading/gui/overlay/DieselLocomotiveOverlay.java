@@ -7,7 +7,7 @@ import net.minecraftforge.fluids.Fluid;
 
 public class DieselLocomotiveOverlay extends LocomotiveOverlay {
 	public void draw() {
-		Entity riding = mc.player.getRidingEntity();
+		Entity riding = mc.thePlayer.getRidingEntity();
 		if (riding == null) {
 			return;
 		}

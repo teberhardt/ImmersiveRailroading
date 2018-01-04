@@ -74,7 +74,7 @@ public class MovementSimulator {
 
 		Vec3d bogeySkew = nextRear.subtractReverse(nextFront);
 		position.rotationYaw = VecUtil.toYaw(bogeySkew);
-		position.rotationPitch = (float) Math.toDegrees(MathHelper.atan2(bogeySkew.y, nextRear.distanceTo(nextFront)));
+		position.rotationPitch = (float) Math.toDegrees(MathHelper.atan2(bogeySkew.yCoord, nextRear.distanceTo(nextFront)));
 
 		if (isReverse) {
 			position.frontYaw += 180;

@@ -60,9 +60,9 @@ public class KeyPressPacket implements IMessage {
 
 		private void handle(KeyPressPacket message, MessageContext ctx) {
 			
-			Entity source = ctx.getServerHandler().player.getServerWorld().getEntityByID(message.sourceEntityID);
+			Entity source = ctx.getServerHandler().playerEntity.getServerWorld().getEntityByID(message.sourceEntityID);
 			
-			List<EntityRidableRollingStock> matches = ctx.getServerHandler().player.getServerWorld().getEntities(EntityRidableRollingStock.class, new Predicate<EntityRidableRollingStock>()
+			List<EntityRidableRollingStock> matches = ctx.getServerHandler().playerEntity.getServerWorld().getEntities(EntityRidableRollingStock.class, new Predicate<EntityRidableRollingStock>()
 		    {
 		        public boolean apply(@Nullable EntityRidableRollingStock entity)
 		        {
@@ -70,7 +70,7 @@ public class KeyPressPacket implements IMessage {
 		        }
 		    });
 
-			if (matches.isEmpty()) {
+			if (matches == null) {
 				return;
 			}
 			

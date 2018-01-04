@@ -37,7 +37,7 @@ public class BlockRailGag extends BlockRailBase {
 
 	@Override
     public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
-		return ItemStack.EMPTY;
+		return null;
 	}
 
 	@Override

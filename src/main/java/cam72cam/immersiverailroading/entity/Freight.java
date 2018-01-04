@@ -1,4 +1,6 @@
 package cam72cam.immersiverailroading.entity;
+import javax.annotation.Nullable;
+
 import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.GuiTypes;
@@ -37,7 +39,7 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 	}
 	
 	protected void onInventoryChanged() {
-		if (!world.isRemote) {
+		if (!worldObj.isRemote) {
 			handleMass();
 		}
 	}
@@ -59,13 +61,13 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 	public void onDissassemble() {
 		super.onDissassemble();
 		
-		if (!world.isRemote) {		
+		if (!worldObj.isRemote) {		
 			for (int slot = 0; slot < cargoItems.getSlots(); slot++) {
 				ItemStack itemstack = cargoItems.getStackInSlot(slot);
-				if (itemstack.getCount() != 0) {
+				if (itemstack.stackSize != 0) {
 					Vec3d pos = this.getPositionVector().add(VecUtil.fromYaw(4, this.rotationYaw+90));
-					world.spawnEntity(new EntityItem(this.world, pos.x, pos.y, pos.z, itemstack.copy()));
-					itemstack.setCount(0);
+					worldObj.spawnEntityInWorld(new EntityItem(this.worldObj, pos.xCoord, pos.yCoord, pos.zCoord, itemstack.copy()));
+					itemstack.stackSize = 0;
 				}
 			}
 		}
@@ -74,8 +76,8 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 	}
 
 	@Override
-	public boolean processInitialInteract(EntityPlayer player, EnumHand hand) {
-		if ((super.processInitialInteract(player, hand))) {
+	public boolean processInitialInteract(EntityPlayer player, @Nullable ItemStack stack, EnumHand hand) {
+		if ((super.processInitialInteract(player, stack, hand))) {
 			return true;
 		}
 		
@@ -84,7 +86,7 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 		}
 		
 		// I don't believe the positions are used
-		player.openGui(ImmersiveRailroading.instance, guiType().ordinal(), world, this.getEntityId(), 0, 0);
+		player.openGui(ImmersiveRailroading.instance, guiType().ordinal(), worldObj, this.getEntityId(), 0, 0);
 		return true;
 	}
 
@@ -98,7 +100,7 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 	protected void handleMass() {
 		int itemInsideCount = 0;
 		for (int slot = 0; slot < cargoItems.getSlots(); slot++) {
-			itemInsideCount += cargoItems.getStackInSlot(slot).getCount();
+			itemInsideCount += cargoItems.getStackInSlot(slot) == null ? 0 : cargoItems.getStackInSlot(slot).stackSize;
 		}
 		this.getDataManager().set(CARGO_ITEMS, itemInsideCount);
 	}
@@ -119,7 +121,7 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 			if (slot < cargoItems.getSlots()) {
 				cargoItems.setStackInSlot(slot, temp.getStackInSlot(slot));
 			} else {
-				world.spawnEntity(new EntityItem(this.world, this.posX, this.posY, this.posZ, temp.getStackInSlot(slot)));
+				worldObj.spawnEntityInWorld(new EntityItem(this.worldObj, this.posX, this.posY, this.posZ, temp.getStackInSlot(slot)));
 			}
 		}
 		handleMass();
@@ -129,15 +131,15 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 	public void setDead() {
 		super.setDead();
 		
-		if (world.isRemote) {
+		if (worldObj.isRemote) {
 			return;
 		}
 		
 		for (int slot = 0; slot < cargoItems.getSlots(); slot++) {
 			ItemStack itemstack = cargoItems.getStackInSlot(slot);
-			if (itemstack.getCount() != 0) {
-				world.spawnEntity(new EntityItem(this.world, this.posX, this.posY, this.posZ, itemstack.copy()));
-				itemstack.setCount(0);
+			if (itemstack.stackSize != 0) {
+				worldObj.spawnEntityInWorld(new EntityItem(this.worldObj, this.posX, this.posY, this.posZ, itemstack.copy()));
+				itemstack.stackSize = 0;
 			}
 		}
 	}

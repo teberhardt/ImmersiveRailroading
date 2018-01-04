@@ -71,24 +71,24 @@ public class BoilerRollerMultiblock extends Multiblock {
 		public boolean onBlockActivated(EntityPlayer player, EnumHand hand, BlockPos offset) {
 			if (!player.isSneaking()) {
 				ItemStack held = player.getHeldItem(hand);
-				if (held.isEmpty()) {
+				if (held == null) {
 					TileMultiblock craftTe = getTile(crafting);
 					if (craftTe == null) {
 						return false;
 					}
 					
 					player.setHeldItem(hand, craftTe.getContainer().getStackInSlot(1));
-					craftTe.getContainer().setStackInSlot(1, ItemStack.EMPTY);
+					craftTe.getContainer().setStackInSlot(1, null);
 				} else if (held.getItem() == ImmersiveRailroading.ITEM_PLATE && ItemPlateType.get(held) == PlateType.BOILER) {
 					TileMultiblock craftTe = getTile(crafting);
 					if (craftTe == null) {
 						return false;
 					}
-					if (craftTe.getContainer().getStackInSlot(0).isEmpty()) {
+					if (craftTe.getContainer().getStackInSlot(0) == null) {
 						ItemStack inputStack = held.copy();
-						inputStack.setCount(1);
+						inputStack.stackSize = (1);
 						craftTe.getContainer().setStackInSlot(0, inputStack);
-						held.shrink(1);
+						held.stackSize -= 1;
 						player.setHeldItem(hand, held);
 					}
 				}
@@ -147,7 +147,7 @@ public class BoilerRollerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (input.getItem() == ImmersiveRailroading.ITEM_PLATE && ItemPlateType.get(input) == PlateType.BOILER && output.isEmpty()) {
+				if (input.getItem() == ImmersiveRailroading.ITEM_PLATE && ItemPlateType.get(input) == PlateType.BOILER && output == null) {
 					progress = 100;
 					craftTe.setCraftProgress(100);
 				}
@@ -160,7 +160,7 @@ public class BoilerRollerMultiblock extends Multiblock {
 				ItemDefinition.setID(out, ItemDefinition.getID(input));
 				ItemComponent.setComponentType(out, ItemComponentType.BOILER_SEGMENT);
 				craftTe.getContainer().setStackInSlot(1, out);
-				input.shrink(1);
+				input.stackSize -= 1;
 				craftTe.getContainer().setStackInSlot(0, input);;
 			}
 		}
@@ -201,7 +201,7 @@ public class BoilerRollerMultiblock extends Multiblock {
 			if (craftTe == null) {
 				return false;
 			}
-			return !craftTe.getContainer().getStackInSlot(0).isEmpty();
+			return !(craftTe.getContainer().getStackInSlot(0) == null);
 		}
 
 		public boolean hasOutput() {
@@ -209,7 +209,7 @@ public class BoilerRollerMultiblock extends Multiblock {
 			if (craftTe == null) {
 				return false;
 			}
-			return !craftTe.getContainer().getStackInSlot(1).isEmpty();
+			return !(craftTe.getContainer().getStackInSlot(1) == null);
 		}
 
 		

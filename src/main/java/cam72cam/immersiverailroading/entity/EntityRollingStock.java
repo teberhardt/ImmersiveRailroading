@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import com.google.gson.JsonObject;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
@@ -20,6 +22,7 @@ import cam72cam.immersiverailroading.util.BufferUtil;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
@@ -63,10 +66,10 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 	}
 	
 	public void onUpdate() {
-		if (!world.isRemote && this.ticksExisted % 5 == 0) {
+		if (!worldObj.isRemote && this.ticksExisted % 5 == 0) {
 			EntityRollingStockDefinition def = DefinitionManager.getDefinition(defID);
 			if (def == null) {
-				world.removeEntity(this);
+				worldObj.removeEntity(this);
 			}
 		}
 	}
@@ -112,7 +115,8 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 	 * Player Interactions
 	 */
 	
-	public boolean processInitialInteract(EntityPlayer player, EnumHand hand) {
+	@Override
+	public boolean processInitialInteract(EntityPlayer player, @Nullable ItemStack stack, EnumHand hand) {
 		return false;
 	}
 
@@ -124,15 +128,15 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 
 	@Override
 	public boolean attackEntityFrom(DamageSource damagesource, float amount) {
-		if (world.isRemote) {
+		if (worldObj.isRemote) {
 			return false;
 		}
 		
-		if (damagesource.getTrueSource() instanceof EntityPlayer && !damagesource.isProjectile()) {
-			EntityPlayer player = (EntityPlayer) damagesource.getTrueSource();
+		if (damagesource.getSourceOfDamage() instanceof EntityPlayer && !damagesource.isProjectile()) {
+			EntityPlayer player = (EntityPlayer) damagesource.getSourceOfDamage();
 			if (player.isSneaking()) {
 				this.setDead();
-				world.removeEntity(this);
+				worldObj.removeEntity(this);
 				return false;
 			}
 		}

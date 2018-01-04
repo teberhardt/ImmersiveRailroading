@@ -17,20 +17,21 @@ public class ItemButton extends GuiButton {
 	}
 	
 	@Override
-	public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) {
-		Gui.drawRect(x, y, x+16, y+16, 0xFFFFFFFF);
+	public void drawButton(Minecraft mc, int mouseX, int mouseY) {
+		super.drawButton(mc, mouseX, mouseY);
+		Gui.drawRect(xPosition, yPosition, xPosition+16, yPosition+16, 0xFFFFFFFF);
 		RenderHelper.enableStandardItemLighting();
 
         FontRenderer font = stack.getItem().getFontRenderer(stack);
         if (font == null) {
-        	font = mc.fontRenderer;
+        	font = mc.fontRendererObj;
         }
 		//mc.getRenderItem().renderItemIntoGUI(stack, x, y);
-        mc.getRenderItem().renderItemAndEffectIntoGUI(stack, x, y);
-		mc.getRenderItem().renderItemOverlays(font, stack, x, y);
+        mc.getRenderItem().renderItemAndEffectIntoGUI(stack, xPosition, yPosition);
+		mc.getRenderItem().renderItemOverlays(font, stack, xPosition, yPosition);
 	}
 
 	public boolean isMouseOver(int mouseX, int mouseY) {
-		return mouseX >= this.x && mouseX < this.x + 16 && mouseY >= this.y && mouseY < this.y + 16;
+		return mouseX >= this.xPosition && mouseX < this.xPosition + 16 && mouseY >= this.yPosition && mouseY < this.yPosition + 16;
 	}
 }

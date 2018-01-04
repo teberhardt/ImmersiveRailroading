@@ -36,7 +36,7 @@ public abstract class BaseItemRollingStock extends Item {
 		
 		EntityRollingStockDefinition def = ItemDefinition.get(stack);
 		if (def == null) {
-			player.sendMessage(ChatText.STOCK_INVALID.getMessage());
+			player.addChatMessage(ChatText.STOCK_INVALID.getMessage());
 			return EnumActionResult.FAIL;
 		}
 		

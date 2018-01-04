@@ -22,7 +22,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -162,36 +161,36 @@ public class RailInfo {
 				
 				for (ItemStack playerStack : player.inventory.mainInventory) {
 					if (playerStack.getItem() == ImmersiveRailroading.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
-						rails += playerStack.getCount();
+						rails += playerStack.stackSize;
 					}
 					if (OreDictionaryContainsMatch(false, OreDictionary.getOres("plankTreatedWood"), playerStack)) {
-						ties += playerStack.getCount();
+						ties += playerStack.stackSize;
 					}
-					if (railBed.getItem() != Items.AIR && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
-						bed += playerStack.getCount();
+					if (railBed.getItem() != Items.NAME_TAG && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
+						bed += playerStack.stackSize;
 					}
-					if (railBedFill.getItem() != Items.AIR && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
-						fill += playerStack.getCount();
+					if (railBedFill.getItem() != Items.NAME_TAG && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
+						fill += playerStack.stackSize;
 					}
 				}
 				
 				if (ties < builder.costTies()) {
-					player.sendMessage(ChatText.BUILD_MISSING_TIES.getMessage(builder.costTies() - ties));
+					player.addChatMessage(ChatText.BUILD_MISSING_TIES.getMessage(builder.costTies() - ties));
 					return false;
 				}
 				
 				if (rails < builder.costRails()) {
-					player.sendMessage(ChatText.BUILD_MISSING_RAILS.getMessage(builder.costRails() - rails));
+					player.addChatMessage(ChatText.BUILD_MISSING_RAILS.getMessage(builder.costRails() - rails));
 					return false;
 				}
 				
-				if (railBed.getItem() != Items.AIR && bed < builder.costBed()) {
-					player.sendMessage(ChatText.BUILD_MISSING_RAIL_BED.getMessage(builder.costBed() - bed));
+				if (railBed.getItem() != Items.NAME_TAG && bed < builder.costBed()) {
+					player.addChatMessage(ChatText.BUILD_MISSING_RAIL_BED.getMessage(builder.costBed() - bed));
 					return false;
 				}
 				
-				if (railBedFill.getItem() != Items.AIR && fill < builder.costFill()) {
-					player.sendMessage(ChatText.BUILD_MISSING_RAIL_BED_FILL.getMessage(builder.costFill() - fill));
+				if (railBedFill.getItem() != Items.NAME_TAG && fill < builder.costFill()) {
+					player.addChatMessage(ChatText.BUILD_MISSING_RAIL_BED_FILL.getMessage(builder.costFill() - fill));
 					return false;
 				}
 
@@ -203,62 +202,62 @@ public class RailInfo {
 				
 				for (ItemStack playerStack : player.inventory.mainInventory) {
 					if (playerStack.getItem() == ImmersiveRailroading.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
-						if (rails > playerStack.getCount()) {
-							rails -= playerStack.getCount();
+						if (rails > playerStack.stackSize) {
+							rails -= playerStack.stackSize;
 							ItemStack copy = playerStack.copy();
-							copy.setCount(playerStack.getCount());
+							copy.stackSize = (playerStack.stackSize);
 							drops.add(copy); 
-							playerStack.setCount(0);
+							playerStack.stackSize = (0);
 						} else if (rails != 0) {
 							ItemStack copy = playerStack.copy();
-							copy.setCount(rails);
+							copy.stackSize = (rails);
 							drops.add(copy); 
-							playerStack.setCount(playerStack.getCount() - rails);
+							playerStack.stackSize = (playerStack.stackSize - rails);
 							rails = 0;
 						}
 					}
 					if (OreDictionaryContainsMatch(false, OreDictionary.getOres("plankTreatedWood"), playerStack)) {
-						if (ties > playerStack.getCount()) {
-							ties -= playerStack.getCount();
+						if (ties > playerStack.stackSize) {
+							ties -= playerStack.stackSize;
 							ItemStack copy = playerStack.copy();
-							copy.setCount(playerStack.getCount());
+							copy.stackSize = (playerStack.stackSize);
 							drops.add(copy);  
-							playerStack.setCount(0);
+							playerStack.stackSize = (0);
 						} else if (ties != 0) {
 							ItemStack copy = playerStack.copy();
-							copy.setCount(ties);
+							copy.stackSize = (ties);
 							drops.add(copy); 
-							playerStack.setCount(playerStack.getCount() - ties);
+							playerStack.stackSize = (playerStack.stackSize - ties);
 							ties = 0;
 						}
 					}
-					if (railBed.getItem() != Items.AIR && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
-						if (bed > playerStack.getCount()) {
-							bed -= playerStack.getCount();
+					if (railBed.getItem() != Items.NAME_TAG && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
+						if (bed > playerStack.stackSize) {
+							bed -= playerStack.stackSize;
 							ItemStack copy = playerStack.copy();
-							copy.setCount(playerStack.getCount());
+							copy.stackSize = (playerStack.stackSize);
 							drops.add(copy);  
-							playerStack.setCount(0);
+							playerStack.stackSize = (0);
 						} else if (bed != 0) {
 							ItemStack copy = playerStack.copy();
-							copy.setCount(bed);
+							copy.stackSize = (bed);
 							drops.add(copy); 
-							playerStack.setCount(playerStack.getCount() - bed);
+							playerStack.stackSize = (playerStack.stackSize - bed);
 							bed = 0;
 						}
 					}
-					if (railBedFill.getItem() != Items.AIR && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
-						if (fill > playerStack.getCount()) {
-							fill -= playerStack.getCount();
+					if (railBedFill.getItem() != Items.NAME_TAG && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
+						if (fill > playerStack.stackSize) {
+							fill -= playerStack.stackSize;
 							ItemStack copy = playerStack.copy();
-							copy.setCount(playerStack.getCount());
+							copy.stackSize = (playerStack.stackSize);
 							//drops.add(copy);  
-							playerStack.setCount(0);
+							playerStack.stackSize = (0);
 						} else if (fill != 0) {
 							ItemStack copy = playerStack.copy();
-							copy.setCount(fill);
+							copy.stackSize = (fill);
 							//drops.add(copy); 
-							playerStack.setCount(playerStack.getCount() - fill);
+							playerStack.stackSize = (playerStack.stackSize - fill);
 							fill = 0;
 						}
 					}
@@ -272,7 +271,7 @@ public class RailInfo {
 	}
 
 	
-	private boolean OreDictionaryContainsMatch(boolean strict, NonNullList<ItemStack> ores, ItemStack playerStack) {
+	private boolean OreDictionaryContainsMatch(boolean strict, List<ItemStack> ores, ItemStack playerStack) {
         for (ItemStack target : ores)
         {
             if (OreDictionary.itemMatches(target, playerStack, strict))

@@ -42,7 +42,7 @@ public class SwitchUtil {
 		}
 		
 		for (EnumFacing facing : EnumFacing.HORIZONTALS) {
-			if (rail.getWorld().isBlockIndirectlyGettingPowered(new BlockPos(rail.getPlacementPosition()).offset(facing, MathHelper.ceil(rail.getGauge().scale()))) > 0) {
+			if (rail.getWorld().isBlockIndirectlyGettingPowered(new BlockPos(rail.getPlacementPosition()).offset(facing, (int) Math.ceil(rail.getGauge().scale()))) > 0) {
 				return SwitchState.TURN;
 			}
 		}

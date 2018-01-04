@@ -13,7 +13,7 @@ import net.minecraft.world.World;
 public class MovementTrack {
 
 	private static TileRailBase directRailFromPosition(World world, Vec3d position) {
-		return TileRailBase.get(world, new BlockPos((int) Math.floor(position.x), (int) Math.floor(position.y), (int) Math.floor(position.z)));
+		return TileRailBase.get(world, new BlockPos((int) Math.floor(position.xCoord), (int) Math.floor(position.yCoord), (int) Math.floor(position.zCoord)));
 	}
 
 	public static Vec3d nextPosition(World world, Vec3d currentPosition, TileRail rail, float trainYaw, double distanceMeters) {
@@ -33,7 +33,7 @@ public class MovementTrack {
 			// Relative position to the curve center
 			Vec3d posDelta = rail.getCenter().subtractReverse(currentPosition);
 			// Calculate the angle (rad) for the current position is
-			double posRelYaw = MathHelper.atan2(posDelta.x, -posDelta.z);
+			double posRelYaw = MathHelper.atan2(posDelta.xCoord, -posDelta.zCoord);
 			// Hack the radius
 			double radius = rail.getRadius() - 0.5;
 			// Calculate the angle delta in rad (radians are awesome)
@@ -116,9 +116,9 @@ public class MovementTrack {
 			// Update y position
 			TileRailBase directRail = directRailFromPosition(world, outPosition);
 			if (directRail != null) {
-				outPosition = new Vec3d(outPosition.x, directRail.getPos().getY() + directRail.getHeight(), outPosition.z);
+				outPosition = new Vec3d(outPosition.xCoord, directRail.getPos().getY() + directRail.getHeight(), outPosition.zCoord);
 			} else {
-				outPosition = new Vec3d(outPosition.x, currentPosition.y, outPosition.z);
+				outPosition = new Vec3d(outPosition.xCoord, currentPosition.yCoord, outPosition.zCoord);
 			}
 			
 			return outPosition;

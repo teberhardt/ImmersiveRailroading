@@ -1,24 +1,24 @@
 package cam72cam.immersiverailroading.gui;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.function.Consumer;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 
 public class ItemPickerGUI extends GuiScreen {
-	private NonNullList<ItemStack> items;
+	private List<ItemStack> items;
 	public ItemStack choosenItem;
 	private Consumer<ItemStack> onExit;
 	
-	public ItemPickerGUI(NonNullList<ItemStack> items, Consumer<ItemStack> onExit) {
+	public ItemPickerGUI(List<ItemStack> items, Consumer<ItemStack> onExit) {
 		this.items = items;
 		this.onExit = onExit;
 	}
 	
-	public void setItems(NonNullList<ItemStack> items ) {
+	public void setItems(List<ItemStack> items ) {
 		this.items = items;
 		this.initGui();
 	}

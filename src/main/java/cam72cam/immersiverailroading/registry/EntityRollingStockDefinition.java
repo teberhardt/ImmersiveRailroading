@@ -32,11 +32,11 @@ public class EntityRollingStockDefinition {
 	
 	public final EntityRollingStock spawn(World world, Vec3d pos, EnumFacing facing, Gauge gauge) {
 		EntityRollingStock stock = instance(world);
-		stock.setPosition(pos.x, pos.y, pos.z);
+		stock.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 		stock.prevRotationYaw = facing.getHorizontalAngle();
 		stock.rotationYaw = facing.getHorizontalAngle();
 		stock.gauge = gauge;
-		world.spawnEntity(stock);
+		world.spawnEntityInWorld(stock);
 
 		return stock;
 	}
@@ -92,8 +92,8 @@ public class EntityRollingStockDefinition {
 		bogeyFront = data.get("trucks").getAsJsonObject().get("front").getAsFloat();
 		bogeyRear = data.get("trucks").getAsJsonObject().get("rear").getAsFloat();
 		
-		frontBounds = -model.minOfGroup(model.groups()).x;
-		rearBounds = model.maxOfGroup(model.groups()).x;
+		frontBounds = -model.minOfGroup(model.groups()).xCoord;
+		rearBounds = model.maxOfGroup(model.groups()).xCoord;
 		widthBounds = model.widthOfGroups(model.groups());
 		heightBounds = model.heightOfGroups(model.groups());
 		
@@ -211,26 +211,26 @@ public class EntityRollingStockDefinition {
 	}
 	public Vec3d correctPassengerBounds(Gauge gauge, Vec3d pos) {
 		double gs = gauge.scale();
-		if (pos.x > this.passengerCompartmentLength * gs) {
-			pos = new Vec3d(this.passengerCompartmentLength * gs, pos.y, pos.z);
+		if (pos.xCoord > this.passengerCompartmentLength * gs) {
+			pos = new Vec3d(this.passengerCompartmentLength * gs, pos.yCoord, pos.zCoord);
 		}
 		
-		if (pos.x < -this.passengerCompartmentLength * gs) {
-			pos = new Vec3d(-this.passengerCompartmentLength * gs, pos.y, pos.z);
+		if (pos.xCoord < -this.passengerCompartmentLength * gs) {
+			pos = new Vec3d(-this.passengerCompartmentLength * gs, pos.yCoord, pos.zCoord);
 		}
 		
-		if (Math.abs(pos.z) > this.passengerCompartmentWidth/2 * gs) {
-			pos = new Vec3d(pos.x, pos.y, Math.copySign(this.passengerCompartmentWidth/2 * gs, pos.z));
+		if (Math.abs(pos.zCoord) > this.passengerCompartmentWidth/2 * gs) {
+			pos = new Vec3d(pos.xCoord, pos.yCoord, Math.copySign(this.passengerCompartmentWidth/2 * gs, pos.zCoord));
 		}
 		
 		return pos;
 	}
 
 	public boolean isAtFront(Gauge gauge, Vec3d pos) {
-		return pos.x >= this.passengerCompartmentLength * gauge.scale();
+		return pos.xCoord >= this.passengerCompartmentLength * gauge.scale();
 	}
 	public boolean isAtRear(Gauge gauge, Vec3d pos) {
-		return pos.x <= -this.passengerCompartmentLength * gauge.scale();
+		return pos.xCoord <= -this.passengerCompartmentLength * gauge.scale();
 	}
 
 	public List<ItemComponentType> getItemComponents() {

@@ -37,8 +37,8 @@ public class LocomotiveOverlay extends Gui {
 		drawRect(currPosX, currPosY, currPosX + gaugeWidth, currPosY + gaugeHeight, 0xFF4d4d4d);
 		int quantHeight = (int)(gaugeHeight * (liquidAmount / tankCapacity));
 		drawRect(currPosX, currPosY + (gaugeHeight - quantHeight), currPosX + gaugeWidth, currPosY + gaugeHeight, color);
-		drawCenteredString(mc.fontRenderer, amount, currPosX + gaugeWidth/2, currPosY-12, 0xFFFFFF);
-		drawCenteredString(mc.fontRenderer, capacity, currPosX + gaugeWidth/2, currPosY + gaugeHeight + 2, 0xFFFFFF);
+		drawCenteredString(mc.fontRendererObj, amount, currPosX + gaugeWidth/2, currPosY-12, 0xFFFFFF);
+		drawCenteredString(mc.fontRendererObj, capacity, currPosX + gaugeWidth/2, currPosY + gaugeHeight + 2, 0xFFFFFF);
 		currPosX += gaugeWidth + gaugeSpacer;
 	}
 
@@ -50,7 +50,7 @@ public class LocomotiveOverlay extends Gui {
 		drawRect(currPosX, currPosY + quantHeight, currPosX + scalarWidth, currPosY + quantHeight + 5, 0xFF999999);
 		//drawCenteredString(mc.fontRenderer, minStr, currPosX + scalarWidth/2, currPosY + scalarHeight + 2, 0xFFFFFF);
 		//drawCenteredString(mc.fontRenderer, maxStr, currPosX + scalarWidth/2, currPosY-12, 0xFFFFFF);
-		drawCenteredString(mc.fontRenderer, string, currPosX + scalarWidth/2, currPosY-12, 0xFFFFFF);
+		drawCenteredString(mc.fontRendererObj, string, currPosX + scalarWidth/2, currPosY-12, 0xFFFFFF);
 		currPosX += scalarWidth + scalarSpacer;
 	}
 }

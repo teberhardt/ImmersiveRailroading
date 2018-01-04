@@ -18,6 +18,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
@@ -82,7 +83,7 @@ public abstract class Multiblock {
 	}
 	
 	private boolean checkValid(IBlockAccess world, BlockPos origin, BlockPos offset, Rotation rot) {
-		BlockPos pos = origin.add(offset.rotate(rot));
+		BlockPos pos = origin.add(offset); //TODO1.10 .rotate(rot)
 		MultiblockComponent component = lookup(offset);
 		return component.valid(world, pos);
 	}
@@ -90,7 +91,7 @@ public abstract class Multiblock {
 	public boolean tryCreate(World world, BlockPos pos) {
 		for (BlockPos activationLocation : this.componentPositions) {
 			for (Rotation rot : Rotation.values()) {
-				BlockPos origin = pos.subtract(activationLocation.rotate(rot));
+				BlockPos origin = pos.subtract(activationLocation);//TODO1.10 .rotate(rot)
 				boolean valid = true;
 				for (BlockPos offset : this.componentPositions) {
 					valid = valid && checkValid(world, origin, offset, rot);
@@ -106,26 +107,26 @@ public abstract class Multiblock {
 	
 	public abstract BlockPos placementPos();
 	public void place(World world, EntityPlayer player, BlockPos pos, Rotation rot) {
-		Map<MultiblockComponent, Integer> missing = new HashMap<MultiblockComponent, Integer>();
-		BlockPos origin = pos.subtract(this.placementPos().rotate(rot));
+		Map<String, Integer> missing = new HashMap<String, Integer>();
+		BlockPos origin = pos.subtract(this.placementPos()); //TODO1.10 .rotate(rot)
 		for (BlockPos offset : this.componentPositions) {
 			MultiblockComponent component = lookup(offset);
-			BlockPos compPos = origin.add(offset.rotate(rot));
+			BlockPos compPos = origin.add(offset); //TODO1.10 .rotate(rot)
 			if (!component.valid(world, compPos) && world.isAirBlock(compPos)) {
 				if (!component.place(world, player, compPos)) {
-					if (!missing.containsKey(component)) {
-						missing.put(component, 0);
+					if (!missing.containsKey(component.name)) {
+						missing.put(component.name, 0);
 					}
-					missing.put(component, missing.get(component)+1);
+					missing.put(component.name, missing.get(component.name)+1);
 				}
 			}
 		}
 		
 		if (missing.size() != 0) {
-			player.sendMessage(new TextComponentString("Missing: "));
-			for (MultiblockComponent comp : missing.keySet()) {
+			player.addChatMessage(new TextComponentString("Missing: "));
+			for (String name : missing.keySet()) {
 				//TODO localize
-				player.sendMessage(new TextComponentString(String.format("  - %d x %s", missing.get(comp), comp.name)));
+				player.addChatMessage(new TextComponentString(String.format("  - %d x %s", missing.get(name), name)));
 			}
 		}
 	}
@@ -190,7 +191,7 @@ public abstract class Multiblock {
 		 * Helpers
 		 */
 		protected BlockPos getPos(BlockPos offset) {
-			return origin.add(offset.rotate(rot));
+			return origin.add(offset); //TODO1.10 .rotate(rot)
 		}
 		
 		protected TileMultiblock getTile(BlockPos offset) {

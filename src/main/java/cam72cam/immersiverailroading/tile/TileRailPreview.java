@@ -63,7 +63,7 @@ public class TileRailPreview extends SyncdTileEntity {
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
 		
-		item = new ItemStack(nbt.getCompoundTag("item"));
+		item = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("item"));
 		yawHead = nbt.getFloat("yawHead");
 		hitX = nbt.getFloat("hitX");
 		hitY = nbt.getFloat("hitY");
@@ -81,8 +81,8 @@ public class TileRailPreview extends SyncdTileEntity {
 	}
 	
 	public RailInfo getRailRenderInfo() {
-		if (hasTileData || !world.isRemote) {
-			return new RailInfo(item, world, yawHead, pos, hitX, hitY, hitZ);
+		if (hasTileData || !worldObj.isRemote) {
+			return new RailInfo(item, worldObj, yawHead, pos, hitX, hitY, hitZ);
 		}
 		return null;
 	}

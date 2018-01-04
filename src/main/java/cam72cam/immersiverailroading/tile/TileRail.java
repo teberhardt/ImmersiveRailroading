@@ -198,7 +198,7 @@ public class TileRail extends TileRailBase {
 			NBTTagCompound dropNBT = nbt.getCompoundTag("drops");
 			int count = dropNBT.getInteger("count");
 			for (int i = 0; i < count; i++) {
-				drops.add(new ItemStack(dropNBT.getCompoundTag("drop_" + i)));
+				drops.add(ItemStack.loadItemStackFromNBT(dropNBT.getCompoundTag("drop_" + i)));
 			}
 		}
 		switch(version) {
@@ -217,7 +217,7 @@ public class TileRail extends TileRailBase {
 			// nothing yet...
 		}
 		
-		railBed = new ItemStack(nbt.getCompoundTag("railBed"));
+		railBed = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("railBed"));
 		center = getNBTVec3d(nbt, "center");
 		placementPosition = getNBTVec3d(nbt, "placementPosition");
 		gauge = Gauge.from(nbt.getDouble("gauge"));
@@ -250,7 +250,9 @@ public class TileRail extends TileRailBase {
 			nbt.setTag("drops", dropNBT);
 		}
 		
-		nbt.setTag("railBed", railBed.serializeNBT());
+		if (railBed != null) {
+			nbt.setTag("railBed", railBed.serializeNBT());
+		}
 		setNBTVec3d(nbt, "center", center);
 		setNBTVec3d(nbt, "placementPosition", placementPosition);
 		nbt.setDouble("gauge", gauge.value());
@@ -260,11 +262,11 @@ public class TileRail extends TileRailBase {
 
 	private RailInfo info;
 	public RailInfo getRailRenderInfo() {
-		if (!hasTileData && world.isRemote) {
+		if (!hasTileData && worldObj.isRemote) {
 			return null;
 		}
 		if (info == null) {
-			info = new RailInfo(getPos(), getWorld(), getFacing().getOpposite(), getType(), getDirection(), getLength(), getRotationQuarter(), getTurnQuarters(), getGauge(), getPlacementPosition(), getRailBed(), ItemStack.EMPTY);
+			info = new RailInfo(getPos(), getWorld(), getFacing().getOpposite(), getType(), getDirection(), getLength(), getRotationQuarter(), getTurnQuarters(), getGauge(), getPlacementPosition(), getRailBed(), null);
 		}
 		info.snowRenderFlagDirty = this.snowRenderFlagDirty;
 		this.snowRenderFlagDirty = false;
@@ -278,10 +280,10 @@ public class TileRail extends TileRailBase {
 		this.markDirty();
 	}
 	public void spawnDrops() {
-		if (!world.isRemote) {
+		if (!worldObj.isRemote) {
 			if (drops != null && drops.size() != 0) {
 				for(ItemStack drop : drops) {
-					world.spawnEntity(new EntityItem(world, pos.getX(), pos.getY(), pos.getZ(), drop));
+					worldObj.spawnEntityInWorld(new EntityItem(worldObj, pos.getX(), pos.getY(), pos.getZ(), drop));
 				}
 				drops = new ArrayList<ItemStack>();
 			}

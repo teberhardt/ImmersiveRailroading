@@ -68,24 +68,24 @@ public class RailRollerMultiblock extends Multiblock {
 		public boolean onBlockActivated(EntityPlayer player, EnumHand hand, BlockPos offset) {
 			if (!player.isSneaking()) {
 				ItemStack held = player.getHeldItem(hand);
-				if (held.isEmpty() && outputFull()) {
+				if (held == null && outputFull()) {
 					TileMultiblock outputTe = getTile(output);
 					if (outputTe == null) {
 						return false;
 					}
 					
 					player.setHeldItem(hand, outputTe.getContainer().getStackInSlot(0));
-					outputTe.getContainer().setStackInSlot(0, ItemStack.EMPTY);
+					outputTe.getContainer().setStackInSlot(0, null);
 				} else if (held.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL) {
 					TileMultiblock inputTe = getTile(input);
 					if (inputTe == null) {
 						return false;
 					}
-					if (inputTe.getContainer().getStackInSlot(0).isEmpty()) {
+					if (inputTe.getContainer().getStackInSlot(0) == null) {
 						ItemStack inputStack = held.copy();
-						inputStack.setCount(1);
+						inputStack.stackSize = (1);
 						inputTe.getContainer().setStackInSlot(0, inputStack);
-						held.shrink(1);
+						held.stackSize -= (1);
 						player.setHeldItem(hand, held);
 					}
 				}
@@ -154,7 +154,7 @@ public class RailRollerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (input.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL && output.isEmpty()) {
+				if (input.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL && output == null) {
 					progress = 100;
 					craftingTe.setCraftProgress(100);
 				}
@@ -165,7 +165,7 @@ public class RailRollerMultiblock extends Multiblock {
 				ItemStack out = new ItemStack(ImmersiveRailroading.ITEM_RAIL, 10);
 				ItemGauge.set(out, ItemGauge.get(input));
 				outputTe.getContainer().setStackInSlot(0, out);
-				input.shrink(1);
+				input.stackSize -= (1);
 				inputTe.getContainer().setStackInSlot(0, input);;
 			}
 		}
@@ -213,7 +213,7 @@ public class RailRollerMultiblock extends Multiblock {
 			if (outputTe == null) {
 				return false;
 			}
-			return !outputTe.getContainer().getStackInSlot(0).isEmpty();
+			return !(outputTe.getContainer().getStackInSlot(0) == null);
 		}
 	}
 }

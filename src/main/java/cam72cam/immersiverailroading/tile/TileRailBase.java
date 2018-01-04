@@ -66,7 +66,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 	private int ticksExisted;
 	
 	public boolean isLoaded() {
-		return !world.isRemote || hasTileData;
+		return !worldObj.isRemote || hasTileData;
 	}
 
 	public void setHeight(float height) {
@@ -115,7 +115,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 	public BlockPos getParent() {
 		if (parent == null) {
 			ImmersiveRailroading.warn("Invalid block without parent");
-			world.setBlockToAir(pos);
+			worldObj.setBlockToAir(pos);
 			return null;
 		}
 		return parent.add(pos);
@@ -146,7 +146,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 	}
 	public void readUpdateNBT(NBTTagCompound nbt) {
 		if (nbt.hasKey("renderBed")) {
-			this.railBedCache = new ItemStack(nbt.getCompoundTag("renderBed"));
+			this.railBedCache = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("renderBed"));
 		}
 		if (this.augmentTank != null && this.augment == Augment.WATER_TROUGH) {
 			int delta = clientLastTankAmount - this.augmentTank.getFluidAmount();
@@ -155,12 +155,12 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 				// TODO, this fires during rebalance which is not correct
 				for (int i = 0; i < delta/10; i ++) {
 					for (EnumFacing facing : EnumFacing.HORIZONTALS) {
-						ParticleUtil.spawnParticle(world, EnumParticleTypes.WATER_SPLASH, new Vec3d(pos.offset(facing)).addVector(0.5, 0.5, 0.5));
+						ParticleUtil.spawnParticle(worldObj, EnumParticleTypes.WATER_SPLASH, new Vec3d(pos.offset(facing)).addVector(0.5, 0.5, 0.5));
 					}
 				}
-				if (clientSoundTimeout < world.getWorldTime()) {
-					world.playSound(pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1, 1, false);
-					clientSoundTimeout = world.getWorldTime() + 10;
+				if (clientSoundTimeout < worldObj.getWorldTime()) {
+					worldObj.playSound(pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1, 1, false);
+					clientSoundTimeout = worldObj.getWorldTime() + 10;
 				}
 			}
 			clientLastTankAmount = this.augmentTank.getFluidAmount();
@@ -180,9 +180,9 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 		height = nbt.getFloat("height");
 		int oldSnowLayers = snowLayers;
 		snowLayers = nbt.getInteger("snowLayers");
-		if (oldSnowLayers > snowLayers && world != null && world.isRemote) {
+		if (oldSnowLayers > snowLayers && worldObj != null && worldObj.isRemote) {
 			for (int i = 0; i < 30 * (oldSnowLayers); i ++) {
-				ParticleUtil.spawnParticle(world, EnumParticleTypes.SNOWBALL, this.getCenterOfRail().addVector(Math.random() * 4-2, 1, Math.random() * 4-2));
+				ParticleUtil.spawnParticle(worldObj, EnumParticleTypes.SNOWBALL, this.getCenterOfRail().addVector(Math.random() * 4-2, 1, Math.random() * 4-2));
 			}
 		}
 		flexible = nbt.getBoolean("flexible");
@@ -205,7 +205,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 			// Nothing yet ...
 		}
 		parent = getNBTBlockPos(nbt, "parent");
-		if (world != null && this.getParentTile() != null) {
+		if (worldObj != null && this.getParentTile() != null) {
 			this.getParentTile().snowRenderFlagDirty = true;
 		}
 		
@@ -250,9 +250,9 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 	}
 	protected final static void setNBTVec3d(NBTTagCompound nbt, String key, Vec3d value) {
 		if (value != null) {
-			nbt.setDouble(key + "X", value.x);
-			nbt.setDouble(key + "Y", value.y);
-			nbt.setDouble(key + "Z", value.z);
+			nbt.setDouble(key + "X", value.xCoord);
+			nbt.setDouble(key + "Y", value.yCoord);
+			nbt.setDouble(key + "Z", value.zCoord);
 		}
 	}
 	
@@ -273,7 +273,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 		if (this.getParent() == null) {
 			return null;
 		}
-		TileRail te = TileRail.get(world, this.getParent());
+		TileRail te = TileRail.get(worldObj, this.getParent());
 		if (te == null || !te.isLoaded()) {
 			return null;
 		}
@@ -322,25 +322,25 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 					ArrayUtils.reverse(horiz);
 				}
 				for (EnumFacing facing : horiz) {
-					BlockPos ph = world.getPrecipitationHeight(pos.offset(facing, i));
+					BlockPos ph = worldObj.getPrecipitationHeight(pos.offset(facing, i));
 					for (int j = 0; j < 3; j ++) {
-						IBlockState state = world.getBlockState(ph);
-						if (world.isAirBlock(ph) && !BlockUtil.isRail(world, ph.down())) {
-							world.setBlockState(ph, Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS, snowDown));
+						IBlockState state = worldObj.getBlockState(ph);
+						if (worldObj.isAirBlock(ph) && !BlockUtil.isRail(worldObj, ph.down())) {
+							worldObj.setBlockState(ph, Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS, snowDown));
 							return;
 						}
-						if (world.getBlockState(ph).getBlock() == Blocks.SNOW) {
+						if (worldObj.getBlockState(ph).getBlock() == Blocks.SNOW) {
 							ph = ph.up();
 							continue;
 						}
-						if (world.getBlockState(ph).getBlock() == Blocks.SNOW_LAYER) {
+						if (worldObj.getBlockState(ph).getBlock() == Blocks.SNOW_LAYER) {
 							Integer currSnow = state.getValue(BlockSnow.LAYERS);
 							if (currSnow == 8) {
 								ph = ph.up();
 								continue;
 							}
 							int toAdd = Math.min(8 - currSnow, snowDown);
-							world.setBlockState(ph, state.withProperty(BlockSnow.LAYERS, currSnow + toAdd));
+							worldObj.setBlockState(ph, state.withProperty(BlockSnow.LAYERS, currSnow + toAdd));
 							snowDown -= toAdd;
 							if (snowDown <= 0) {
 								return;
@@ -381,7 +381,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 		double distanceMeters = motion.lengthVector();
 		float rotationYaw = VecUtil.toYaw(motion);
 		
-		return MovementTrack.nextPosition(world, currentPosition, tile, rotationYaw, distanceMeters);
+		return MovementTrack.nextPosition(worldObj, currentPosition, tile, rotationYaw, distanceMeters);
 	}
 	
 	/*
@@ -409,7 +409,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 	
 	public <T extends EntityRollingStock> T getStockNearBy(Class<T> type, Capability<?> capability){
 		AxisAlignedBB bb = new AxisAlignedBB(this.pos.south().west(), this.pos.up(3).east().north());
-		List<T> stocks = this.world.getEntitiesWithinAABB(type, bb);
+		List<T> stocks = this.worldObj.getEntitiesWithinAABB(type, bb);
 		for (T stock : stocks) {
 			if (capability == null || stock.hasCapability(capability, null)) {
 				if (augmentFilterID == null || augmentFilterID.equals(stock.getDefinitionID())) {
@@ -458,7 +458,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 	
 	private void balanceTanks() {
 		for (EnumFacing facing : EnumFacing.HORIZONTALS) {
-			TileRailBase neighbor = TileRailBase.get(world, pos.offset(facing));
+			TileRailBase neighbor = TileRailBase.get(worldObj, pos.offset(facing));
 			if (neighbor != null && neighbor.augmentTank != null) {
 				if (neighbor.augmentTank.getFluidAmount() + 1 < augmentTank.getFluidAmount()) {
 					transferAll(augmentTank, neighbor.augmentTank, (augmentTank.getFluidAmount() - neighbor.augmentTank.getFluidAmount())/2);
@@ -499,7 +499,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 
 	@Override
 	public void update() {
-		if (this.world.isRemote) {
+		if (this.worldObj.isRemote) {
 			return;
 		}
 		
@@ -546,7 +546,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrackTile, ITickab
 		case LOCO_CONTROL:
 			Locomotive loco = this.getStockNearBy(Locomotive.class, null);
 			if (loco != null) {
-				int power = RedstoneUtil.getPower(world, pos);
+				int power = RedstoneUtil.getPower(worldObj, pos);
 				loco.setThrottle(power/15f);
 				if (power == 0) {
 					loco.setAirBrake(1);

@@ -39,7 +39,7 @@ public class CastingGUI extends GuiScreen {
 	}
 	
 	private void updatePickerButton() {
-		pickerButton.displayString = GuiText.SELECTOR_TYPE.toString(currentItem.isEmpty() ? "" : currentItem.getDisplayName());
+		pickerButton.displayString = GuiText.SELECTOR_TYPE.toString(currentItem == null ? "" : currentItem.getDisplayName());
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class CastingGUI extends GuiScreen {
 	
 	private void sendPacket() {
 		ItemGauge.set(currentItem, gauge);
-		currentItem.setCount(1);
+		currentItem.stackSize = 1;
 		ItemRawCast.set(currentItem, true);
     	((CastingInstance) tile.getMultiblock()).setCraftItem(currentItem);
     }

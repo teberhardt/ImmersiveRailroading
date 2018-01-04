@@ -12,6 +12,8 @@ import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
 import cam72cam.immersiverailroading.util.BurnUtil;
 import cam72cam.immersiverailroading.util.FluidQuantity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -26,8 +28,8 @@ public class LocomotiveSteam extends Locomotive {
 	// Celsius
 	private static DataParameter<Float> BOILER_TEMPERATURE = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.FLOAT);
 	// Map<Slot, TicksToBurn>
-	private static DataParameter<NBTTagCompound> BURN_TIME = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.COMPOUND_TAG);
-	private static DataParameter<NBTTagCompound> BURN_MAX = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.COMPOUND_TAG);
+	private static DataParameter<String> BURN_TIME = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.STRING);
+	private static DataParameter<String> BURN_MAX = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.STRING);
 	
 	public LocomotiveSteam(World world) {
 		this(world, null);
@@ -38,8 +40,8 @@ public class LocomotiveSteam extends Locomotive {
 		
 		this.getDataManager().register(BOILER_PRESSURE, 0f);
 		this.getDataManager().register(BOILER_TEMPERATURE, 0f);
-		this.getDataManager().register(BURN_TIME, new NBTTagCompound());
-		this.getDataManager().register(BURN_MAX, new NBTTagCompound());
+		this.getDataManager().register(BURN_TIME, new NBTTagCompound().toString());
+		this.getDataManager().register(BURN_MAX, new NBTTagCompound().toString());
 	}
 
 	public LocomotiveSteamDefinition getDefinition() {
@@ -55,8 +57,8 @@ public class LocomotiveSteam extends Locomotive {
 		super.writeEntityToNBT(nbttagcompound);
 		nbttagcompound.setFloat("boiler_temperature", getBoilerTemperature());
 		nbttagcompound.setFloat("boiler_psi", getBoilerPressure());
-		nbttagcompound.setTag("burn_time", dataManager.get(BURN_TIME));
-		nbttagcompound.setTag("burn_max", dataManager.get(BURN_MAX));
+		nbttagcompound.setString("burn_time", dataManager.get(BURN_TIME));
+		nbttagcompound.setString("burn_max", dataManager.get(BURN_MAX));
 	}
 
 	@Override
@@ -64,8 +66,8 @@ public class LocomotiveSteam extends Locomotive {
 		super.readEntityFromNBT(nbttagcompound);
 		setBoilerTemperature(nbttagcompound.getFloat("boiler_temperature"));
 		setBoilerPressure(nbttagcompound.getFloat("boiler_psi"));
-		dataManager.set(BURN_TIME, (NBTTagCompound) nbttagcompound.getTag("burn_time"));
-		dataManager.set(BURN_MAX, (NBTTagCompound) nbttagcompound.getTag("burn_max"));
+		dataManager.set(BURN_TIME, nbttagcompound.getString("burn_time"));
+		dataManager.set(BURN_MAX, nbttagcompound.getString("burn_max"));
 	}
 	
 	public float getBoilerTemperature() {
@@ -98,16 +100,26 @@ public class LocomotiveSteam extends Locomotive {
 	}
 	
 	public Map<Integer, Integer> getBurnTime() {
-		return NBTtoMap((NBTTagCompound)this.dataManager.get(BURN_TIME));
+		try {
+			return NBTtoMap(JsonToNBT.getTagFromJson(this.dataManager.get(BURN_TIME)));
+		} catch (NBTException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	private void setBurnTime(Map<Integer, Integer> burnTime) {
-		this.dataManager.set(BURN_TIME, mapToNBT(burnTime));
+		this.dataManager.set(BURN_TIME, mapToNBT(burnTime).toString());
 	}
 	public Map<Integer, Integer> getBurnMax() {
-		return NBTtoMap((NBTTagCompound)this.dataManager.get(BURN_MAX));
+		try {
+			return NBTtoMap(JsonToNBT.getTagFromJson(this.dataManager.get(BURN_MAX)));
+		} catch (NBTException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	private void setBurnMax(Map<Integer, Integer> burnMax) {
-		this.dataManager.set(BURN_MAX, mapToNBT(burnMax));
+		this.dataManager.set(BURN_MAX, mapToNBT(burnMax).toString());
 	}
 	
 	
@@ -137,7 +149,7 @@ public class LocomotiveSteam extends Locomotive {
 	public void onUpdate() {
 		super.onUpdate();
 
-		if (world.isRemote) {
+		if (worldObj.isRemote) {
 			return;
 		}
 		
@@ -160,7 +172,7 @@ public class LocomotiveSteam extends Locomotive {
 					if (BurnUtil.getBurnTime(this.cargoItems.getStackInSlot(slot)) != 0) {
 						for (int tenderSlot = 0; tenderSlot < tender.cargoItems.getSlots(); tenderSlot ++) {
 							if (this.cargoItems.getStackInSlot(slot).isItemEqual(tender.cargoItems.getStackInSlot(tenderSlot))) {
-								if (this.cargoItems.getStackInSlot(slot).getMaxStackSize() > this.cargoItems.getStackInSlot(slot).getCount()) {
+								if (this.cargoItems.getStackInSlot(slot).getMaxStackSize() > this.cargoItems.getStackInSlot(slot).stackSize) {
 									ItemStack extracted = tender.cargoItems.extractItem(tenderSlot, 1, false);
 									this.cargoItems.insertItem(slot, extracted, false);
 								}
@@ -201,13 +213,13 @@ public class LocomotiveSteam extends Locomotive {
 			int time = burnTime.containsKey(slot) ? burnTime.get(slot) : 0;
 			if (time <= 0) {
 				ItemStack stack = this.cargoItems.getStackInSlot(slot);
-				if (stack.getCount() <= 0 || !TileEntityFurnace.isItemFuel(stack)) {
+				if (stack.stackSize <= 0 || !TileEntityFurnace.isItemFuel(stack)) {
 					continue;
 				}
 				time = (int) (BurnUtil.getBurnTime(stack) * 1/gauge.scale());
 				burnTime.put(slot, time);
 				burnMax.put(slot, time);
-				stack.setCount(stack.getCount()-1);
+				stack.stackSize = (stack.stackSize-1);
 				this.cargoItems.setStackInSlot(slot, stack);
 				changedBurnMax = true;
 			} else {
@@ -265,9 +277,9 @@ public class LocomotiveSteam extends Locomotive {
 			// Half max pressure and high boiler temperature
 			//EXPLODE
 			if (Config.explosionsEnabled) {
-				world.createExplosion(this, this.posX, this.posY, this.posZ, boilerPressure, true);
+				worldObj.createExplosion(this, this.posX, this.posY, this.posZ, boilerPressure, true);
 			}
-			world.removeEntity(this);
+			worldObj.removeEntity(this);
 		}
 	}
 

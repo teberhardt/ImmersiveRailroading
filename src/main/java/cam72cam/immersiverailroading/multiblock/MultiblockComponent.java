@@ -63,16 +63,16 @@ public class MultiblockComponent {
 				ItemStack stack = player.inventory.getStackInSlot(slot);
 				if (itemCheck.apply(stack)) {
 					
-					int count = stack.getCount();
+					int count = stack.stackSize;
 					
 					ItemStack backup = player.getHeldItem(EnumHand.MAIN_HAND).copy();
-					EnumActionResult result = stack.getItem().onItemUse(player, world, pos, EnumHand.MAIN_HAND, EnumFacing.DOWN, 0.5f, 0f, 0.5f);
+					EnumActionResult result = stack.getItem().onItemUse(player.getHeldItem(EnumHand.MAIN_HAND), player, world, pos, EnumHand.MAIN_HAND, EnumFacing.DOWN, 0.5f, 0f, 0.5f);
 					player.setHeldItem(EnumHand.MAIN_HAND, backup);
 					
 					if (result == EnumActionResult.SUCCESS) {
-						if (player.inventory.getStackInSlot(slot).getCount() == count) {
+						if (player.inventory.getStackInSlot(slot).stackSize == count) {
 							//Decrement inv slot
-							stack.setCount(stack.getCount() - 1);
+							stack.stackSize = (stack.stackSize - 1);
 							player.inventory.setInventorySlotContents(slot, stack);
 						}
 						world.setBlockState(pos, def);

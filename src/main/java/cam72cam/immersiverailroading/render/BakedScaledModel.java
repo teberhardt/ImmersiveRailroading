@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
@@ -44,9 +45,9 @@ public class BakedScaledModel implements IBakedModel {
 			for (int i = 0; i < 4; ++i)
 	        {
 				int j = format.getIntegerSize() * i;
-	            newData[j + 0] = Float.floatToRawIntBits(Float.intBitsToFloat(newData[j + 0]) * (float)scale.x + (float)transform.x);
-	            newData[j + 1] = Float.floatToRawIntBits(Float.intBitsToFloat(newData[j + 1]) * (float)scale.y + (float)transform.y);
-	            newData[j + 2] = Float.floatToRawIntBits(Float.intBitsToFloat(newData[j + 2]) * (float)scale.z + (float)transform.z);
+	            newData[j + 0] = Float.floatToRawIntBits(Float.intBitsToFloat(newData[j + 0]) * (float)scale.xCoord + (float)transform.xCoord);
+	            newData[j + 1] = Float.floatToRawIntBits(Float.intBitsToFloat(newData[j + 1]) * (float)scale.yCoord + (float)transform.yCoord);
+	            newData[j + 2] = Float.floatToRawIntBits(Float.intBitsToFloat(newData[j + 2]) * (float)scale.zCoord + (float)transform.zCoord);
 	        }
 			
 			newQuads.add(new BakedQuad(newData, quad.getTintIndex(), quad.getFace(), quad.getSprite(), quad.shouldApplyDiffuseLighting(), quad.getFormat()));
@@ -65,5 +66,6 @@ public class BakedScaledModel implements IBakedModel {
 	public TextureAtlasSprite getParticleTexture() { return source.getParticleTexture(); }
 	@Override
 	public ItemOverrideList getOverrides() { return source.getOverrides(); }
-	
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() { return source.getItemCameraTransforms(); }
 }

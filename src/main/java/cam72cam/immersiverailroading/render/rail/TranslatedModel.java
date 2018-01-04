@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
@@ -54,5 +55,8 @@ public class TranslatedModel implements IBakedModel {
 	public TextureAtlasSprite getParticleTexture() { return source.getParticleTexture(); }
 	@Override
 	public ItemOverrideList getOverrides() { return source.getOverrides(); }
+
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() { return source.getItemCameraTransforms(); }
 	
 }

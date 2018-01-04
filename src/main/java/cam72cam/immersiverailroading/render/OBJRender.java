@@ -117,13 +117,13 @@ public class OBJRender {
 				Vec2f vt = point[1] != -1 ? model.vertexTextures.get(point[1]) : null;
 				Vec3d vn = point[2] != -1 ? model.vertexNormals.get(point[2]) : null;
 				
-				vertexBuffer.put((float) (v.x * scale));
-				vertexBuffer.put((float) (v.y * scale));
-				vertexBuffer.put((float) (v.z * scale));
+				vertexBuffer.put((float) (v.xCoord * scale));
+				vertexBuffer.put((float) (v.yCoord * scale));
+				vertexBuffer.put((float) (v.zCoord * scale));
 				if (vn != null) {
-					normalBuffer.put((float) (vn.x));
-					normalBuffer.put((float) (vn.y));
-					normalBuffer.put((float) (vn.z));
+					normalBuffer.put((float) (vn.xCoord));
+					normalBuffer.put((float) (vn.yCoord));
+					normalBuffer.put((float) (vn.zCoord));
 				} else {
 					has_vn = false;
 				}

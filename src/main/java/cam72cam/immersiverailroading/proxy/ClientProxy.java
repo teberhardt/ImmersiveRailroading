@@ -84,17 +84,16 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.relauncher.Side;
 
 @EventBusSubscriber(Side.CLIENT)
@@ -146,6 +145,12 @@ public class ClientProxy extends CommonProxy {
 		}
 	}
 	
+	@Override
+	public void preInit(FMLPreInitializationEvent event) throws IOException {
+		super.preInit(event);
+		registerEntities();
+	}
+	
 
 	@Override
 	public void init(FMLInitializationEvent event) {
@@ -185,8 +190,8 @@ public class ClientProxy extends CommonProxy {
 		}
 	};
 
-	@SubscribeEvent
-	public static void registerEntities(RegistryEvent.Register<EntityEntry> event) {
+	
+	public static void registerEntities() {
 		for (Class<? extends EntityRollingStock> type : entityClasses) {
 			RenderingRegistry.registerEntityRenderingHandler(type, RENDER_INSTANCE);
 		}
@@ -246,7 +251,7 @@ public class ClientProxy extends CommonProxy {
 
 	@SubscribeEvent
 	public static void onKeyInput(ClientTickEvent event) {
-		EntityPlayerSP player = Minecraft.getMinecraft().player;
+		EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
 		if (player == null) {
 			return;
 		}
@@ -293,13 +298,13 @@ public class ClientProxy extends CommonProxy {
 			}
 			Entity entity = Minecraft.getMinecraft().objectMouseOver.entityHit;
 			if (entity != null && entity instanceof EntityRidableRollingStock) {
-				ImmersiveRailroading.net.sendToServer(new MousePressPacket(event.getButton(), entity.world.provider.getDimension(), entity.getEntityId()));
+				ImmersiveRailroading.net.sendToServer(new MousePressPacket(event.getButton(), entity.worldObj.provider.getDimension(), entity.getEntityId()));
 				event.setCanceled(true);
 				return;
 			}
-			Entity riding = Minecraft.getMinecraft().player.getRidingEntity();
+			Entity riding = Minecraft.getMinecraft().thePlayer.getRidingEntity();
 			if (riding != null && riding instanceof EntityRidableRollingStock) {
-				ImmersiveRailroading.net.sendToServer(new MousePressPacket(event.getButton(), riding.world.provider.getDimension(), riding.getEntityId()));
+				ImmersiveRailroading.net.sendToServer(new MousePressPacket(event.getButton(), riding.worldObj.provider.getDimension(), riding.getEntityId()));
 				event.setCanceled(true);
 				return;
 			}
@@ -321,7 +326,7 @@ public class ClientProxy extends CommonProxy {
 	@SubscribeEvent
 	public static void onOverlayEvent(RenderGameOverlayEvent.Text event) {
 		if (Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-			Entity riding = Minecraft.getMinecraft().player.getRidingEntity();
+			Entity riding = Minecraft.getMinecraft().thePlayer.getRidingEntity();
 			if (riding instanceof Locomotive) {
 				//event.getLeft().addAll(((Locomotive)riding).getDebugInfo());
 			}
@@ -341,8 +346,8 @@ public class ClientProxy extends CommonProxy {
 		 * BUG: Lighting is not setup correctly
 		 * BUG: Entity is rendered twice (check render pass and is riding???)
 		 */
-		if (Minecraft.getMinecraft().player.isRiding()) {
-			Entity toRender = Minecraft.getMinecraft().player.getLowestRidingEntity();
+		if (Minecraft.getMinecraft().thePlayer.isRiding()) {
+			Entity toRender = Minecraft.getMinecraft().thePlayer.getLowestRidingEntity();
 			if (toRender instanceof EntityRollingStock) {
 		        GLBoolTracker color = new GLBoolTracker(GL11.GL_COLOR_MATERIAL, true);
 	            RenderHelper.enableStandardItemLighting();
@@ -364,22 +369,25 @@ public class ClientProxy extends CommonProxy {
 	@SubscribeEvent
 	public static void onRenderMouseover(DrawBlockHighlightEvent event) {
 		if (event.getTarget().typeOfHit == RayTraceResult.Type.BLOCK) {
+			if (event.getPlayer().getHeldItemMainhand() == null ) {
+				return;
+			}
 			if (event.getPlayer().getHeldItemMainhand().getItem() == ImmersiveRailroading.ITEM_RAIL_BLOCK) {
 				EntityPlayer player = event.getPlayer();
 				ItemStack stack = event.getPlayer().getHeldItemMainhand();
 				BlockPos pos = event.getTarget().getBlockPos();
 				
 				Vec3d vec = event.getTarget().hitVec;
-		        float hitX = (float)(vec.x - (double)pos.getX());
-		        float hitY = (float)(vec.y - (double)pos.getY());
-		        float hitZ = (float)(vec.z - (double)pos.getZ());
+		        float hitX = (float)(vec.xCoord - (double)pos.getX());
+		        float hitY = (float)(vec.yCoord - (double)pos.getY());
+		        float hitZ = (float)(vec.zCoord - (double)pos.getZ());
 		        
 		        if (player.getEntityWorld().getBlockState(pos).getBlock() instanceof BlockRailBase) {
 		        	pos = pos.down();
 		        }
 		        
 		        pos = pos.up();
-		        RailInfo info = new RailInfo(stack, player.world, player.rotationYaw, pos, hitX, hitY, hitZ);
+		        RailInfo info = new RailInfo(stack, player.worldObj, player.rotationYaw, pos, hitX, hitY, hitZ);
 		        
 		        GL11.glPushMatrix();
 				{

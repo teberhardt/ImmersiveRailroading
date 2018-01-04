@@ -17,7 +17,6 @@ import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.model.obj.Vec2f;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 
 public class OBJTextureSheet {
 	public Map<String, SubTexture> mappings;
@@ -51,10 +50,10 @@ public class OBJTextureSheet {
 		public void extendSpace(Vec2f tex) {
 			float u = tex.x;
 			float v = -tex.y;
-			minU = MathHelper.floor(Math.min(minU, u));
-			maxU = MathHelper.ceil(Math.max(maxU, u));
-			minV = MathHelper.floor(Math.min(minV, v));
-			maxV = MathHelper.ceil(Math.max(maxV, v));
+			minU = (int) Math.floor(Math.min(minU, u));
+			maxU = (int) Math.ceil(Math.max(maxU, u));
+			minV = (int) Math.floor(Math.min(minV, v));
+			maxV = (int) Math.ceil(Math.max(maxV, v));
 		}
 		public void upload(int textureID, int originX, int originY, int sheetWidth, int sheetHeight) {
 			this.originX = originX;

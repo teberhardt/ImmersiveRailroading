@@ -79,16 +79,16 @@ public class PlateRollerMultiblock extends Multiblock {
 		public boolean onBlockActivated(EntityPlayer player, EnumHand hand, BlockPos offset) {
 			if (!player.isSneaking()) {
 				ItemStack held = player.getHeldItem(hand);
-				if (held.isEmpty()) {
+				if (held == null) {
 					TileMultiblock outputTe = getTile(output);
 					if (outputTe == null) {
 						return false;
 					}
 					
-					if (!outputTe.getContainer().getStackInSlot(0).isEmpty()) {
+					if (!(outputTe.getContainer().getStackInSlot(0) == null)) {
 						if (!world.isRemote) {
 							player.setHeldItem(hand, outputTe.getContainer().getStackInSlot(0));
-							outputTe.getContainer().setStackInSlot(0, ItemStack.EMPTY);
+							outputTe.getContainer().setStackInSlot(0, null);
 						}
 						return true;
 					}
@@ -97,12 +97,12 @@ public class PlateRollerMultiblock extends Multiblock {
 					if (inputTe == null) {
 						return false;
 					}
-					if (inputTe.getContainer().getStackInSlot(0).isEmpty()) {
+					if (inputTe.getContainer().getStackInSlot(0) == null) {
 						if (!world.isRemote) {
 							ItemStack inputStack = held.copy();
-							inputStack.setCount(1);
+							inputStack.stackSize = (1);
 							inputTe.getContainer().setStackInSlot(0, inputStack);
-							held.shrink(1);
+							held.stackSize -= (1);
 							player.setHeldItem(hand, held);
 						}
 					}
@@ -179,8 +179,8 @@ public class PlateRollerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (input.isItemEqual(steelBlock()) && output.isEmpty() && !craftingTe.getCraftItem().isEmpty()) {
-					input.setCount(input.getCount() - 1);
+				if (input.isItemEqual(steelBlock()) && output == null && !(craftingTe.getCraftItem() == null)) {
+					input.stackSize = (input.stackSize - 1);
 					inputTe.getContainer().setStackInSlot(0, input);;
 					progress = 100;
 					craftingTe.setCraftProgress(100);
@@ -234,7 +234,7 @@ public class PlateRollerMultiblock extends Multiblock {
 		public ItemStack getCraftItem() {
 			TileMultiblock craftingTe = getTile(crafter);
 			if (craftingTe == null) {
-				return ItemStack.EMPTY;
+				return null;
 			}
 			return craftingTe.getCraftItem();
 		}

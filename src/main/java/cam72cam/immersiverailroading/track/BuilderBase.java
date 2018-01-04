@@ -219,16 +219,16 @@ public abstract class BuilderBase {
 	}
 	
 	public int costTies() {
-		return MathHelper.ceil(this.tracks.size()/3 * Config.TieCostMultiplier);
+		return (int) Math.ceil(this.tracks.size()/3 * Config.TieCostMultiplier);
 	}
 	
 	public int costRails() {
-		return MathHelper.ceil(this.tracks.size()*2/3 * Config.RailCostMultiplier);
+		return (int) Math.ceil(this.tracks.size()*2/3 * Config.RailCostMultiplier);
 	}
 	
 	public int costBed() {
 		//TODO more accurate
-		return MathHelper.ceil(this.tracks.size() * 0.1 * Config.BedCostMultiplier);
+		return (int) Math.ceil(this.tracks.size() * 0.1 * Config.BedCostMultiplier);
 	}
 
 	public int costFill() {
@@ -238,7 +238,7 @@ public abstract class BuilderBase {
 				fillCount += 1;
 			}
 		}
-		return MathHelper.ceil(this.info.railBedFill.getItem() != Items.AIR ? fillCount : 0);
+		return (int) Math.ceil(this.info.railBedFill.getItem() != Items.NAME_TAG ? fillCount : 0);
 	}
 
 	public void setDrops(List<ItemStack> drops) {

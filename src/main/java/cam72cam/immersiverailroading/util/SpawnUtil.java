@@ -36,7 +36,7 @@ public class SpawnUtil {
 		
 		
 		if (!player.isCreative() && gauge != ItemGauge.get(player.getHeldItem(hand))) {
-			player.sendMessage(ChatText.STOCK_WRONG_GAUGE.getMessage());
+			player.addChatMessage(ChatText.STOCK_WRONG_GAUGE.getMessage());
 			return EnumActionResult.FAIL;
 		}
 		
@@ -61,7 +61,7 @@ public class SpawnUtil {
 			}
 			if (!player.isCreative()) {
 				ItemStack stack = player.getHeldItem(hand);
-				stack.setCount(stack.getCount()-1);
+				stack.stackSize = (stack.stackSize-1);
 				player.setHeldItem(hand, stack);
 			}
 			return EnumActionResult.PASS;

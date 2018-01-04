@@ -195,16 +195,16 @@ public class OBJModel {
 					for (int[] point : face.points) {
 						Vec3d v = vertices.get(point[0]);
 						if (min == null) {
-							min = new Vec3d(v.x, v.y, v.z);
+							min = new Vec3d(v.xCoord, v.yCoord, v.zCoord);
 						} else {
-							if (min.x > v.x) {
-								min = new Vec3d(v.x, min.y, min.z);
+							if (min.xCoord > v.xCoord) {
+								min = new Vec3d(v.xCoord, min.yCoord, min.zCoord);
 							}
-							if (min.y > v.y) {
-								min = new Vec3d(min.x, v.y, min.z);
+							if (min.yCoord > v.yCoord) {
+								min = new Vec3d(min.xCoord, v.yCoord, min.zCoord);
 							}
-							if (min.z > v.z) {
-								min = new Vec3d(min.x, min.y, v.z);
+							if (min.zCoord > v.zCoord) {
+								min = new Vec3d(min.xCoord, min.yCoord, v.zCoord);
 							}
 						}
 					}
@@ -228,16 +228,16 @@ public class OBJModel {
 					for (int[] point : face.points) {
 						Vec3d v = vertices.get(point[0]);
 						if (max == null) {
-							max = new Vec3d(v.x, v.y, v.z);
+							max = new Vec3d(v.xCoord, v.yCoord, v.zCoord);
 						} else {
-							if (max.x < v.x) {
-								max = new Vec3d(v.x, max.y, max.z);
+							if (max.xCoord < v.xCoord) {
+								max = new Vec3d(v.xCoord, max.yCoord, max.zCoord);
 							}
-							if (max.y < v.y) {
-								max = new Vec3d(max.x, v.y, max.z);
+							if (max.yCoord < v.yCoord) {
+								max = new Vec3d(max.xCoord, v.yCoord, max.zCoord);
 							}
-							if (max.z < v.z) {
-								max = new Vec3d(max.x, max.y, v.z);
+							if (max.zCoord < v.zCoord) {
+								max = new Vec3d(max.xCoord, max.yCoord, v.zCoord);
 							}
 						}
 					}
@@ -255,22 +255,22 @@ public class OBJModel {
 	public Vec3d centerOfGroups(Iterable<String> groupNames) {
 		Vec3d min = minOfGroup(groupNames);
 		Vec3d max = maxOfGroup(groupNames);
-		return new Vec3d((min.x + max.x)/2, (min.y + max.y)/2, (min.z + max.z)/2);
+		return new Vec3d((min.xCoord + max.xCoord)/2, (min.yCoord + max.yCoord)/2, (min.zCoord + max.zCoord)/2);
 	}
 	public double heightOfGroups(Iterable<String> groupNames) {
 		Vec3d min = minOfGroup(groupNames);
 		Vec3d max = maxOfGroup(groupNames);
-		return max.y - min.y;
+		return max.yCoord - min.yCoord;
 	}
 	public double lengthOfGroups(Iterable<String> groupNames) {
 		Vec3d min = minOfGroup(groupNames);
 		Vec3d max = maxOfGroup(groupNames);
-		return max.x - min.x;
+		return max.xCoord - min.xCoord;
 	}
 
 	public double widthOfGroups(Iterable<String> groupNames) {
 		Vec3d min = minOfGroup(groupNames);
 		Vec3d max = maxOfGroup(groupNames);
-		return max.z - min.z;
+		return max.zCoord - min.zCoord;
 	}
 }

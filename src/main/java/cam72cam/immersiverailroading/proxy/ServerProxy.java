@@ -40,7 +40,7 @@ public class ServerProxy extends CommonProxy {
     }
 
     public World getWorld(int dimension)  {
-		return FMLServerHandler.instance().getServer().getWorld(dimension);
+		return FMLServerHandler.instance().getServer().worldServerForDimension(dimension);
 	}
     
     private String pathString(ResourceLocation location, boolean startingSlash) {

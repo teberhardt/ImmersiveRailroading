@@ -12,7 +12,7 @@ import cam72cam.immersiverailroading.util.RailInfo;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.init.Items;
@@ -24,18 +24,18 @@ public class RailBaseRender {
 	 * 
 	 * We also draw the railbed here since drawing a model for each gag eats FPS 
 	 */
-	protected static BufferBuilder getBaseBuffer(RailInfo info) {
+	protected static VertexBuffer getBaseBuffer(RailInfo info) {
 		// Get model for current state
 		final BlockRendererDispatcher blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
 		
-		if (info.railBed.getItem() == Items.AIR) {
+		if (info.railBed == null || info.railBed.getItem() == Items.NAME_TAG) {
 			return null;
 		}
 		IBlockState gravelState = BlockUtil.itemToBlockState(info.railBed);
 		IBakedModel gravelModel = blockRenderer.getBlockModelShapes().getModelForState(gravelState);
 		
 		// Create render targets
-		BufferBuilder worldRenderer = new BufferBuilder(2048);
+		VertexBuffer worldRenderer = new VertexBuffer(2048);
 
 		// Start drawing
 		worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);

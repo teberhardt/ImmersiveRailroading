@@ -14,12 +14,12 @@ public class VecUtil {
 	}
 	
 	public static float toYaw(Vec3d delta) {
-		float yaw = (float) Math.toDegrees(MathHelper.atan2(-delta.x, delta.z));
+		float yaw = (float) Math.toDegrees(MathHelper.atan2(-delta.xCoord, delta.zCoord));
 		return (yaw + 360f) % 360f;
 	}
 
 	public static Vec3d rotateYaw(Vec3d pos, float rotationYaw) {
-		return fromYaw(pos.x, rotationYaw).add(fromYaw(pos.z, rotationYaw + 90).addVector(0, pos.y, 0));
+		return fromYaw(pos.xCoord, rotationYaw).add(fromYaw(pos.zCoord, rotationYaw + 90).addVector(0, pos.yCoord, 0));
 	}
 
 	public static BlockPos rotateYaw(BlockPos pos, float rotationYaw) {
@@ -32,6 +32,6 @@ public class VecUtil {
 	}
 	
 	public static Vec3d between(Vec3d front, Vec3d rear) {
-		return new Vec3d((front.x + rear.x) / 2, (front.y + rear.y) / 2, (front.z + rear.z) / 2);
+		return new Vec3d((front.xCoord + rear.xCoord) / 2, (front.yCoord + rear.yCoord) / 2, (front.zCoord + rear.zCoord) / 2);
 	}
 }

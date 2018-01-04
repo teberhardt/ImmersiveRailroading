@@ -1,6 +1,9 @@
 package cam72cam.immersiverailroading.gui;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
@@ -23,7 +26,6 @@ import net.minecraftforge.fml.client.config.GuiCheckBox;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -65,8 +67,8 @@ public class TrackGui extends GuiScreen {
 	private BlockPos tilePreviewPos;
 
 	public TrackGui() {
-		slot = Minecraft.getMinecraft().player.inventory.currentItem;
-		ItemStack stack = Minecraft.getMinecraft().player.getHeldItemMainhand();
+		slot = Minecraft.getMinecraft().thePlayer.inventory.currentItem;
+		ItemStack stack = Minecraft.getMinecraft().thePlayer.getHeldItemMainhand();
 		init(stack);
 	}
 
@@ -86,13 +88,14 @@ public class TrackGui extends GuiScreen {
 		gauge = ItemGauge.get(stack);
 		posType = ItemTrackBlueprint.getPosType(stack);
 		isPreview = ItemTrackBlueprint.isPreview(stack);
-		NonNullList<ItemStack> oreDict = NonNullList.create();
+		List<ItemStack> oreDict = new ArrayList<ItemStack>();
 		
-		oreDict.add(new ItemStack(Items.AIR));
+		//TODO1.10
+		oreDict.add(new ItemStack(Items.NAME_TAG));
 		
 		for (ItemStack ore : OreDictionary.getOres(ImmersiveRailroading.ORE_RAIL_BED)) {
 			if (ore.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
-				ore.getItem().getSubItems(ore.getItem().getCreativeTab(), oreDict);
+				ore.getItem().getSubItems(ore.getItem(), ore.getItem().getCreativeTab(), oreDict);
 			} else {
 				oreDict.add(ore);
 			}
@@ -140,13 +143,13 @@ public class TrackGui extends GuiScreen {
 	}
 	
 	public String getBedstackName() {
-		if (bedSelector.choosenItem.getItem() != Items.AIR) {
+		if (bedSelector.choosenItem != null && bedSelector.choosenItem.getItem() != Items.NAME_TAG) {
 			return bedSelector.choosenItem.getDisplayName();
 		}
 		return GuiText.NONE.toString();
 	}
 	public String getBedFillName() {
-		if (bedFillSelector.choosenItem.getItem() != Items.AIR) {
+		if (bedFillSelector.choosenItem != null && bedFillSelector.choosenItem.getItem() != Items.NAME_TAG) {
 			return bedFillSelector.choosenItem.getDisplayName();
 		}
 		return GuiText.NONE.toString();
@@ -158,7 +161,7 @@ public class TrackGui extends GuiScreen {
 		typeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 4 - 24 + buttonID * 30, GuiText.SELECTOR_TYPE.toString(type));
 		this.buttonList.add(typeButton);
 
-		this.lengthInput = new GuiTextField(buttonID++, this.fontRenderer, this.width / 2 - 100, this.height / 4 - 24 + buttonID * 30, 200, 20);
+		this.lengthInput = new GuiTextField(buttonID++, this.fontRendererObj, this.width / 2 - 100, this.height / 4 - 24 + buttonID * 30, 200, 20);
 		this.lengthInput.setText("" + length);
 		this.lengthInput.setMaxStringLength(3);
 		this.lengthInput.setValidator(this.integerFilter);
@@ -216,7 +219,7 @@ public class TrackGui extends GuiScreen {
         this.lengthInput.textboxKeyTyped(typedChar, keyCode);
         // Enter or ESC
         if (keyCode == 1 || keyCode == 28 || keyCode == 156) {
-        	if (!this.lengthInput.getText().isEmpty()) {
+        	if (this.lengthInput.getText() != null) {
         		if (this.tilePreviewPos != null) {
     				ImmersiveRailroading.net.sendToServer(
     						new ItemRailUpdatePacket(tilePreviewPos, Integer.parseInt(lengthInput.getText()), quartersSlider.getValueInt(), type, gauge.value(), posType, bedSelector.choosenItem, bedFillSelector.choosenItem, isPreview));

@@ -62,13 +62,12 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.registry.EntityEntry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.oredict.OreDictionary;
 
-@EventBusSubscriber(modid = ImmersiveRailroading.MODID)
+@EventBusSubscriber()
 public abstract class CommonProxy implements IGuiHandler {
 	protected static List<Class<? extends EntityRollingStock>> entityClasses = new ArrayList<Class<? extends EntityRollingStock>>();
 	protected String configDir;
@@ -86,7 +85,6 @@ public abstract class CommonProxy implements IGuiHandler {
     	DefinitionManager.initDefinitions();
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, Blocks.BRICK_BLOCK);
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, Blocks.COBBLESTONE);
-    	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, new ItemStack(Blocks.CONCRETE, 1, OreDictionary.WILDCARD_VALUE));
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, Blocks.DIRT);
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, Blocks.GRAVEL);
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, new ItemStack(Blocks.HARDENED_CLAY, 1, OreDictionary.WILDCARD_VALUE));
@@ -95,11 +93,7 @@ public abstract class CommonProxy implements IGuiHandler {
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, Blocks.NETHER_BRICK);
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, new ItemStack(Blocks.PLANKS, 1, OreDictionary.WILDCARD_VALUE));
     	
-    	MultiblockRegistry.register(SteamHammerMultiblock.NAME, new SteamHammerMultiblock());
-    	MultiblockRegistry.register(PlateRollerMultiblock.NAME, new PlateRollerMultiblock());
-    	MultiblockRegistry.register(RailRollerMultiblock.NAME, new RailRollerMultiblock());
-    	MultiblockRegistry.register(BoilerRollerMultiblock.NAME, new BoilerRollerMultiblock());
-    	MultiblockRegistry.register(CastingMultiblock.NAME, new CastingMultiblock());
+    	registerEntities();
     }
     
     public void init(FMLInitializationEvent event) {
@@ -115,6 +109,15 @@ public abstract class CommonProxy implements IGuiHandler {
     	
     	NetworkRegistry.INSTANCE.registerGuiHandler(ImmersiveRailroading.instance, this);
     }
+
+
+	public void postInit() {
+    	MultiblockRegistry.register(SteamHammerMultiblock.NAME, new SteamHammerMultiblock());
+    	MultiblockRegistry.register(PlateRollerMultiblock.NAME, new PlateRollerMultiblock());
+    	MultiblockRegistry.register(RailRollerMultiblock.NAME, new RailRollerMultiblock());
+    	MultiblockRegistry.register(BoilerRollerMultiblock.NAME, new BoilerRollerMultiblock());
+    	MultiblockRegistry.register(CastingMultiblock.NAME, new CastingMultiblock());
+	}
     
 	public void serverStarting(FMLServerStartingEvent event) {
 	}
@@ -149,12 +152,11 @@ public abstract class CommonProxy implements IGuiHandler {
     	event.getRegistry().register(ImmersiveRailroading.ITEM_CAST_RAIL);
     }
     
-    @SubscribeEvent
-    public static void registerEntities(RegistryEvent.Register<EntityEntry> event) {
+    public static void registerEntities() {
     	int lastEntityID = 0;
     	for (Class<? extends EntityRollingStock> type : entityClasses) {
         	lastEntityID ++;
-        	EntityRegistry.registerModEntity(new ResourceLocation(ImmersiveRailroading.MODID, type.getSimpleName()), type, type.getSimpleName(), lastEntityID, ImmersiveRailroading.instance, ImmersiveRailroading.ENTITY_SYNC_DISTANCE, 20, false);	
+        	EntityRegistry.registerModEntity(type, type.getSimpleName(), lastEntityID, ImmersiveRailroading.instance, ImmersiveRailroading.ENTITY_SYNC_DISTANCE, 20, false);	
     	}
     }
 	

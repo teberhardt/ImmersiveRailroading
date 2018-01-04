@@ -33,7 +33,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 
-@Mod(modid = ImmersiveRailroading.MODID, name="ImmersiveRailroading", version = ImmersiveRailroading.VERSION, acceptedMinecraftVersions = "[1.12,1.13)", dependencies = "required-after:trackapi;required-after:immersiveengineering")
+@Mod(modid = ImmersiveRailroading.MODID, name="ImmersiveRailroading", version = ImmersiveRailroading.VERSION, acceptedMinecraftVersions = "[1.10,1.11)", dependencies = "required-after:trackapi;required-after:immersiveengineering")
 public class ImmersiveRailroading
 {
     public static final String MODID = "immersiverailroading";
@@ -41,23 +41,23 @@ public class ImmersiveRailroading
 	public static final int ENTITY_SYNC_DISTANCE = 512;
     public static final String ORE_RAIL_BED = "railBed";
     
-	@ObjectHolder(BlockRailGag.NAME)
+	
 	public static final BlockRailGag BLOCK_RAIL_GAG = new BlockRailGag();
-	@ObjectHolder(BlockRail.NAME)
+	
 	public static final BlockRail BLOCK_RAIL = new BlockRail();
-	@ObjectHolder(BlockRailPreview.NAME)
+	
 	public static final BlockRailPreview BLOCK_RAIL_PREVIEW = new BlockRailPreview();
 	
-	@ObjectHolder(ItemRollingStock.NAME)
+	
 	public static ItemRollingStock ITEM_ROLLING_STOCK = new ItemRollingStock();
 	
-	@ObjectHolder(ItemRollingStockComponent.NAME)
+	
 	public static ItemRollingStockComponent ITEM_ROLLING_STOCK_COMPONENT = new ItemRollingStockComponent();
 	
-	@ObjectHolder(ItemLargeWrench.NAME)
+	
 	public static ItemLargeWrench ITEM_LARGE_WRENCH = new ItemLargeWrench();
 	
-	@ObjectHolder(ItemHook.NAME)
+	
 	public static ItemHook ITEM_HOOK = new ItemHook();
 	
 	public static ItemRailAugment ITEM_AUGMENT = new ItemRailAugment();
@@ -104,6 +104,7 @@ public class ImmersiveRailroading
     public void postInit(FMLPostInitializationEvent event) throws IOException {
 		chunker = new ChunkManager();
 		chunker.init();
+		proxy.postInit();
     }
     
     @EventHandler

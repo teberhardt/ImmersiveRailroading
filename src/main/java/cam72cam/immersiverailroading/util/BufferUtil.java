@@ -62,9 +62,9 @@ public class BufferUtil {
 	}
 
 	public static void writeVec3d(ByteBuf buf, Vec3d val) {
-		buf.writeDouble(val.x);
-		buf.writeDouble(val.y);
-		buf.writeDouble(val.z);
+		buf.writeDouble(val.xCoord);
+		buf.writeDouble(val.yCoord);
+		buf.writeDouble(val.zCoord);
 	}
 
 	public static Vec3d readVec3d(ByteBuf buf) {

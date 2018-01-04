@@ -46,7 +46,7 @@ public class RealBB extends AxisAlignedBB {
 	
 	private static AxisAlignedBB newBB(Vec3d min, Vec3d max) {
 		//Why the fuck is this ClientOnly?
-		return new AxisAlignedBB(min.x, min.y, min.z, max.x, max.y, max.z);
+		return new AxisAlignedBB(min.xCoord, min.yCoord, min.zCoord, max.xCoord, max.yCoord, max.zCoord);
 	}
 
 	private static double[] constructorParams(double front, double rear, double width, double height, float yaw, double centerX, double centerY, double centerZ) {
@@ -127,9 +127,9 @@ public class RealBB extends AxisAlignedBB {
 	public AxisAlignedBB offset(BlockPos pos) {
 		return this.offset(pos.getX(), pos.getY(), pos.getZ());
 	}
-	@Override
+	//@Override
 	public AxisAlignedBB offset(Vec3d vec) {
-		return this.offset(vec.x, vec.y, vec.z);
+		return this.offset(vec.xCoord, vec.yCoord, vec.zCoord);
 	}
 	@Override
 	public AxisAlignedBB offset(double x, double y, double z) {
@@ -167,8 +167,8 @@ public class RealBB extends AxisAlignedBB {
 		
 		
 		// Scale by 100 
-		int[] xp = new int[] { (int) (100 * origin.x), (int) (100 * point1.x), (int) (100 * opposite.x), (int) (100 * point2.x)};
-		int[] zp = new int[] { (int) (100 * origin.z), (int) (100 * point1.z), (int) (100 * opposite.z), (int) (100 * point2.z)};
+		int[] xp = new int[] { (int) (100 * origin.xCoord), (int) (100 * point1.xCoord), (int) (100 * opposite.xCoord), (int) (100 * point2.xCoord)};
+		int[] zp = new int[] { (int) (100 * origin.zCoord), (int) (100 * point1.zCoord), (int) (100 * opposite.zCoord), (int) (100 * point2.zCoord)};
 		
 		Polygon rect = new Polygon(xp, zp, 4);
 		
@@ -184,19 +184,19 @@ public class RealBB extends AxisAlignedBB {
 		return doesIntersect;
 	}
 	public boolean contains(Vec3d vec) {
-		return this.intersects(vec.x, vec.y, vec.z, vec.x, vec.y, vec.z);
+		return this.intersects(vec.xCoord, vec.yCoord, vec.zCoord, vec.xCoord, vec.yCoord, vec.zCoord);
 	}
 	public RayTraceResult calculateIntercept(Vec3d vecA, Vec3d vecB) {
 		// This does NOT set enumfacing.  The places where this code (entity) is used don't use that value as of 1.12.
 		int steps = 10;
-		double xDist = vecB.x - vecA.x;
-		double yDist = vecB.y - vecA.y;
-		double zDist = vecB.z - vecA.z;
+		double xDist = vecB.xCoord - vecA.xCoord;
+		double yDist = vecB.yCoord - vecA.yCoord;
+		double zDist = vecB.zCoord - vecA.zCoord;
 		double xDelta = xDist / steps;
 		double yDelta = yDist / steps;
 		double zDelta = zDist / steps;
 		for (int step = 0; step < steps; step ++) {
-			Vec3d stepPos = new Vec3d(vecA.x + xDelta * step, vecA.y + yDelta * step, vecA.z + zDelta * step);
+			Vec3d stepPos = new Vec3d(vecA.xCoord + xDelta * step, vecA.yCoord + yDelta * step, vecA.zCoord + zDelta * step);
 			if (this.contains(stepPos)) {
 				return new RayTraceResult(stepPos, EnumFacing.UP); 
 			}

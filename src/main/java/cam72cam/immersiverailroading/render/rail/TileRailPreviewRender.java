@@ -19,7 +19,7 @@ public class TileRailPreviewRender extends TileEntitySpecialRenderer<TileRailPre
 	
 
 	@Override
-	public void render(TileRailPreview te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+	public void renderTileEntityAt(TileRailPreview te, double x, double y, double z, float partialTicks, int destroyStage) {
 		RailInfo info = te.getRailRenderInfo();
 		if (info == null) {
 			// Still loading...

@@ -13,7 +13,6 @@ import cam72cam.immersiverailroading.library.RenderComponentType;
 import cam72cam.immersiverailroading.library.ValveGearType;
 import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.util.FluidQuantity;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 public class LocomotiveSteamDefinition extends LocomotiveDefinition {
@@ -147,10 +146,10 @@ public class LocomotiveSteamDefinition extends LocomotiveDefinition {
 	}
 	
 	public int getInventorySize(Gauge gauge) {
-		return MathHelper.ceil(numSlots * gauge.scale());
+		return (int) Math.ceil(numSlots * gauge.scale());
 	}
 
 	public int getInventoryWidth(Gauge gauge) {
-		return Math.max(3, MathHelper.ceil(width * gauge.scale()));
+		return (int) Math.max(3, Math.ceil(width * gauge.scale()));
 	}
 }

@@ -42,19 +42,19 @@ public class BuilderCrossing extends BuilderBase {
 		info.length = 3;
 		
 		Vec3d pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, 0), angle-90);
-		data.add(new VecYawPitch(pos.x, pos.y, pos.z-1, -angle, 0, info.length, "RAIL_RIGHT", "RAIL_LEFT"));
+		data.add(new VecYawPitch(pos.xCoord, pos.yCoord, pos.zCoord-1, -angle, 0, info.length, "RAIL_RIGHT", "RAIL_LEFT"));
 		
 		for (double i = 0; i < info.length-gauge.scale()/2; i+=gauge.scale()) {
 			pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, i), angle-90);
-			data.add(new VecYawPitch(pos.x, pos.y, pos.z-1, -angle, "RAIL_BASE"));
+			data.add(new VecYawPitch(pos.xCoord, pos.yCoord, pos.zCoord-1, -angle, "RAIL_BASE"));
 		}
 		angle -= 90;
 		
 		pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, 0), angle-90);
-		data.add(new VecYawPitch(pos.x-(2-gauge.scale()), pos.y, pos.z+gauge.scale(), -angle, 0, info.length, "RAIL_RIGHT", "RAIL_LEFT"));
+		data.add(new VecYawPitch(pos.xCoord-(2-gauge.scale()), pos.yCoord, pos.zCoord+gauge.scale(), -angle, 0, info.length, "RAIL_RIGHT", "RAIL_LEFT"));
 		for (double i = 0; i < info.length-gauge.scale()/2; i+=gauge.scale()) {
 			pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, i), angle-90);
-			data.add(new VecYawPitch(pos.x-(2-gauge.scale()), pos.y, pos.z+gauge.scale(), -angle, "RAIL_BASE"));
+			data.add(new VecYawPitch(pos.xCoord-(2-gauge.scale()), pos.yCoord, pos.zCoord+gauge.scale(), -angle, "RAIL_BASE"));
 		}
 		
 		return data;

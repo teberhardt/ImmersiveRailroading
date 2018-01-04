@@ -12,12 +12,12 @@ import net.minecraft.server.MinecraftServer;
 public class ReloadResourcesCommand extends CommandBase {
 
 	@Override
-	public String getName() {
+	public String getCommandName() {
 		return ImmersiveRailroading.MODID;
 	}
 
 	@Override
-	public String getUsage(ICommandSender sender) {
+	public String getCommandUsage(ICommandSender sender) {
 		return "Usage: " + ImmersiveRailroading.MODID + " reload";
 	}
 	
@@ -30,7 +30,7 @@ public class ReloadResourcesCommand extends CommandBase {
 	@Override
 	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 		if (args.length != 1 || !args[0].equals("reload")) {
-			throw new CommandException(getUsage(sender));
+			throw new CommandException(getCommandUsage(sender));
 		}
 		ImmersiveRailroading.warn("Reloading Immersive Railroading definitions");
 		try {

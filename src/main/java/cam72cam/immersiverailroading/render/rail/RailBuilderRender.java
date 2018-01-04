@@ -54,13 +54,13 @@ public class RailBuilderRender {
 		}	
 		
 		renderOff = VecUtil.rotateYaw(renderOff, (info.direction == TrackDirection.LEFT ? -1 : 1) * info.quarter/4f * 90 - 90);
-		GL11.glTranslated(renderOff.x, renderOff.y, renderOff.z);
+		GL11.glTranslated(renderOff.xCoord, renderOff.yCoord, renderOff.zCoord);
 		//GlStateManager.translate(info.getOffset().x, 0, info.getOffset().z);
 		GL11.glTranslated(-info.position.getX(), -info.position.getY(), -info.position.getZ());
-		GL11.glTranslated(info.placementPosition.x, info.placementPosition.y, info.placementPosition.z);
+		GL11.glTranslated(info.placementPosition.xCoord, info.placementPosition.yCoord, info.placementPosition.zCoord);
 		
 		renderOff = VecUtil.fromYaw((info.gauge.value() - Gauge.STANDARD.value()) * 0.34828 *2, info.facing.getOpposite().getHorizontalAngle()-90);
-		GL11.glTranslated(renderOff.x, renderOff.y, renderOff.z);
+		GL11.glTranslated(renderOff.xCoord, renderOff.yCoord, renderOff.zCoord);
 
 		if (!displayLists.containsKey(RailRenderUtil.renderID(info))) {
 			int displayList = GL11.glGenLists(1);
@@ -69,7 +69,7 @@ public class RailBuilderRender {
 			for (VecYawPitch piece : info.getBuilder().getRenderData()) {
 				GL11.glPushMatrix();;
 				GL11.glRotatef(180-info.facing.getOpposite().getHorizontalAngle(), 0, 1, 0);
-				GL11.glTranslated(piece.x, piece.y, piece.z);
+				GL11.glTranslated(piece.xCoord, piece.yCoord, piece.zCoord);
 				GL11.glRotatef(piece.getYaw(), 0, 1, 0);
 				GL11.glRotatef(piece.getPitch(), 1, 0, 0);
 				GL11.glRotatef(-90, 0, 1, 0);

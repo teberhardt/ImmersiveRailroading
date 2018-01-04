@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock.CouplerType;
 import cam72cam.immersiverailroading.library.KeyTypes;
 import cam72cam.immersiverailroading.net.PassengerPositionsPacket;
@@ -14,6 +16,7 @@ import cam72cam.immersiverailroading.util.VecUtil;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.Vec3d;
@@ -45,9 +48,9 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 			List<String> passengers = new ArrayList<String>();
 			for (UUID passenger : passengerPositions.keySet()) {
 				passengers.add(passenger.toString());
-				offsetTag.setDouble(passenger.toString() + ".x", passengerPositions.get(passenger).x);
-				offsetTag.setDouble(passenger.toString() + ".y", passengerPositions.get(passenger).y);
-				offsetTag.setDouble(passenger.toString() + ".z", passengerPositions.get(passenger).z);
+				offsetTag.setDouble(passenger.toString() + ".x", passengerPositions.get(passenger).xCoord);
+				offsetTag.setDouble(passenger.toString() + ".y", passengerPositions.get(passenger).yCoord);
+				offsetTag.setDouble(passenger.toString() + ".z", passengerPositions.get(passenger).zCoord);
 			}
 			offsetTag.setString("passengers", String.join("|", passengers));
 			nbttagcompound.setTag("passengerOffsets", offsetTag);
@@ -69,8 +72,8 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	
 
 	@Override
-	public boolean processInitialInteract(EntityPlayer player, EnumHand hand) {
-		if (super.processInitialInteract(player, hand)) {
+	public boolean processInitialInteract(EntityPlayer player, @Nullable ItemStack stack, EnumHand hand) {
+		if (super.processInitialInteract(player, stack, hand)) {
 			return true;
 		}
 		
@@ -79,7 +82,7 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 		} else if (player.isRiding() && player.getRidingEntity().getPersistentID() == this.getPersistentID()) {
 			return false;
 		} else {
-			if (!this.world.isRemote) {
+			if (!this.worldObj.isRemote) {
 				passengerPositions.put(player.getPersistentID(), new Vec3d(0, 0, 0));
 				player.startRiding(this);
 			}
@@ -165,7 +168,7 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 			pos = pos.add(passengerPositions.get(passenger.getPersistentID()));
 			pos = VecUtil.rotateYaw(pos, this.rotationYaw);
 			pos = pos.add(this.getPositionVector());
-			passenger.setPosition(pos.x, pos.y, pos.z);
+			passenger.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 			
 			passenger.rotationYaw += (this.rotationYaw - this.prevRotationYaw);
 		}
@@ -175,6 +178,6 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	public void removePassenger(Entity passenger) {
 		super.removePassenger(passenger);
 		Vec3d delta = VecUtil.fromYaw(this.getDefinition().getPassengerCompartmentWidth(gauge)/2 + 1.3, this.rotationYaw - 90);
-		passenger.setPositionAndUpdate(passenger.posX += delta.x, passenger.posY, passenger.posZ += delta.z);
+		passenger.setPositionAndUpdate(passenger.posX += delta.xCoord, passenger.posY, passenger.posZ += delta.zCoord);
 	}
 }

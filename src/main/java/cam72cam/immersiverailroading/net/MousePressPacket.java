@@ -54,7 +54,7 @@ public class MousePressPacket implements IMessage {
 		}
 
 		private void handle(MousePressPacket message, MessageContext ctx) {
-			List<EntityRidableRollingStock> matches = ctx.getServerHandler().player.getServerWorld().getEntities(EntityRidableRollingStock.class, new Predicate<EntityRidableRollingStock>()
+			List<EntityRidableRollingStock> matches = ctx.getServerHandler().playerEntity.getServerWorld().getEntities(EntityRidableRollingStock.class, new Predicate<EntityRidableRollingStock>()
 		    {
 		        public boolean apply(@Nullable EntityRidableRollingStock entity)
 		        {
@@ -62,16 +62,16 @@ public class MousePressPacket implements IMessage {
 		        }
 		    });
 
-			if (matches.isEmpty()) {
+			if (matches == null) {
 				return;
 			}
 			
 			// NetHandlerPlayerServer.processUseEntity
 			if (message.mouseButton == 0) {
-				ctx.getServerHandler().player.attackTargetEntityWithCurrentItem(matches.get(0));
+				ctx.getServerHandler().playerEntity.attackTargetEntityWithCurrentItem(matches.get(0));
 			}
 			if (message.mouseButton == 1) {
-				ctx.getServerHandler().player.interactOn(matches.get(0), EnumHand.MAIN_HAND);
+				ctx.getServerHandler().playerEntity.interact(matches.get(0), ctx.getServerHandler().playerEntity.getHeldItemMainhand(), EnumHand.MAIN_HAND);
 			}
 		}
 	}

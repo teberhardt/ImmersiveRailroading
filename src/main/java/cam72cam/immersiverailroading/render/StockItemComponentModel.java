@@ -22,6 +22,7 @@ import cam72cam.immersiverailroading.util.GLBoolTracker;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.block.model.ItemOverride;
@@ -53,7 +54,7 @@ public class StockItemComponentModel implements IBakedModel {
 		
 		if (def == null) {
 			ImmersiveRailroading.error("Item missing definition!");
-			stack.setCount(0);
+			stack.stackSize = (0);
 			return;
 		}
 		
@@ -83,7 +84,7 @@ public class StockItemComponentModel implements IBakedModel {
 		
 		//GL11.glRotated(-90, 0, 1, 0);
 		//GL11.glRotated(90, 1, 0, 0);
-		GL11.glTranslated(-center.x, -center.y, -center.z);
+		GL11.glTranslated(-center.xCoord, -center.yCoord, -center.zCoord);
 		
 		GLBoolTracker blend = new GLBoolTracker(GL11.GL_BLEND, false);
 		GLBoolTracker cull = new GLBoolTracker(GL11.GL_CULL_FACE, false);
@@ -137,7 +138,7 @@ public class StockItemComponentModel implements IBakedModel {
 	public ItemOverrideList getOverrides() {
 		return new ItemOverrideListHack();
 	}
-
+/* TODO1.10
 	@Override
 	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
 
@@ -172,5 +173,11 @@ public class StockItemComponentModel implements IBakedModel {
 			return defaultVal;
 		}
 		return defaultVal;
+	}
+	*/
+
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() {
+		return ItemCameraTransforms.DEFAULT;
 	}
 }
