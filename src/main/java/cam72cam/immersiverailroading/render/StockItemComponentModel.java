@@ -3,10 +3,8 @@ package cam72cam.immersiverailroading.render;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
-import javax.vecmath.Matrix4f;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector3f;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.nbt.ItemComponent;
@@ -24,7 +22,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.EntityLivingBase;
@@ -32,9 +30,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.client.ForgeHooksClient;
-import util.Matrix4;
 
+@SuppressWarnings("deprecation")
 public class StockItemComponentModel implements IBakedModel {
 	private OBJRender renderer;
 	private List<String> groups;
@@ -181,6 +178,37 @@ public class StockItemComponentModel implements IBakedModel {
 
 	@Override
 	public ItemCameraTransforms getItemCameraTransforms() {
-		return ItemCameraTransforms.DEFAULT;
+		return new ItemCameraTransforms(ItemCameraTransforms.DEFAULT) {
+			public ItemTransformVec3f getTransform(ItemCameraTransforms.TransformType type) {
+				switch (type) {
+				case THIRD_PERSON_LEFT_HAND:
+				case THIRD_PERSON_RIGHT_HAND:
+					return new ItemTransformVec3f(new Vector3f(0, 90, -60), new Vector3f(0.5f,0.25f,0.5f), new Vector3f(0.2f, 0.2f, 0.2f));
+				case FIRST_PERSON_LEFT_HAND:
+				case FIRST_PERSON_RIGHT_HAND:
+					return new ItemTransformVec3f(new Vector3f(0, 90, -30), new Vector3f(0.5f,0.25f,0.5f), new Vector3f(0.2f, 0.2f, 0.2f));
+				case GROUND:
+					return new ItemTransformVec3f(new Vector3f(0, 0, 0), new Vector3f(0.5f,0.5f,0.5f), new Vector3f(0.2f, 0.2f, 0.2f));
+				case FIXED:
+					// Item Frame
+					return new ItemTransformVec3f(new Vector3f(0, -90, 0), new Vector3f(0f,0f,0f), new Vector3f(1f, 1f, 1f));
+				case GUI:
+					float scale = 1;
+					if (width != 0 || length != 0) {
+						scale = (float) (0.95/Math.max(width, length));
+					}
+					scale *= Math.sqrt(StockItemComponentModel.this.scale);
+					return new ItemTransformVec3f(new Vector3f(0, 0, 0), new Vector3f(0.5f, 0.5f, 0), new Vector3f(scale, scale, scale));
+				case HEAD:
+					return new ItemTransformVec3f(new Vector3f(0, -90, 0), new Vector3f(0f, 0f, 0.5f), new Vector3f(1, 1, 1));
+				case NONE:
+					break;
+				default:
+					break;
+				}
+				
+				return super.getTransform(type);
+			}
+		};
 	}
 }

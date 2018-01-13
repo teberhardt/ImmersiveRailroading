@@ -65,7 +65,8 @@ public class BakedScaledModel implements IBakedModel {
 	@Override
 	public TextureAtlasSprite getParticleTexture() { return source.getParticleTexture(); }
 	@Override
-	public ItemOverrideList getOverrides() { return source.getOverrides(); }
+	public ItemOverrideList getOverrides() { return source.getOverrides(); }	
 	@Override
+	@Deprecated
 	public ItemCameraTransforms getItemCameraTransforms() { return source.getItemCameraTransforms(); }
 }

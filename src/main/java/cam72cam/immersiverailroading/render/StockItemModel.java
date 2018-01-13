@@ -3,10 +3,8 @@ package cam72cam.immersiverailroading.render;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
-import javax.vecmath.Matrix4f;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector3f;
 
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
@@ -17,15 +15,14 @@ import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.client.ForgeHooksClient;
-import util.Matrix4;
 
+@SuppressWarnings("deprecation")
 public class StockItemModel implements IBakedModel {
 	private OBJRender model;
 	private double scale;
@@ -143,7 +140,32 @@ public class StockItemModel implements IBakedModel {
 
 	@Override
 	public ItemCameraTransforms getItemCameraTransforms() {
-		// TODO Auto-generated method stub
-		return ItemCameraTransforms.DEFAULT;
+		return new ItemCameraTransforms(ItemCameraTransforms.DEFAULT) {
+			public ItemTransformVec3f getTransform(ItemCameraTransforms.TransformType type) {
+				switch (type) {
+				case THIRD_PERSON_LEFT_HAND:
+				case THIRD_PERSON_RIGHT_HAND:
+					return new ItemTransformVec3f(new Vector3f(60, -90, 0), new Vector3f(0f,0f,0f), new Vector3f(1f, 1f, 1f));
+				case FIRST_PERSON_LEFT_HAND:
+				case FIRST_PERSON_RIGHT_HAND:
+					return new ItemTransformVec3f(new Vector3f(10, -90, 0), new Vector3f(0f,0f,0f), new Vector3f(1f, 1f, 1f));
+				case GROUND:
+					return new ItemTransformVec3f(new Vector3f(0, -90, 0), new Vector3f(0f,0f,0f), new Vector3f(1f, 1f, 1f));
+				case FIXED:
+					// Item Frame
+					return new ItemTransformVec3f(new Vector3f(0, -90, 0), new Vector3f(0f,0f,0f), new Vector3f(1f, 1f, 1f));
+				case GUI:
+					return new ItemTransformVec3f(new Vector3f(0, 95, 0), new Vector3f(0.5f,0f,0f), new Vector3f(1f, 1f, 1f));
+				case HEAD:
+					return new ItemTransformVec3f(new Vector3f(0, -90, 0), new Vector3f(0f, 0f, 0.5f), new Vector3f(1f, 1f, 1f));
+				case NONE:
+					break;
+				default:
+					break;
+				}
+				
+				return super.getTransform(type);
+			}
+		};
 	}
 }

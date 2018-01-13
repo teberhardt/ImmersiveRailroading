@@ -31,7 +31,6 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 
 @Mod(modid = ImmersiveRailroading.MODID, name="ImmersiveRailroading", version = ImmersiveRailroading.VERSION, acceptedMinecraftVersions = "[1.10,1.11)", dependencies = "required-after:trackapi;required-after:immersiveengineering")
 public class ImmersiveRailroading
