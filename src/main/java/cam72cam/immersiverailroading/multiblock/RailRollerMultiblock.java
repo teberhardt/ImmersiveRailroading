@@ -76,7 +76,7 @@ public class RailRollerMultiblock extends Multiblock {
 					
 					player.setHeldItem(hand, outputTe.getContainer().getStackInSlot(0));
 					outputTe.getContainer().setStackInSlot(0, null);
-				} else if (held.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL) {
+				} else if (held != null && held.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL) {
 					TileMultiblock inputTe = getTile(input);
 					if (inputTe == null) {
 						return false;
@@ -166,6 +166,9 @@ public class RailRollerMultiblock extends Multiblock {
 				ItemGauge.set(out, ItemGauge.get(input));
 				outputTe.getContainer().setStackInSlot(0, out);
 				input.stackSize -= (1);
+				if (input.stackSize == 0) {
+					input = null;
+				}
 				inputTe.getContainer().setStackInSlot(0, input);;
 			}
 		}

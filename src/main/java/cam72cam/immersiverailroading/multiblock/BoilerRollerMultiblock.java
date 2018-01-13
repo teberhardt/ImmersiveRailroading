@@ -79,7 +79,7 @@ public class BoilerRollerMultiblock extends Multiblock {
 					
 					player.setHeldItem(hand, craftTe.getContainer().getStackInSlot(1));
 					craftTe.getContainer().setStackInSlot(1, null);
-				} else if (held.getItem() == ImmersiveRailroading.ITEM_PLATE && ItemPlateType.get(held) == PlateType.BOILER) {
+				} else if (held != null && held.getItem() == ImmersiveRailroading.ITEM_PLATE && ItemPlateType.get(held) == PlateType.BOILER) {
 					TileMultiblock craftTe = getTile(crafting);
 					if (craftTe == null) {
 						return false;
@@ -161,6 +161,9 @@ public class BoilerRollerMultiblock extends Multiblock {
 				ItemComponent.setComponentType(out, ItemComponentType.BOILER_SEGMENT);
 				craftTe.getContainer().setStackInSlot(1, out);
 				input.stackSize -= 1;
+				if (input.stackSize == 0) {
+					input = null;
+				}
 				craftTe.getContainer().setStackInSlot(0, input);;
 			}
 		}

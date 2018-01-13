@@ -114,7 +114,7 @@ public class TrackBlueprintItemModel implements IBakedModel {
 		return new ItemOverrideListHack();
 	}
 
-	/*TODO1.10
+	/*
 	@Override
 	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
 		Pair<? extends IBakedModel, Matrix4f> defaultVal = ForgeHooksClient.handlePerspective(this, cameraTransformType);

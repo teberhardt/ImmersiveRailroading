@@ -132,7 +132,7 @@ public class SteamHammerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (!(input == null) && ItemRawCast.get(input) && output != null) {
+				if (input != null && ItemRawCast.get(input) && output == null) {
 					te.setCraftProgress(100);
 				}
 			}
@@ -144,6 +144,9 @@ public class SteamHammerMultiblock extends Multiblock {
 				ItemRawCast.set(out, false);
 				container.setStackInSlot(1, out);
 				input.stackSize -= (1);
+				if (input.stackSize == 0) {
+					input = null;
+				}
 				container.setStackInSlot(0, input);;
 				progress = 100;
 			}

@@ -71,6 +71,9 @@ public class CastingGUI extends GuiScreen {
 	}
 	
 	private void sendPacket() {
+		if (currentItem == null) {
+			return;
+		}
 		ItemGauge.set(currentItem, gauge);
 		currentItem.stackSize = 1;
 		ItemRawCast.set(currentItem, true);

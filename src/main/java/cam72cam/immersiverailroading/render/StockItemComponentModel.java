@@ -138,7 +138,7 @@ public class StockItemComponentModel implements IBakedModel {
 	public ItemOverrideList getOverrides() {
 		return new ItemOverrideListHack();
 	}
-/* TODO1.10
+/*
 	@Override
 	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
 

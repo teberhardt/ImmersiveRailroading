@@ -5,6 +5,7 @@ import cam72cam.immersiverailroading.multiblock.Multiblock.MultiblockInstance;
 import javax.annotation.Nonnull;
 
 import cam72cam.immersiverailroading.multiblock.MultiblockRegistry;
+import cam72cam.immersiverailroading.util.RotationUtil;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -101,7 +102,7 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 		nbt.setTag("replaced", NBTUtil.writeBlockState(new NBTTagCompound(), replaced));
 		
 		nbt.setTag("inventory", container.serializeNBT());
-		nbt.setTag("craftItem", craftItem.serializeNBT());
+		nbt.setTag("craftItem", craftItem == null ?  new NBTTagCompound() : craftItem.serializeNBT());
 		nbt.setInteger("craftProgress", craftProgress);
 		
 		nbt.setInteger("energy", energy.getEnergyStored());
@@ -144,7 +145,7 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
     }
 	
 	public BlockPos getOrigin() {
-		return pos.subtract(offset); //TODO1.10 .rotate(rotation)
+		return pos.subtract(RotationUtil.rotate(offset, rotation));
 	}
 	
 	public MultiblockInstance getMultiblock() {
@@ -219,7 +220,10 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	}
 
 	public void setCraftItem(ItemStack selected) {
-		this.craftItem = selected.copy();
+		if (selected != null) {
+			selected = selected.copy();
+		}
+		this.craftItem = selected;
 		this.markDirty();
 	}
 	

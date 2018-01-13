@@ -92,7 +92,7 @@ public class PlateRollerMultiblock extends Multiblock {
 						}
 						return true;
 					}
-				} else if (held.isItemEqual(steelBlock())) {
+				} else if (held != null && held.isItemEqual(steelBlock())) {
 					TileMultiblock inputTe = getTile(input);
 					if (inputTe == null) {
 						return false;
@@ -181,6 +181,9 @@ public class PlateRollerMultiblock extends Multiblock {
 				// Try to start crafting
 				if (input != null && input.isItemEqual(steelBlock()) && output == null && !(craftingTe.getCraftItem() == null)) {
 					input.stackSize = (input.stackSize - 1);
+					if (input.stackSize == 0) {
+						input = null;
+					}
 					inputTe.getContainer().setStackInSlot(0, input);;
 					progress = 100;
 					craftingTe.setCraftProgress(100);

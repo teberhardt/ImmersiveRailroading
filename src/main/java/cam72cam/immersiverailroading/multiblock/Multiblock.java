@@ -11,6 +11,7 @@ import blusunrize.immersiveengineering.common.blocks.stone.BlockTypes_StoneDecor
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import cam72cam.immersiverailroading.util.BlockUtil;
+import cam72cam.immersiverailroading.util.RotationUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
@@ -84,7 +84,7 @@ public abstract class Multiblock {
 	}
 	
 	private boolean checkValid(IBlockAccess world, BlockPos origin, BlockPos offset, Rotation rot) {
-		BlockPos pos = origin.add(offset); //TODO1.10 .rotate(rot)
+		BlockPos pos = origin.add(RotationUtil.rotate(offset, rot));
 		MultiblockComponent component = lookup(offset);
 		return component.valid(world, pos);
 	}
@@ -92,7 +92,7 @@ public abstract class Multiblock {
 	public boolean tryCreate(World world, BlockPos pos) {
 		for (BlockPos activationLocation : this.componentPositions) {
 			for (Rotation rot : Rotation.values()) {
-				BlockPos origin = pos.subtract(activationLocation);//TODO1.10 .rotate(rot)
+				BlockPos origin = pos.subtract(RotationUtil.rotate(activationLocation, rot));
 				boolean valid = true;
 				for (BlockPos offset : this.componentPositions) {
 					valid = valid && checkValid(world, origin, offset, rot);
@@ -109,10 +109,10 @@ public abstract class Multiblock {
 	public abstract BlockPos placementPos();
 	public void place(World world, EntityPlayer player, BlockPos pos, Rotation rot) {
 		Map<String, Integer> missing = new HashMap<String, Integer>();
-		BlockPos origin = pos.subtract(this.placementPos()); //TODO1.10 .rotate(rot)
+		BlockPos origin = pos.subtract(RotationUtil.rotate(this.placementPos(), rot));
 		for (BlockPos offset : this.componentPositions) {
 			MultiblockComponent component = lookup(offset);
-			BlockPos compPos = origin.add(offset); //TODO1.10 .rotate(rot)
+			BlockPos compPos = origin.add(RotationUtil.rotate(offset, rot));
 			if (!component.valid(world, compPos)) {
 				if (!world.isAirBlock(compPos)) {
 					if (BlockUtil.canBeReplaced(world, compPos, false)) {
@@ -128,7 +128,7 @@ public abstract class Multiblock {
 		
 		for (BlockPos offset : this.componentPositions) {
 			MultiblockComponent component = lookup(offset);
-			BlockPos compPos = origin.add(offset); //TODO1.10 .rotate(rot)
+			BlockPos compPos = origin.add(RotationUtil.rotate(offset, rot));
 			if (!component.valid(world, compPos)) {
 				if (!component.place(world, player, compPos)) {
 					if (!missing.containsKey(component.name)) {
@@ -174,10 +174,11 @@ public abstract class Multiblock {
 				BlockPos pos = getPos(offset);
 				IBlockState origState = world.getBlockState(pos);
 				
-				world.setBlockState(pos, ImmersiveRailroading.BLOCK_MULTIBLOCK.getDefaultState());
+				world.setBlockState(pos, ImmersiveRailroading.BLOCK_MULTIBLOCK.getDefaultState(), 2);
 				TileMultiblock te = TileMultiblock.get(world, pos);
 				
 				te.configure(name, rot, offset, origState);
+				System.out.println("DONE CONFIGURE");
 			}
 		}
 		public abstract boolean onBlockActivated(EntityPlayer player, EnumHand hand, BlockPos offset);
@@ -208,7 +209,7 @@ public abstract class Multiblock {
 		 * Helpers
 		 */
 		protected BlockPos getPos(BlockPos offset) {
-			return origin.add(offset); //TODO1.10 .rotate(rot)
+			return origin.add(RotationUtil.rotate(offset, rot));
 		}
 		
 		protected TileMultiblock getTile(BlockPos offset) {
