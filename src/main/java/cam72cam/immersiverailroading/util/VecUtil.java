@@ -17,6 +17,10 @@ public class VecUtil {
 		float yaw = (float) Math.toDegrees(MathHelper.atan2(-delta.xCoord, delta.zCoord));
 		return (yaw + 360f) % 360f;
 	}
+	public static float toPitch(Vec3d delta) {
+		float yaw = (float) Math.toDegrees(MathHelper.atan2(Math.sqrt(delta.zCoord * delta.zCoord + delta.xCoord * delta.xCoord), delta.yCoord));
+		return (yaw + 360f) % 360f;
+	}
 
 	public static Vec3d rotateYaw(Vec3d pos, float rotationYaw) {
 		return fromYaw(pos.xCoord, rotationYaw).add(fromYaw(pos.zCoord, rotationYaw + 90).addVector(0, pos.yCoord, 0));

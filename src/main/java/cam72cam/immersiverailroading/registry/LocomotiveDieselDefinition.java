@@ -35,6 +35,7 @@ public class LocomotiveDieselDefinition extends LocomotiveDefinition {
 		addComponentIfExists(RenderComponent.parse(RenderComponentType.CRANKSHAFT, this, groups), true);
 		for (int i = 0; i < 20; i++) {
 			addComponentIfExists(RenderComponent.parseID(RenderComponentType.PISTON_X, this, groups, i), true);
+			addComponentIfExists(RenderComponent.parseID(RenderComponentType.DIESEL_EXHAUST_X, this, groups, i), false);
 		}
 		
 		return groups;
@@ -45,7 +46,7 @@ public class LocomotiveDieselDefinition extends LocomotiveDefinition {
 		super.parseJson(data);
 		
 		JsonObject properties = data.get("properties").getAsJsonObject();
-		fuelCapacity = FluidQuantity.FromLiters(properties.get("fuel_capacity_l").getAsInt());
+		fuelCapacity = FluidQuantity.FromLiters((int)Math.ceil(properties.get("fuel_capacity_l").getAsInt() * internal_scale));
 		fuelEfficiency = properties.get("fuel_efficiency_%").getAsInt();
 	}
 
@@ -55,7 +56,7 @@ public class LocomotiveDieselDefinition extends LocomotiveDefinition {
 	}
 	
 	public FluidQuantity getFuelCapacity(Gauge gauge) {
-		return this.fuelCapacity.scale(gauge.scale()).min(FluidQuantity.FromBuckets(1));
+		return this.fuelCapacity.scale(gauge.scale()).min(FluidQuantity.FromBuckets(1)).roundBuckets();
 	}
 
 	public int getFuelEfficiency() {

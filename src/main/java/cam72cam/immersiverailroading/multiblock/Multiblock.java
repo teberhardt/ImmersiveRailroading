@@ -10,6 +10,7 @@ import blusunrize.immersiveengineering.common.blocks.metal.BlockTypes_MetalDecor
 import blusunrize.immersiveengineering.common.blocks.stone.BlockTypes_StoneDecoration;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
+import cam72cam.immersiverailroading.util.BlockUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -112,7 +113,23 @@ public abstract class Multiblock {
 		for (BlockPos offset : this.componentPositions) {
 			MultiblockComponent component = lookup(offset);
 			BlockPos compPos = origin.add(offset); //TODO1.10 .rotate(rot)
-			if (!component.valid(world, compPos) && world.isAirBlock(compPos)) {
+			if (!component.valid(world, compPos)) {
+				if (!world.isAirBlock(compPos)) {
+					if (BlockUtil.canBeReplaced(world, compPos, false)) {
+						world.destroyBlock(compPos, true);
+					} else {
+						//TODO Localization
+						player.addChatMessage(new TextComponentString(String.format("Invalid block at x=%s y=%s z=%s", compPos.getX(), compPos.getY(), compPos.getZ())));
+						return;
+					}
+				}
+			}
+		}
+		
+		for (BlockPos offset : this.componentPositions) {
+			MultiblockComponent component = lookup(offset);
+			BlockPos compPos = origin.add(offset); //TODO1.10 .rotate(rot)
+			if (!component.valid(world, compPos)) {
 				if (!component.place(world, player, compPos)) {
 					if (!missing.containsKey(component.name)) {
 						missing.put(component.name, 0);

@@ -105,7 +105,11 @@ public abstract class CommonProxy implements IGuiHandler {
     	ImmersiveRailroading.net.registerMessage(BuildableStockSyncPacket.Handler.class, BuildableStockSyncPacket.class, 8, Side.CLIENT);
     	ImmersiveRailroading.net.registerMessage(MultiblockSelectCraftPacket.Handler.class, MultiblockSelectCraftPacket.class, 9, Side.SERVER);
     	
-    	
+    	MultiblockRegistry.register(SteamHammerMultiblock.NAME, new SteamHammerMultiblock());
+    	MultiblockRegistry.register(PlateRollerMultiblock.NAME, new PlateRollerMultiblock());
+    	MultiblockRegistry.register(RailRollerMultiblock.NAME, new RailRollerMultiblock());
+    	MultiblockRegistry.register(BoilerRollerMultiblock.NAME, new BoilerRollerMultiblock());
+    	MultiblockRegistry.register(CastingMultiblock.NAME, new CastingMultiblock());
     	
     	NetworkRegistry.INSTANCE.registerGuiHandler(ImmersiveRailroading.instance, this);
     }

@@ -244,6 +244,22 @@ public class StockModel extends OBJRender {
 			break;
 		case SHAY:
 			break;
+		case HIDDEN:
+			{
+				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
+				drawDrivingWheels(stock, wheels);
+			}
+			break;
+		case STEPHENSON:
+			List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
+			drawDrivingWheels(stock, wheels);
+			RenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
+			RenderComponent wheel = wheels.get(wheels.size() / 2);
+			drawStephenson(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center());
+			drawStephenson(stock, "RIGHT", -90, wheel.height(), center.center(), wheel.center());
+			break;
+		default:
+			break;
 		}
 		
 		// Draw remaining groups
@@ -353,6 +369,57 @@ public class StockModel extends OBJRender {
 			}
 			GlStateManager.popMatrix();
 		}
+	}
+	
+	// PISTON/MAIN/SIDE
+	private void drawStephenson(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter, Vec3d wheelCenter, Vec3d wheelPos) {
+		LocomotiveSteamDefinition def = stock.getDefinition();
+		
+		double circumference = diameter * (float) Math.PI;
+		double relDist = distanceTraveled % circumference;
+		double wheelAngle = 360 * relDist / circumference + wheelAngleOffset;
+		
+		RenderComponent connectingRod = def.getComponent(RenderComponentType.SIDE_ROD_SIDE, side, stock.gauge);
+		RenderComponent drivingRod = def.getComponent(RenderComponentType.MAIN_ROD_SIDE, side, stock.gauge);
+		RenderComponent pistonRod = def.getComponent(RenderComponentType.PISTON_ROD_SIDE, side, stock.gauge);
+
+		Vec3d connRodPos = connectingRod.center();
+		double connRodOffset = connRodPos.xCoord - wheelCenter.xCoord;
+		Vec3d drivingRodMin = drivingRod.min();
+		Vec3d drivingRodMax = drivingRod.max();
+		double drivingRodHeight = drivingRodMax.yCoord - drivingRodMin.yCoord;
+		double drivingRodLength = drivingRodMax.xCoord - drivingRodMin.xCoord;
+		double drivingRodCenterLength = drivingRodLength - drivingRodHeight;
+
+		Vec3d connRodMovment = VecUtil.fromYaw(connRodOffset, (float) wheelAngle);
+		double drivingRodHoriz = Math.sqrt(drivingRodCenterLength * drivingRodCenterLength - connRodMovment.zCoord * connRodMovment.zCoord);
+
+		double pistonDelta = connRodMovment.xCoord - 0.3;
+
+		// CONNECTING_ROD_LEFT
+		// DRIVING_ROD_LEFT
+		GlStateManager.pushMatrix();
+		{
+			GlStateManager.translate(-connRodOffset, 0, 0);
+			GlStateManager.translate(connRodMovment.xCoord, connRodMovment.zCoord, 0);
+			drawComponent(connectingRod);
+
+			GlStateManager.pushMatrix();
+			GlStateManager.translate(connRodPos.xCoord, connRodPos.yCoord, connRodPos.zCoord);
+			GlStateManager.rotate((float) Math.toDegrees(MathHelper.atan2(connRodMovment.zCoord, drivingRodHoriz)), 0, 0, 1);
+			GlStateManager.translate(-connRodPos.xCoord, -connRodPos.yCoord, -connRodPos.zCoord);
+			drawComponent(drivingRod);
+			GlStateManager.popMatrix();
+		}
+		GlStateManager.popMatrix();
+		// PISTON_LEFT
+		GlStateManager.pushMatrix();
+		{
+			GlStateManager.translate(pistonDelta, 0, 0);
+			drawComponent(pistonRod);
+		}
+		GlStateManager.popMatrix();
+		
 	}
 
 	private void drawWalschaerts(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter, Vec3d wheelCenter, Vec3d wheelPos) {

@@ -8,9 +8,13 @@ import java.util.Map;
 import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiTypes;
+import cam72cam.immersiverailroading.library.RenderComponentType;
+import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
 import cam72cam.immersiverailroading.util.BurnUtil;
 import cam72cam.immersiverailroading.util.FluidQuantity;
+import cam72cam.immersiverailroading.util.VecUtil;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
@@ -19,6 +23,7 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.tileentity.TileEntityFurnace;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.*;
 
@@ -30,6 +35,8 @@ public class LocomotiveSteam extends Locomotive {
 	// Map<Slot, TicksToBurn>
 	private static DataParameter<String> BURN_TIME = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.STRING);
 	private static DataParameter<String> BURN_MAX = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.STRING);
+	private boolean gonnaExplode;
+	private double driverDiameter;
 	
 	public LocomotiveSteam(World world) {
 		this(world, null);
@@ -68,6 +75,24 @@ public class LocomotiveSteam extends Locomotive {
 		setBoilerPressure(nbttagcompound.getFloat("boiler_psi"));
 		dataManager.set(BURN_TIME, nbttagcompound.getString("burn_time"));
 		dataManager.set(BURN_MAX, nbttagcompound.getString("burn_max"));
+	}
+	
+	@Override
+	public void readSpawnData(ByteBuf additionalData) {
+		super.readSpawnData(additionalData);
+
+		List<RenderComponent> driving = this.getDefinition().getComponents(RenderComponentType.WHEEL_DRIVER_X, gauge);
+		if (driving != null) {
+			for (RenderComponent driver : driving) {
+				driverDiameter = Math.max(driverDiameter, driver.height());
+			}
+		}
+		driving = this.getDefinition().getComponents(RenderComponentType.WHEEL_DRIVER_REAR_X, gauge);
+		if (driving != null) {
+			for (RenderComponent driver : driving) {
+				driverDiameter = Math.max(driverDiameter, driver.height());
+			}
+		}
 	}
 	
 	public float getBoilerTemperature() {
@@ -145,11 +170,128 @@ public class LocomotiveSteam extends Locomotive {
 		setBurnTime(burnTime);
 	}
 	
+	private double getPhase(int spikes, float offsetDegrees) {
+		if (driverDiameter == 0) {
+			return 0;
+		}
+		double circumference = (driverDiameter * Math.PI);
+		double phase = (this.distanceTraveled % circumference)/circumference;
+		phase = Math.abs(Math.cos(phase*Math.PI*spikes + Math.toRadians(offsetDegrees)));
+		return phase;
+	}
+	
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
 
 		if (worldObj.isRemote) {
+			// Particles
+			
+			if (!Config.particlesEnabled) {
+				return;
+			}
+			
+			Vec3d fakeMotion = VecUtil.fromYaw(this.getCurrentSpeed().minecraft(), this.rotationYaw);
+			
+			List<RenderComponent> smokes = this.getDefinition().getComponents(RenderComponentType.PARTICLE_CHIMNEY_X, gauge);
+			if (smokes != null) {
+				double phase = getPhase(4, 0);
+				//System.out.println(phase);
+				for (RenderComponent smoke : smokes) {
+					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(smoke.center(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
+					particlePos = particlePos.subtract(fakeMotion);
+					if (this.ticksExisted % 1 == 0 ) {
+						float darken = 0;
+						float thickness = Math.abs(this.getThrottle())/2;
+						for (int i : this.getBurnTime().values()) {
+							darken += i >= 1 ? 1 : 0;
+						}
+						if (darken == 0) {
+							break;
+						}
+						darken /= this.getInventorySize() - 2.0;
+						darken *= 0.5;
+						
+						int lifespan = (int) (200 * (1 + Math.abs(this.getThrottle())) / 2);
+						//lifespan *= size;
+						
+						float verticalSpeed = (0.5f + Math.abs(this.getThrottle())) * ((float)smoke.width() / 0.6f);
+						
+						double size = smoke.width();
+						if (phase != 0 && Math.abs(this.getThrottle()) > 0.01 && Math.abs(this.getCurrentSpeed().metric()) < 30) {
+							double phaseSpike = Math.pow(phase, 8);
+							size *= 1 + phaseSpike*1.5;
+							verticalSpeed *= 1 + phaseSpike/2;
+						}
+						
+						particlePos = particlePos.subtract(fakeMotion);
+						
+						EntitySmokeParticle sp = new EntitySmokeParticle(worldObj, lifespan , darken, thickness, size);
+						sp.setPosition(particlePos.xCoord, particlePos.yCoord, particlePos.zCoord);
+						sp.setVelocity(fakeMotion.xCoord, fakeMotion.yCoord + verticalSpeed, fakeMotion.zCoord);
+						worldObj.spawnEntityInWorld(sp);
+					}
+				}
+			}
+			
+			List<RenderComponent> pistons = this.getDefinition().getComponents(RenderComponentType.PISTON_ROD_SIDE, gauge);
+			double csm = Math.abs(this.getCurrentSpeed().metric());
+			if (pistons != null && csm > 0.1 && csm  < 20 && this.getBoilerPressure() > 0) {
+				for (RenderComponent piston : pistons) {
+					float phaseOffset = 0;
+					switch (piston.side) {
+					case "LEFT":
+						phaseOffset = 45+90;
+						break;
+					case "RIGHT":
+						phaseOffset = -45+90;
+						break;
+					case "LEFT_FRONT":
+						phaseOffset = 45+90;
+						break;
+					case "RIGHT_FRONT":
+						phaseOffset = -45+90;
+						break;
+					case "LEFT_REAR":
+						phaseOffset = 90;
+						break;
+					case "RIGHT_REAR":
+						phaseOffset = 0;
+						break;
+					default:
+						continue;
+					}
+					
+					double phase = this.getPhase(2, phaseOffset);
+					double phaseSpike = Math.pow(phase, 4);
+					
+					if (phaseSpike < 0.6) {
+						continue;
+					}
+					
+					
+					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(piston.min(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
+					EntitySmokeParticle sp = new EntitySmokeParticle(worldObj, 80, 0, 0.6f, 0.2);
+					sp.setPosition(particlePos.xCoord, particlePos.yCoord, particlePos.zCoord);
+					double accell = (piston.side.contains("RIGHT") ? 1 : -1) * 0.3;
+					Vec3d sideMotion = fakeMotion.add(VecUtil.fromYaw(accell, this.rotationYaw+90));
+					sp.setVelocity(sideMotion.xCoord, sideMotion.yCoord+0.01, sideMotion.zCoord);
+					worldObj.spawnEntityInWorld(sp);
+				}
+			}
+			
+			List<RenderComponent> steams = this.getDefinition().getComponents(RenderComponentType.PRESSURE_VALVE_X, gauge);
+			if (steams != null && this.getBoilerPressure() == this.getDefinition().getMaxPSI(gauge)) {
+				for (RenderComponent steam : steams) {
+					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(steam.center(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
+					particlePos = particlePos.subtract(fakeMotion);
+					EntitySmokeParticle sp = new EntitySmokeParticle(worldObj, 40, 0, 0.2f, steam.width());
+					sp.setPosition(particlePos.xCoord, particlePos.yCoord, particlePos.zCoord);
+					sp.setVelocity(fakeMotion.xCoord, fakeMotion.yCoord + 0.2, fakeMotion.zCoord);
+					worldObj.spawnEntityInWorld(sp);
+				}
+			}
+			
 			return;
 		}
 		
@@ -213,7 +355,7 @@ public class LocomotiveSteam extends Locomotive {
 			int time = burnTime.containsKey(slot) ? burnTime.get(slot) : 0;
 			if (time <= 0) {
 				ItemStack stack = this.cargoItems.getStackInSlot(slot);
-				if (stack.stackSize <= 0 || !TileEntityFurnace.isItemFuel(stack)) {
+				if (stack == null || stack.stackSize <= 0 || !TileEntityFurnace.isItemFuel(stack)) {
 					continue;
 				}
 				time = (int) (BurnUtil.getBurnTime(stack) * 1/gauge.scale());
@@ -276,11 +418,24 @@ public class LocomotiveSteam extends Locomotive {
 			// 10% over max pressure OR
 			// Half max pressure and high boiler temperature
 			//EXPLODE
+			this.gonnaExplode = true;
 			if (Config.explosionsEnabled) {
-				worldObj.createExplosion(this, this.posX, this.posY, this.posZ, boilerPressure, true);
+				for (int i = 0; i < 5; i++) {
+					worldObj.createExplosion(this, this.posX, this.posY, this.posZ, boilerPressure/8, true);
+				}
 			}
 			worldObj.removeEntity(this);
 		}
+	}
+	
+	@Override
+	public void setDead() {
+		if (this.gonnaExplode) {
+			this.isDead = true;
+			return;
+		}
+		// Don't do drops if from explosion
+		super.setDead();
 	}
 
 	@Override
