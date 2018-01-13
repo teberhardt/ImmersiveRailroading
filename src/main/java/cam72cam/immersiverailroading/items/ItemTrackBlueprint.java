@@ -142,7 +142,11 @@ public class ItemTrackBlueprint extends Item {
 	}
 	
 	public static void setBed(ItemStack stack, ItemStack base) {
-		stack.getTagCompound().setTag("bedItem", base.serializeNBT());
+		if (base == null) {
+			stack.getTagCompound().setTag("bedItem", new NBTTagCompound());
+		} else {
+			stack.getTagCompound().setTag("bedItem", base.serializeNBT());
+		}
 	}
 
 	public static ItemStack getBedFill(ItemStack stack) {
@@ -153,7 +157,11 @@ public class ItemTrackBlueprint extends Item {
 		}
 	}
 	public static void setBedFill(ItemStack stack, ItemStack base) {
-		stack.getTagCompound().setTag("bedFill", base.serializeNBT());
+		if (base == null) {
+			stack.getTagCompound().setTag("bedFill", new NBTTagCompound());
+		} else {
+			stack.getTagCompound().setTag("bedFill", base.serializeNBT());
+		}
 	}
 
 	public static boolean isPreview(ItemStack stack) {
