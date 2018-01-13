@@ -3,10 +3,8 @@ package cam72cam.immersiverailroading.render;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.vecmath.Matrix4f;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector3f;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.model.obj.OBJModel;
@@ -17,14 +15,13 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.ForgeHooksClient;
-import util.Matrix4;
 
+@SuppressWarnings("deprecation")
 public class RailCastItemRender implements IBakedModel {
 	private static OBJRender model;
 	private static List<String> groups;
@@ -84,20 +81,20 @@ public class RailCastItemRender implements IBakedModel {
 	public ItemOverrideList getOverrides() {
 		return ItemOverrideList.NONE;
 	}
-	/*
-	@Override
-	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
-		Pair<? extends IBakedModel, Matrix4f> defaultVal = ForgeHooksClient.handlePerspective(this, cameraTransformType);
-		switch (cameraTransformType) {
-		case GUI:
-			Matrix4f m = new Matrix4().translate(0, -0.5, 0).scale(1, 0.1, 1).toMatrix4f();
-			return Pair.of(defaultVal.getLeft(), m);
-		default:
-			return defaultVal;
-		}
-	}*/
+	
 	@Override
 	public ItemCameraTransforms getItemCameraTransforms() {
-		return ItemCameraTransforms.DEFAULT;
+		return new ItemCameraTransforms(ItemCameraTransforms.DEFAULT) {
+			public ItemTransformVec3f getTransform(ItemCameraTransforms.TransformType type) {
+				switch (type) {
+				case GUI:
+					return new ItemTransformVec3f(new Vector3f(0, 0, 0), new Vector3f(0, -0.5f, 0), new Vector3f(1, 0.1f, 1));
+				default:
+					break;
+				}
+				
+				return super.getTransform(type);
+			}
+		};
 	}
 }
