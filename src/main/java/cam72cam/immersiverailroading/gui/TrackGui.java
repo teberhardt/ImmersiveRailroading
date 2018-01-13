@@ -21,7 +21,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.init.Items;
 import net.minecraftforge.fml.client.config.GuiCheckBox;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import net.minecraftforge.oredict.OreDictionary;
@@ -90,8 +89,7 @@ public class TrackGui extends GuiScreen {
 		isPreview = ItemTrackBlueprint.isPreview(stack);
 		List<ItemStack> oreDict = new ArrayList<ItemStack>();
 		
-		//TODO1.10
-		oreDict.add(new ItemStack(Items.NAME_TAG));
+		oreDict.add(null);
 		
 		for (ItemStack ore : OreDictionary.getOres(ImmersiveRailroading.ORE_RAIL_BED)) {
 			if (ore.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
@@ -143,13 +141,13 @@ public class TrackGui extends GuiScreen {
 	}
 	
 	public String getBedstackName() {
-		if (bedSelector.choosenItem != null && bedSelector.choosenItem.getItem() != Items.NAME_TAG) {
+		if (bedSelector.choosenItem != null) {
 			return bedSelector.choosenItem.getDisplayName();
 		}
 		return GuiText.NONE.toString();
 	}
 	public String getBedFillName() {
-		if (bedFillSelector.choosenItem != null && bedFillSelector.choosenItem.getItem() != Items.NAME_TAG) {
+		if (bedFillSelector.choosenItem != null) {
 			return bedFillSelector.choosenItem.getDisplayName();
 		}
 		return GuiText.NONE.toString();

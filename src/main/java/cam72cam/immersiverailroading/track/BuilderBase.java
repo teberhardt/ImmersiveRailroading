@@ -8,11 +8,9 @@ import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.util.BlockUtil;
 import cam72cam.immersiverailroading.util.RailInfo;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -238,7 +236,7 @@ public abstract class BuilderBase {
 				fillCount += 1;
 			}
 		}
-		return (int) Math.ceil(this.info.railBedFill.getItem() != Items.NAME_TAG ? fillCount : 0);
+		return (int) Math.ceil(this.info.railBedFill != null ? fillCount : 0);
 	}
 
 	public void setDrops(List<ItemStack> drops) {

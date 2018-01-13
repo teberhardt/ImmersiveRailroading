@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
 public class ItemPickerGUI extends GuiScreen {
@@ -59,7 +60,11 @@ public class ItemPickerGUI extends GuiScreen {
 		for (int i = 0; i < items.size(); i++) {
 			int col = i % stacksX;
 			int row = i / stacksX;
-			this.buttonList.add(new ItemButton(i, items.get(i), startX + col * 16, startY + row * 16));
+			ItemStack item = items.get(i);
+			if (item == null) {
+				item = new ItemStack(Items.STRING);
+			}
+			this.buttonList.add(new ItemButton(i, item, startX + col * 16, startY + row * 16));
 		}
 	}
 	
@@ -67,6 +72,9 @@ public class ItemPickerGUI extends GuiScreen {
 		for (GuiButton itemButton: this.buttonList) {
 			if (itemButton == button) {
 				this.choosenItem = ((ItemButton)button).stack;
+				if (this.choosenItem != null && this.choosenItem.getItem() == Items.STRING) {
+					this.choosenItem = null;
+				}
 				onExit.accept(this.choosenItem);
 				break;
 			}

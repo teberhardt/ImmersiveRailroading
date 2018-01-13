@@ -19,7 +19,6 @@ import cam72cam.immersiverailroading.track.BuilderStraight;
 import cam72cam.immersiverailroading.track.BuilderSwitch;
 import cam72cam.immersiverailroading.track.BuilderTurn;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -166,10 +165,10 @@ public class RailInfo {
 					if (OreDictionaryContainsMatch(false, OreDictionary.getOres("plankTreatedWood"), playerStack)) {
 						ties += playerStack.stackSize;
 					}
-					if (railBed.getItem() != Items.NAME_TAG && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
+					if (railBed != null && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
 						bed += playerStack.stackSize;
 					}
-					if (railBedFill.getItem() != Items.NAME_TAG && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
+					if (railBedFill != null && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
 						fill += playerStack.stackSize;
 					}
 				}
@@ -184,12 +183,12 @@ public class RailInfo {
 					return false;
 				}
 				
-				if (railBed.getItem() != Items.NAME_TAG && bed < builder.costBed()) {
+				if (railBed != null && bed < builder.costBed()) {
 					player.addChatMessage(ChatText.BUILD_MISSING_RAIL_BED.getMessage(builder.costBed() - bed));
 					return false;
 				}
 				
-				if (railBedFill.getItem() != Items.NAME_TAG && fill < builder.costFill()) {
+				if (railBedFill != null && fill < builder.costFill()) {
 					player.addChatMessage(ChatText.BUILD_MISSING_RAIL_BED_FILL.getMessage(builder.costFill() - fill));
 					return false;
 				}
@@ -231,7 +230,7 @@ public class RailInfo {
 							ties = 0;
 						}
 					}
-					if (railBed.getItem() != Items.NAME_TAG && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
+					if (railBed != null && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
 						if (bed > playerStack.stackSize) {
 							bed -= playerStack.stackSize;
 							ItemStack copy = playerStack.copy();
@@ -246,7 +245,7 @@ public class RailInfo {
 							bed = 0;
 						}
 					}
-					if (railBedFill.getItem() != Items.NAME_TAG && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
+					if (railBedFill != null && railBedFill.getItem() == playerStack.getItem() && railBedFill.getMetadata() == playerStack.getMetadata()) {
 						if (fill > playerStack.stackSize) {
 							fill -= playerStack.stackSize;
 							ItemStack copy = playerStack.copy();

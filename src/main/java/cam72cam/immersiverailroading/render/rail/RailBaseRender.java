@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.init.Items;
 
 public class RailBaseRender {
 	/*
@@ -28,7 +27,7 @@ public class RailBaseRender {
 		// Get model for current state
 		final BlockRendererDispatcher blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
 		
-		if (info.railBed == null || info.railBed.getItem() == Items.NAME_TAG) {
+		if (info.railBed == null) {
 			return null;
 		}
 		IBlockState gravelState = BlockUtil.itemToBlockState(info.railBed);

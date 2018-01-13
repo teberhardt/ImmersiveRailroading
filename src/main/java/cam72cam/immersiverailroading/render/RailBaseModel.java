@@ -79,7 +79,7 @@ public class RailBaseModel implements IBakedModel {
 					state = Blocks.SNOW_LAYER.getDefaultState().withProperty(BlockSnow.LAYERS, snow);
 					IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
 					return model.getQuads(state, side, rand);
-				} else if (bed.getItem() != Items.NAME_TAG) {
+				} else if (bed != null) {
 					ItemStack item = bed;
 					state = BlockUtil.itemToBlockState(item);
 					IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
