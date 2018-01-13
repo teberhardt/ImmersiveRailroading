@@ -179,7 +179,7 @@ public class PlateRollerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (input.isItemEqual(steelBlock()) && output == null && !(craftingTe.getCraftItem() == null)) {
+				if (input != null && input.isItemEqual(steelBlock()) && output == null && !(craftingTe.getCraftItem() == null)) {
 					input.stackSize = (input.stackSize - 1);
 					inputTe.getContainer().setStackInSlot(0, input);;
 					progress = 100;

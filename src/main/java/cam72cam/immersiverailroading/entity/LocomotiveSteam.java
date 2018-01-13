@@ -313,8 +313,13 @@ public class LocomotiveSteam extends Locomotive {
 				for (int slot = 0; slot < this.cargoItems.getSlots()-2; slot ++) {
 					if (BurnUtil.getBurnTime(this.cargoItems.getStackInSlot(slot)) != 0) {
 						for (int tenderSlot = 0; tenderSlot < tender.cargoItems.getSlots(); tenderSlot ++) {
-							if (this.cargoItems.getStackInSlot(slot).isItemEqual(tender.cargoItems.getStackInSlot(tenderSlot))) {
-								if (this.cargoItems.getStackInSlot(slot).getMaxStackSize() > this.cargoItems.getStackInSlot(slot).stackSize) {
+							ItemStack cargoStack = this.cargoItems.getStackInSlot(slot);
+							ItemStack tenderStack = tender.cargoItems.getStackInSlot(tenderSlot);
+							if (cargoStack == null || tenderStack == null) {
+								continue;
+							}
+							if (cargoStack.isItemEqual(tenderStack)) {
+								if (cargoStack.getMaxStackSize() > tenderStack.stackSize) {
 									ItemStack extracted = tender.cargoItems.extractItem(tenderSlot, 1, false);
 									this.cargoItems.insertItem(slot, extracted, false);
 								}

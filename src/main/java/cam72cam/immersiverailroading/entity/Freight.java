@@ -64,7 +64,7 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 		if (!worldObj.isRemote) {		
 			for (int slot = 0; slot < cargoItems.getSlots(); slot++) {
 				ItemStack itemstack = cargoItems.getStackInSlot(slot);
-				if (itemstack.stackSize != 0) {
+				if (itemstack != null && itemstack.stackSize != 0) {
 					Vec3d pos = this.getPositionVector().add(VecUtil.fromYaw(4, this.rotationYaw+90));
 					worldObj.spawnEntityInWorld(new EntityItem(this.worldObj, pos.xCoord, pos.yCoord, pos.zCoord, itemstack.copy()));
 					itemstack.stackSize = 0;
@@ -137,7 +137,7 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 		
 		for (int slot = 0; slot < cargoItems.getSlots(); slot++) {
 			ItemStack itemstack = cargoItems.getStackInSlot(slot);
-			if (itemstack.stackSize != 0) {
+			if (itemstack != null && itemstack.stackSize != 0) {
 				worldObj.spawnEntityInWorld(new EntityItem(this.worldObj, this.posX, this.posY, this.posZ, itemstack.copy()));
 				itemstack.stackSize = 0;
 			}

@@ -154,7 +154,7 @@ public class RailRollerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (input.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL && output == null) {
+				if (input != null && input.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL && output == null) {
 					progress = 100;
 					craftingTe.setCraftProgress(100);
 				}

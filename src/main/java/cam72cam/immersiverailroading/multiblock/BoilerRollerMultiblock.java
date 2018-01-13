@@ -147,7 +147,7 @@ public class BoilerRollerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (input.getItem() == ImmersiveRailroading.ITEM_PLATE && ItemPlateType.get(input) == PlateType.BOILER && output == null) {
+				if (input != null && input.getItem() == ImmersiveRailroading.ITEM_PLATE && ItemPlateType.get(input) == PlateType.BOILER && output == null) {
 					progress = 100;
 					craftTe.setCraftProgress(100);
 				}
