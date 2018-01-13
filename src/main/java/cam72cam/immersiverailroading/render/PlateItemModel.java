@@ -7,6 +7,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.init.Blocks;
@@ -20,7 +21,7 @@ public class PlateItemModel implements IBakedModel {
 
 	@Override
 	public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-		state = Blocks.CONCRETE.getDefaultState();
+		state = Blocks.WOOL.getDefaultState();
 		state = state.withProperty(BlockColored.COLOR, EnumDyeColor.GRAY);
 		IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
 		return new BakedScaledModel(model, new Vec3d(1, 1, 0.03), new Vec3d(0, 0, 0.5)).getQuads(state, side, rand);
@@ -49,5 +50,10 @@ public class PlateItemModel implements IBakedModel {
 	@Override
 	public ItemOverrideList getOverrides() {
 		return ItemOverrideList.NONE;
+	}
+
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() {
+		return ItemCameraTransforms.DEFAULT;
 	}
 }

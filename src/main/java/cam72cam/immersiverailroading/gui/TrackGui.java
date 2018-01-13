@@ -92,7 +92,7 @@ public class TrackGui extends GuiScreen {
 		
 		for (ItemStack ore : OreDictionary.getOres(ImmersiveRailroading.ORE_RAIL_BED)) {
 			if (ore.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
-				ore.getItem().getSubItems(ore.getItem().getCreativeTab(), oreDict);
+				ore.getItem().getSubItems(null, ore.getItem().getCreativeTab(), oreDict);
 			} else {
 				oreDict.add(ore);
 			}

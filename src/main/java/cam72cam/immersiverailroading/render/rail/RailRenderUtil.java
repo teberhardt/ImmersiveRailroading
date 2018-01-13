@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11;
 import cam72cam.immersiverailroading.util.GLBoolTracker;
 import cam72cam.immersiverailroading.util.RailInfo;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
@@ -53,7 +53,7 @@ public class RailRenderUtil {
 	 *  
 	 *  Excludes the reset buffer at the end
 	 */
-	public static void draw(BufferBuilder vertexBufferIn) {
+	public static void draw(VertexBuffer vertexBufferIn) {
 		if (vertexBufferIn == null) {
 			return;
 		}

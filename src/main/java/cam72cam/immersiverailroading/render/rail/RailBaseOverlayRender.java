@@ -9,14 +9,14 @@ import net.minecraft.block.BlockStainedGlass;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 
 public class RailBaseOverlayRender {
-	protected static BufferBuilder getOverlayBuffer(RailInfo info) {
+	protected static VertexBuffer getOverlayBuffer(RailInfo info) {
 		
 		// Get model for current state
 		final BlockRendererDispatcher blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
@@ -25,7 +25,7 @@ public class RailBaseOverlayRender {
 		IBakedModel gravelModel = blockRenderer.getBlockModelShapes().getModelForState(gravelState);
 		
 		// Create render targets
-		BufferBuilder worldRenderer = new BufferBuilder(2048);
+		VertexBuffer worldRenderer = new VertexBuffer(2048);
 		
 		worldRenderer.setTranslation(-info.position.getX(), -info.position.getY(), -info.position.getZ());
 

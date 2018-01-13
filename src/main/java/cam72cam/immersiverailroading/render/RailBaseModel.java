@@ -13,6 +13,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.init.Blocks;
@@ -42,7 +43,7 @@ public class RailBaseModel implements IBakedModel {
 				if (augment != null) {
 					height = height + 0.1f * (float)gauge.scale() * 1.25f;
 
-					state = Blocks.CONCRETE.getDefaultState();
+					state = Blocks.WOOL.getDefaultState();
 					state = state.withProperty(BlockColored.COLOR, augment.tempColor());
 					IBakedModel model = Minecraft.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelForState(state);
 					List<BakedQuad> quads = new ArrayList<BakedQuad>();
@@ -112,5 +113,9 @@ public class RailBaseModel implements IBakedModel {
 	@Override
 	public ItemOverrideList getOverrides() {
 		return null;
+	}
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() {
+		return ItemCameraTransforms.DEFAULT;
 	}
 }

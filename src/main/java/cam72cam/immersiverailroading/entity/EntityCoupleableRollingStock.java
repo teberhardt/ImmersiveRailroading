@@ -642,7 +642,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 	        		return false;
 	        	}
 	        	
-	        	if (entity.getDistance(EntityCoupleableRollingStock.this) > 64) {
+	        	if (entity.getDistanceToEntity(EntityCoupleableRollingStock.this) > 64) {
 	        		return false;
 	        	}
 	        	
@@ -707,7 +707,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			} else {
 				// diagram 2 or diagram 3
 				AxisAlignedBB myBB = this.getCollisionBoundingBox().contract(0, 0, 0.25); // Prevent overlap on other rails
-				if (!myBB.contains(stockCouplerPos)) {
+				if (!myBB.intersects(stockCouplerPos, stockCouplerPos)) {
 					continue;
 				}
 			}

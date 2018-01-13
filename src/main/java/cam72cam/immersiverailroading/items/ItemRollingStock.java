@@ -2,7 +2,6 @@ package cam72cam.immersiverailroading.items;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
 
 import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
@@ -15,11 +14,11 @@ import cam72cam.immersiverailroading.registry.DefinitionManager;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.tile.TileRailBase;
 import cam72cam.immersiverailroading.util.BlockUtil;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -45,9 +44,9 @@ public class ItemRollingStock extends BaseItemRollingStock {
 	}
 	
 	@Override
-	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items)
+	public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> items)
     {
-        if (this.isInCreativeTab(tab))
+        if (this.getCreativeTab() == tab)
         {
         	for (String defID : DefinitionManager.getDefinitionNames()) {
         		ItemStack stack = new ItemStack(this);
@@ -59,13 +58,14 @@ public class ItemRollingStock extends BaseItemRollingStock {
     }
 	
 	@SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
+	@Override
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
 		overrideStackDisplayName(stack);
 		
 		Gauge gauge = ItemGauge.get(stack);
 		
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+        super.addInformation(stack, playerIn, tooltip, advanced);
         EntityRollingStockDefinition def = ItemDefinition.get(stack);
         if (def != null) {
         	tooltip.addAll(def.getTooltip(gauge));

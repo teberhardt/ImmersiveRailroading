@@ -18,7 +18,7 @@ public class ItemTabs {
 		@Override
 		public ItemStack getTabIconItem() {
 			NonNullList<ItemStack> items = NonNullList.create();
-			ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(this, items);
+			ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(null, this, items);
 			return items.get(0);
 		}
 	};
@@ -27,7 +27,7 @@ public class ItemTabs {
 		@Override
 		public ItemStack getTabIconItem() {
 			NonNullList<ItemStack> items = NonNullList.create();
-			ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getSubItems(this, items);
+			ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getSubItems(null, this, items);
 			return items.get(0);
 		}
 	};

@@ -2,7 +2,7 @@ package cam72cam.immersiverailroading.gui;
 
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -22,7 +22,7 @@ public abstract class ContainerGuiBase extends GuiContainer {
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		super.drawScreen(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX, mouseY);
+        //TODO 1.11 this.renderHoveredToolTip(mouseX, mouseY);
 	}
 
 	public static final int slotSize = 18;
@@ -128,7 +128,7 @@ public abstract class ContainerGuiBase extends GuiContainer {
         float minV = sprite.getMinV();
         
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
+        VertexBuffer buffer = tessellator.getBuffer();
         buffer.begin(7, DefaultVertexFormats.POSITION_TEX);	        
         for (int offY = 0; offY < height; offY += iH) {
         	int curHeight = Math.min(iH, height - offY);

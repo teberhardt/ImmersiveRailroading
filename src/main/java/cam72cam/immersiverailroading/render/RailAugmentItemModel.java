@@ -11,6 +11,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -37,7 +38,7 @@ public class RailAugmentItemModel implements IBakedModel {
 
 	@Override
 	public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-		state = Blocks.CONCRETE.getDefaultState();
+		state = Blocks.WOOL.getDefaultState();
 		if (color != null) {
 			state = state.withProperty(BlockColored.COLOR, color);
 		}
@@ -78,5 +79,10 @@ public class RailAugmentItemModel implements IBakedModel {
 	@Override
 	public ItemOverrideList getOverrides() {
 		return new ItemOverrideListHack();
+	}
+	
+	@Override
+	public ItemCameraTransforms getItemCameraTransforms() {
+		return ItemCameraTransforms.DEFAULT;
 	}
 }

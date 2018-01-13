@@ -185,7 +185,7 @@ public class CastingMultiblock extends Multiblock {
 				if (fluidTe == null) {
 					return;
 				}
-				AxisAlignedBB bb = new AxisAlignedBB(getPos(offset.add(0, 1, 0))).grow(3, 0, 3);
+				AxisAlignedBB bb = new AxisAlignedBB(getPos(offset.add(0, 1, 0))).expand(3, 0, 3);
 				List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, bb);
 				for (EntityItem item : items) {
 					ItemStack stack = item.getItem();
@@ -205,7 +205,7 @@ public class CastingMultiblock extends Multiblock {
 						}
 					}
 				}
-				List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, bb.grow(0,2,0));
+				List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, bb.expand(0,2,0));
 				for (EntityLivingBase alive : living) {
 					alive.attackEntityFrom(new DamageSource("immersiverailroading:casting"), 5);
 				}

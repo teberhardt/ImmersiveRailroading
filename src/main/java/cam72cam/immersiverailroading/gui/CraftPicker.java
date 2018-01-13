@@ -23,11 +23,11 @@ public class CraftPicker extends GuiScreen {
 		this.onChoose = onChoose;
 		this.items = NonNullList.create();
 		
-        ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getSubItems(ItemTabs.COMPONENT_TAB, items);
+        ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getSubItems(null, ItemTabs.COMPONENT_TAB, items);
         
         NonNullList<ItemStack> stock = NonNullList.create();
         
-        ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(ItemTabs.STOCK_TAB, stock);
+        ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(null, ItemTabs.STOCK_TAB, stock);
 
 		stockSelector = new ItemPickerGUI(stock, this::onStockExit);
 		List<ItemStack> toRemove = new ArrayList<ItemStack>();
@@ -57,7 +57,7 @@ public class CraftPicker extends GuiScreen {
 		
 		if (craftType == CraftingType.CASTING) {
         	stock.add(new ItemStack(ImmersiveRailroading.ITEM_CAST_RAIL, 1));
-	        ImmersiveRailroading.ITEM_AUGMENT.getSubItems(ItemTabs.MAIN_TAB, stock);
+	        ImmersiveRailroading.ITEM_AUGMENT.getSubItems(null, ItemTabs.MAIN_TAB, stock);
 		}
 		
 		toRemove = new ArrayList<ItemStack>();

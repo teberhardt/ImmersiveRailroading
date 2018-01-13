@@ -127,7 +127,7 @@ public class RealBB extends AxisAlignedBB {
 	public AxisAlignedBB offset(BlockPos pos) {
 		return this.offset(pos.getX(), pos.getY(), pos.getZ());
 	}
-	@Override
+	//@Override
 	public AxisAlignedBB offset(Vec3d vec) {
 		return this.offset(vec.x, vec.y, vec.z);
 	}
