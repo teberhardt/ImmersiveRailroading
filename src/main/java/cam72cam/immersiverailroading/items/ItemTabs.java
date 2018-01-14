@@ -17,13 +17,23 @@ public class ItemTabs {
 		}
 	};
 	
+	public static CreativeTabs LOCOMOTIVE_TAB = new CreativeTabs(ImmersiveRailroading.MODID + ".locomotive") {
+		@Override
+		public Item getTabIconItem() {
+			return ImmersiveRailroading.ITEM_LARGE_WRENCH;
+		}
+	};
+	
 	public static CreativeTabs STOCK_TAB = new CreativeTabs(ImmersiveRailroading.MODID + ".stock") {
 		@Override
 		public Item getTabIconItem() {
-			List<ItemStack> items = new ArrayList<ItemStack>();
-			ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(null, this, items);
-			//return items.get(0).getItem();
-
+			return ImmersiveRailroading.ITEM_LARGE_WRENCH;
+		}
+	};
+	
+	public static CreativeTabs PASSENGER_TAB = new CreativeTabs(ImmersiveRailroading.MODID + ".passenger") {
+		@Override
+		public Item getTabIconItem() {
 			return ImmersiveRailroading.ITEM_LARGE_WRENCH;
 		}
 	};
