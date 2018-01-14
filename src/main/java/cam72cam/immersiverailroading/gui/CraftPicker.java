@@ -26,6 +26,8 @@ public class CraftPicker extends GuiScreen {
         
         List<ItemStack> stock = new ArrayList<ItemStack>();
         
+        ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(null, ItemTabs.LOCOMOTIVE_TAB, stock);
+        ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(null, ItemTabs.PASSENGER_TAB, stock);
         ImmersiveRailroading.ITEM_ROLLING_STOCK.getSubItems(null, ItemTabs.STOCK_TAB, stock);
 
 		stockSelector = new ItemPickerGUI(stock, this::onStockExit);
