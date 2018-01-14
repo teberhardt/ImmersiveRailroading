@@ -47,6 +47,7 @@ import cam72cam.immersiverailroading.tile.TileRailPreview;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -66,6 +67,7 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.oredict.OreDictionary;
+import net.minecraftforge.oredict.ShapedOreRecipe;
 
 @EventBusSubscriber()
 public abstract class CommonProxy implements IGuiHandler {
@@ -110,6 +112,29 @@ public abstract class CommonProxy implements IGuiHandler {
     	MultiblockRegistry.register(RailRollerMultiblock.NAME, new RailRollerMultiblock());
     	MultiblockRegistry.register(BoilerRollerMultiblock.NAME, new BoilerRollerMultiblock());
     	MultiblockRegistry.register(CastingMultiblock.NAME, new CastingMultiblock());
+
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_HOOK),
+    		    "dd ",
+    		    "d  ",
+    		    "d  ",
+    		    'd', "ingotSteel"));
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_MANUAL, 1),  
+    			"d d",
+    		    "dbd",
+    		    "d d",
+    		    'd', "ingotSteel",
+    		    'b', new ItemStack(Items.BOOK, 1)));
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_RAIL, 1),  
+    			"d d",
+    		    "dbd",
+    		    "d d",
+    		    'd', "ingotSteel",
+    		    'b', new ItemStack(Items.PAPER, 1)));
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_LARGE_WRENCH),  
+    			" d ",
+    		    "ddd",
+    		    "d d",
+    		    'd', "ingotSteel"));
     	
     	NetworkRegistry.INSTANCE.registerGuiHandler(ImmersiveRailroading.instance, this);
     }
