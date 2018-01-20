@@ -159,6 +159,9 @@ public class RailInfo {
 				int fill = 0;
 				
 				for (ItemStack playerStack : player.inventory.mainInventory) {
+					if (playerStack == null) {
+						continue;
+					}
 					if (playerStack.getItem() == ImmersiveRailroading.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
 						rails += playerStack.stackSize;
 					}
@@ -200,6 +203,9 @@ public class RailInfo {
 				List<ItemStack> drops = new ArrayList<ItemStack>();
 				
 				for (ItemStack playerStack : player.inventory.mainInventory) {
+					if (playerStack == null) {
+						continue;
+					}
 					if (playerStack.getItem() == ImmersiveRailroading.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
 						if (rails > playerStack.stackSize) {
 							rails -= playerStack.stackSize;
