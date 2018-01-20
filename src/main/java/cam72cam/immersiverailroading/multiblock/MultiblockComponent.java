@@ -30,14 +30,14 @@ public class MultiblockComponent {
 		def = block.getDefaultState();
 		name = block.getLocalizedName();
 		this.blockCheck = (IBlockState target) -> target.getBlock() == block;
-		this.itemCheck = (ItemStack stack) -> Block.getBlockFromItem(stack.getItem()) == block;
+		this.itemCheck = (ItemStack stack) -> stack != null && Block.getBlockFromItem(stack.getItem()) == block;
 	}
 	
 	public MultiblockComponent(IBlockState state, ItemStack stack) {
 		this.def = state;
 		this.name = stack.getDisplayName(); 
 		this.blockCheck = (IBlockState target) -> target.equals(state);
-		this.itemCheck = (ItemStack tstack) -> tstack.isItemEqual(stack);
+		this.itemCheck = (ItemStack tstack) -> tstack != null && tstack.isItemEqual(stack);
 	}
 	
 	public MultiblockComponent(Function<IBlockState, Boolean> blockCheck, Function<ItemStack, Boolean> itemCheck, IBlockState def, String name) {
@@ -66,7 +66,7 @@ public class MultiblockComponent {
 					int count = stack.stackSize;
 					
 					ItemStack backup = player.getHeldItem(EnumHand.MAIN_HAND).copy();
-					EnumActionResult result = stack.getItem().onItemUse(player.getHeldItem(EnumHand.MAIN_HAND), player, world, pos, EnumHand.MAIN_HAND, EnumFacing.DOWN, 0.5f, 0f, 0.5f);
+					EnumActionResult result = stack.getItem().onItemUse(stack, player, world, pos, EnumHand.MAIN_HAND, EnumFacing.DOWN, 0.5f, 0f, 0.5f);
 					player.setHeldItem(EnumHand.MAIN_HAND, backup);
 					
 					if (result == EnumActionResult.SUCCESS) {
