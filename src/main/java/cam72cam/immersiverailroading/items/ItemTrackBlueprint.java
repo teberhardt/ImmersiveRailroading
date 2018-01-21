@@ -120,7 +120,7 @@ public class ItemTrackBlueprint extends Item {
 		if (stack.getTagCompound() != null){
 			return stack.getTagCompound().getInteger("quarters");
 		}
-		return 3;
+		return 4;
 	}
 	
 	public static void setPosType(ItemStack stack, TrackPositionType posType) {

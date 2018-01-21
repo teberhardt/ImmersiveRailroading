@@ -172,6 +172,10 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 
 		if (world.isRemote) {
 			// Only couple server side
+			
+			//ParticleUtil.spawnParticle(world, EnumParticleTypes.REDSTONE, this.getCouplerPosition(CouplerType.FRONT));
+			//ParticleUtil.spawnParticle(world, EnumParticleTypes.SMOKE_NORMAL, this.getCouplerPosition(CouplerType.BACK));
+			
 			return;
 		}
 		
@@ -229,7 +233,6 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 				
 				EntityCoupleableRollingStock stock = potential.getLeft();
 				CouplerType otherCoupler = potential.getRight();
-
 				this.setCoupledUUID(coupler, stock.getPersistentID());
 				stock.setCoupledUUID(otherCoupler, this.getPersistentID());
 			}
@@ -286,7 +289,8 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			
 			simulateCoupledRollingStock();
 			
-			for (EntityCoupleableRollingStock stock : this.getTrain()) {
+			List<EntityCoupleableRollingStock> tr = this.getTrain();
+			for (EntityCoupleableRollingStock stock : tr) {
 				stock.resimulate = false;
 			}
 		}
@@ -508,8 +512,11 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 	}
 
 	public CouplerType getCouplerFor(EntityCoupleableRollingStock stock) {
+		if (stock == null) {
+			return null;
+		}
 		for (CouplerType coupler : CouplerType.values()) {
-			if (this.getCoupled(coupler) == stock) {
+			if (stock.getUniqueID().equals(this.getCoupledUUID(coupler))) {
 				return coupler;
 			}
 		}
@@ -592,7 +599,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 	private Vec3d getCouplerPositionTo(CouplerType coupler, TickPos myPos, TickPos coupledPos) {
 		//	Take the current position
 		//	Add
-		//		The Vector between the two couplers
+		//		The Vector between the two entities
 		//		which has been normalized
 		//  	then scaled to the distance between the stock position and the coupler
 		//
@@ -616,12 +623,12 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 		//Don't ask me why these are reversed...
 		if (coupler == CouplerType.FRONT) {
 			if (couplerFrontPosition == null) {
-				couplerFrontPosition = predictRearBogeyPosition(pos, (float) (this.getDefinition().getLength(gauge)/2 + Config.couplerRange + this.getDefinition().getBogeyRear(gauge))).add(pos.position).addVector(0, 1, 0);
+				couplerFrontPosition = predictRearBogeyPosition(pos, (float) (this.getDefinition().getCouplerPosition(coupler, gauge) + this.getDefinition().getBogeyRear(gauge))).add(pos.position).addVector(0, 1, 0);
 			}
 			return couplerFrontPosition;
 		} else {
 			if (couplerRearPosition == null) {
-				couplerRearPosition = predictFrontBogeyPosition(pos, (float) (this.getDefinition().getLength(gauge)/2 + Config.couplerRange - this.getDefinition().getBogeyFront(gauge))).add(pos.position).addVector(0, 1, 0);
+				couplerRearPosition = predictFrontBogeyPosition(pos, (float) (this.getDefinition().getCouplerPosition(coupler, gauge) - this.getDefinition().getBogeyFront(gauge))).add(pos.position).addVector(0, 1, 0);
 			}
 			return couplerRearPosition;
 		}
@@ -665,13 +672,15 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 		
 		
 		/*
-		 * 1. |-----+-----| |-----+-----|
-		 * 2. |-----+---|=|----+-----|
-		 * 3. |---|=+====+|-----|
+		 * 1. |-----a-----| |-----b-----|
+		 * 2. |-----a---|=|----b-----|
+		 * 3. |---|=a====b|-----|
+		 * Keep in mind that we want to make sure that our other coupler might be a better fit
 		 */
 
 		// getCouplerPosition is a somewhat expensive call, minimize if possible
 		Vec3d myCouplerPos = this.getCouplerPosition(coupler);
+		Vec3d myOppositeCouplerPos = this.getCouplerPosition(coupler.opposite());
 		
 		for (EntityCoupleableRollingStock stock : nearBy) {
 			Vec3d stockFrontPos = stock.getCouplerPosition(CouplerType.FRONT);
@@ -692,6 +701,8 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			double myCouplerToOtherCoupler = myCouplerPos.distanceTo(stockCouplerPos);
 			double myCenterToMyCoupler = this.getPositionVector().distanceTo(myCouplerPos);
 			double myCenterToOtherCoupler = this.getPositionVector().distanceTo(stockCouplerPos);
+			double myCouplerToOtherCenter = myCouplerPos.distanceTo(stock.getPositionVector());
+			double myOppositeCouplerToOtherCenter = myOppositeCouplerPos.distanceTo(stock.getPositionVector());
 
 			if (myCouplerToOtherCoupler > bestDistance) {
 				// Current best match is closer, should be a small edge case when stock is almost entirely overlapping
@@ -710,6 +721,11 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 				if (!myBB.intersects(stockCouplerPos, stockCouplerPos)) {
 					continue;
 				}
+			}
+			
+			if (myCouplerToOtherCenter > myOppositeCouplerToOtherCenter) {
+				// My other coupler is a much better fit
+				continue;
 			}
 			
 			// findByUUID seems to work around a memcpy issue where refs are not updated
@@ -753,19 +769,30 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 	public final void mapTrain(EntityCoupleableRollingStock prev, boolean direction, boolean followDisengaged, BiConsumer<EntityCoupleableRollingStock, Boolean> fn) {
 		fn.accept(this, direction);
 		for (CouplerType coupler : CouplerType.values()) {
-			EntityCoupleableRollingStock coupled = this.getCoupled(coupler);
-			if (coupled != null && !coupled.getUniqueID().equals(prev.getUniqueID())) {
-				boolean iAmCoupled = this.isCouplerEngaged(coupler);
-				CouplerType otherCoupler = coupled.getCouplerFor(this);
-				if (otherCoupler == null) {
-					//this.decouple(coupler);
-					continue;
-				}
-				boolean otherIsCoupled = coupled.isCouplerEngaged(otherCoupler); 
-				if ((iAmCoupled && otherIsCoupled) || followDisengaged) {
-					coupled.mapTrain(this, coupler.opposite() == otherCoupler ? direction : !direction, followDisengaged, fn);
-				}
+			if (this.getCoupledUUID(coupler) == null) {
+				continue;
 			}
+			
+			if (this.getCoupledUUID(coupler).equals(prev.getUniqueID())) {
+				continue;
+			}
+			
+			if (!(followDisengaged || this.isCouplerEngaged(coupler))) {
+				continue;
+			}
+			
+			EntityCoupleableRollingStock coupled = this.getCoupled(coupler);
+			
+			if (coupled == null) {
+				continue;
+			}
+			
+			CouplerType otherCoupler = coupled.getCouplerFor(this);
+			if (!(followDisengaged || coupled.isCouplerEngaged(otherCoupler))) {
+				continue;
+			}
+
+			coupled.mapTrain(this, coupler.opposite() == otherCoupler ? direction : !direction, followDisengaged, fn);
 		}
 	}
 
