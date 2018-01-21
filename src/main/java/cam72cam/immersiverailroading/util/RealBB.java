@@ -166,6 +166,11 @@ public class RealBB extends AxisAlignedBB {
 		return 0;
 	}
 	
+	// Does not exist server side, whyyyyyyy
+	public boolean intersects(Vec3d min, Vec3d max) {
+        return this.intersects(Math.min(min.xCoord, max.xCoord), Math.min(min.yCoord, max.yCoord), Math.min(min.zCoord, max.zCoord), Math.max(min.xCoord, max.xCoord), Math.max(min.yCoord, max.yCoord), Math.max(min.zCoord, max.zCoord));
+	}
+	
 	@Override
 	public boolean intersects(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
 		return intersectsAt(minX, minY, minZ, maxX, maxY, maxZ, true).getLeft();
