@@ -3,6 +3,8 @@ package cam72cam.immersiverailroading.proxy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,21 +43,21 @@ import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;
 import cam72cam.immersiverailroading.net.KeyPressPacket;
 import cam72cam.immersiverailroading.net.MousePressPacket;
-import cam72cam.immersiverailroading.render.TrackBlueprintItemModel;
-import cam72cam.immersiverailroading.render.ParticleRender;
-import cam72cam.immersiverailroading.render.PlateItemModel;
-import cam72cam.immersiverailroading.render.RailAugmentItemModel;
-import cam72cam.immersiverailroading.render.RailBaseModel;
-import cam72cam.immersiverailroading.render.RailCastItemRender;
-import cam72cam.immersiverailroading.render.RailItemRender;
-import cam72cam.immersiverailroading.render.StockEntityRender;
-import cam72cam.immersiverailroading.render.StockItemComponentModel;
-import cam72cam.immersiverailroading.render.StockItemModel;
+import cam72cam.immersiverailroading.render.item.PlateItemModel;
+import cam72cam.immersiverailroading.render.item.RailAugmentItemModel;
+import cam72cam.immersiverailroading.render.item.RailCastItemRender;
+import cam72cam.immersiverailroading.render.item.RailItemRender;
+import cam72cam.immersiverailroading.render.item.StockItemComponentModel;
+import cam72cam.immersiverailroading.render.item.StockItemModel;
+import cam72cam.immersiverailroading.render.item.TrackBlueprintItemModel;
 import cam72cam.immersiverailroading.render.StockRenderCache;
-import cam72cam.immersiverailroading.render.TileMultiblockRender;
+import cam72cam.immersiverailroading.render.block.RailBaseModel;
+import cam72cam.immersiverailroading.render.entity.ParticleRender;
+import cam72cam.immersiverailroading.render.entity.StockEntityRender;
 import cam72cam.immersiverailroading.render.rail.RailRenderUtil;
-import cam72cam.immersiverailroading.render.rail.TileRailPreviewRender;
-import cam72cam.immersiverailroading.render.rail.TileRailRender;
+import cam72cam.immersiverailroading.render.tile.TileMultiblockRender;
+import cam72cam.immersiverailroading.render.tile.TileRailPreviewRender;
+import cam72cam.immersiverailroading.render.tile.TileRailRender;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import cam72cam.immersiverailroading.tile.TileRail;
 import cam72cam.immersiverailroading.tile.TileRailPreview;
@@ -63,8 +65,11 @@ import cam72cam.immersiverailroading.util.GLBoolTracker;
 import cam72cam.immersiverailroading.util.RailInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.IResource;
@@ -73,6 +78,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -355,19 +361,80 @@ public class ClientProxy extends CommonProxy {
 		 * To fix this we render the entity the player is riding by hand at the end of the render loop
 		 * This is a bad hack but it works
 		 * 
-		 * BUG: Lighting is not setup correctly
-		 * BUG: Entity is rendered twice (check render pass and is riding???)
 		 */
-		if (Minecraft.getMinecraft().thePlayer.isRiding()) {
-			Entity toRender = Minecraft.getMinecraft().thePlayer.getLowestRidingEntity();
-			if (toRender instanceof EntityRollingStock) {
-		        GLBoolTracker color = new GLBoolTracker(GL11.GL_COLOR_MATERIAL, true);
-	            RenderHelper.enableStandardItemLighting();
-				Minecraft.getMinecraft().getRenderManager().renderEntityStatic(toRender, event.getPartialTicks(), true);
-	            RenderHelper.disableStandardItemLighting();
-				color.restore();
-			}
-		}
+		
+		Minecraft.getMinecraft().mcProfiler.startSection("ir_entity");
+
+        GLBoolTracker color = new GLBoolTracker(GL11.GL_COLOR_MATERIAL, true);
+        RenderHelper.enableStandardItemLighting();
+        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+
+		GlStateManager.enableAlpha();
+        
+        float partialTicks = event.getPartialTicks();
+        ICamera camera = new Frustum();
+        Entity playerrRender = Minecraft.getMinecraft().getRenderViewEntity();
+        double d0 = playerrRender.lastTickPosX + (playerrRender.posX - playerrRender.lastTickPosX) * (double)partialTicks;
+        double d1 = playerrRender.lastTickPosY + (playerrRender.posY - playerrRender.lastTickPosY) * (double)partialTicks;
+        double d2 = playerrRender.lastTickPosZ + (playerrRender.posZ - playerrRender.lastTickPosZ) * (double)partialTicks;
+        camera.setPosition(d0, d1, d2);
+        
+        List<EntityRollingStock> entities = Minecraft.getMinecraft().thePlayer.getEntityWorld().getEntities(EntityRollingStock.class, EntitySelectors.IS_ALIVE);
+        for (EntityRollingStock entity : entities) {
+        	if (camera.isBoundingBoxInFrustum(entity.getRenderBoundingBox()) ) {
+        		Minecraft.getMinecraft().mcProfiler.startSection("render_stock");
+        		Minecraft.getMinecraft().getRenderManager().renderEntityStatic(entity, partialTicks, true);
+        		Minecraft.getMinecraft().mcProfiler.endSection();;
+        	}
+        }
+        
+        GlStateManager.depthMask(false);
+        
+        EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+        Vec3d ep = player.getPositionEyes(partialTicks);
+        
+        List<EntitySmokeParticle> smokeEnts = player.getEntityWorld().getEntities(EntitySmokeParticle.class, EntitySelectors.IS_ALIVE);
+        Comparator<EntitySmokeParticle> compare = (EntitySmokeParticle e1, EntitySmokeParticle e2) -> {
+        	Double p1 = e1.getPositionVector().distanceTo(ep);
+        	Double p2 = e1.getPositionVector().distanceTo(ep);
+        	return p1.compareTo(p2);
+        };
+        Collections.sort(smokeEnts,  compare);
+        
+
+		Minecraft.getMinecraft().mcProfiler.startSection("ir_particles");
+		
+        ParticleRender.shader.bind();
+		GLBoolTracker light = new GLBoolTracker(GL11.GL_LIGHTING, false);
+		GLBoolTracker cull = new GLBoolTracker(GL11.GL_CULL_FACE, false);
+		GLBoolTracker tex = new GLBoolTracker(GL11.GL_TEXTURE_2D, false);
+		GLBoolTracker blend = new GLBoolTracker(GL11.GL_BLEND, true);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        
+        for (EntitySmokeParticle entity : smokeEnts) {
+        	if (camera.isBoundingBoxInFrustum(entity.getRenderBoundingBox()) ) {
+        		Minecraft.getMinecraft().mcProfiler.startSection("render_particle");
+        		Minecraft.getMinecraft().getRenderManager().renderEntityStatic(entity, partialTicks, true);
+        		Minecraft.getMinecraft().mcProfiler.endSection();;
+        	}
+        }
+
+		blend.restore();
+		tex.restore();
+		cull.restore();
+		light.restore();
+		
+		ParticleRender.shader.unbind();
+		
+		Minecraft.getMinecraft().mcProfiler.endSection();
+        
+        Minecraft.getMinecraft().entityRenderer.disableLightmap();;
+        RenderHelper.disableStandardItemLighting();
+        color.restore();
+        
+        GlStateManager.depthMask(true);
+        
+        Minecraft.getMinecraft().mcProfiler.endSection();;
 	}
 	
 	@SubscribeEvent

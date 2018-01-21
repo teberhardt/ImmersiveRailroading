@@ -39,6 +39,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	private Speed currentSpeed;
 	public List<TickPos> positions = new ArrayList<TickPos>();
 	private AxisAlignedBB boundingBox;
+	private double[][] heightMapCache;
 
 	public EntityMoveableRollingStock(World world, String defID) {
 		super(world, defID);
@@ -123,11 +124,23 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	public AxisAlignedBB getCollisionBoundingBox() {
 		return this.getEntityBoundingBox().offset(0, 0.5, 0);
 	}
+	
+	public void clearHeightMap() {
+		this.heightMapCache = null;
+		this.boundingBox = null;
+	}
+	
+	private double[][] getHeightMap() {
+		if (this.heightMapCache == null) {
+			this.heightMapCache = this.getDefinition().createHeightMap(this);
+		}
+		return this.heightMapCache;
+	}
 
 	@Override
 	public AxisAlignedBB getEntityBoundingBox() {
 		if (this.boundingBox == null) {
-			this.boundingBox = this.getDefinition().getBounds(this, this.gauge);
+			this.boundingBox = this.getDefinition().getBounds(this, this.gauge).withHeightMap(this.getHeightMap());
 		}
 		return this.boundingBox;
 	}
@@ -136,7 +149,8 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	@SideOnly(Side.CLIENT)
     public AxisAlignedBB getRenderBoundingBox()
     {
-        return this.getEntityBoundingBox().expandXyz(50);
+		AxisAlignedBB bb = this.getEntityBoundingBox();
+        return new AxisAlignedBB(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
     }
 	
 	/*
@@ -289,7 +303,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	    	this.clearPositionCache();
 	    }
 
-		List<Entity> entitiesWithin = worldObj.getEntitiesWithinAABB(Entity.class, this.getCollisionBoundingBox());
+		List<Entity> entitiesWithin = worldObj.getEntitiesWithinAABB(Entity.class, this.getCollisionBoundingBox().offset(0, -0.5, 0));
 		for (Entity entity : entitiesWithin) {
 			if (entity instanceof EntityMoveableRollingStock) {
 				// rolling stock collisions handled by looking at the front and
@@ -330,7 +344,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
 		// Riding on top of cars
 		AxisAlignedBB bb = this.getCollisionBoundingBox();
-		bb = bb.offset(0, this.getDefinition().getHeight(gauge)+1, 0);
+		bb = bb.expand(0, gauge.scale(), 0);
 		List<Entity> entitiesAbove = worldObj.getEntitiesWithinAABB(Entity.class, bb);
 		for (Entity entity : entitiesAbove) {
 			if (entity instanceof EntityMoveableRollingStock) {
@@ -355,7 +369,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 			pos = pos.addVector(this.motionX, this.motionY, this.motionZ);
 			entity.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 		}
-		if (!worldObj.isRemote && this.ticksExisted % 10 != 0 && Config.TrainsBreakBlocks && Math.abs(this.getCurrentSpeed().metric()) > 0.5) {
+		if (!worldObj.isRemote && this.ticksExisted % 5 == 0 && Config.TrainsBreakBlocks && Math.abs(this.getCurrentSpeed().metric()) > 0.5) {
 			bb = this.getCollisionBoundingBox();
 			
 			for (Vec3d pos : this.getDefinition().getBlocksInBounds(gauge)) {
@@ -462,8 +476,14 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
 	public int getSpeedRetarderSlowdown(TickPos latest) {
 		int over = 0;
-		
+		double y = -1;
 		for (Vec3d pos : this.getDefinition().getBlocksInBounds(gauge)) {
+			if (y == -1) {
+				y = pos.yCoord;
+			}
+			if (pos.yCoord != y) {
+				break;
+			}
 			pos = VecUtil.rotateYaw(pos, this.rotationYaw);
 			pos = pos.add(latest.position);
 			BlockPos bp = new BlockPos(pos);

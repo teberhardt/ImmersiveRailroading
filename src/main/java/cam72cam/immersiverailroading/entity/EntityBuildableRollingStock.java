@@ -96,6 +96,9 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 		} else {
 			this.onDissassemble();
 		}
+		if (this instanceof EntityMoveableRollingStock) {
+			((EntityMoveableRollingStock)this).clearHeightMap();
+		}
 	}
 	
 	public List<ItemComponentType> getItemComponents() {
@@ -151,6 +154,9 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 		this.isBuilt = getMissingItemComponents().isEmpty();
 		if (isBuilt) {
 			onAssemble();
+		}
+		if (this instanceof EntityMoveableRollingStock) {
+			((EntityMoveableRollingStock)this).clearHeightMap();
 		}
 		this.sendToObserving(new BuildableStockSyncPacket(this));
 	}
@@ -327,6 +333,10 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 		ItemGauge.set(item, gauge);
 		ItemComponent.setComponentType(item, toRemove);
 		worldObj.spawnEntityInWorld(new EntityItem(worldObj, player.posX, player.posY, player.posZ, item));
+		
+		if (this instanceof EntityMoveableRollingStock) {
+			((EntityMoveableRollingStock)this).clearHeightMap();
+		}
 		
 		return toRemove;
 	}

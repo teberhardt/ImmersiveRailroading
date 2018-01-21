@@ -99,10 +99,10 @@ public class OBJRender {
 			quads.addAll(model.groups.get(group));
 		}
 
-		FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(quads.size() * 4 * 3);
-		FloatBuffer normalBuffer = BufferUtils.createFloatBuffer(quads.size() * 4 * 3);
-		FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(quads.size() * 4 * 4);
-		FloatBuffer texBuffer = BufferUtils.createFloatBuffer(quads.size() * 4 * 2);
+		FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(quads.size() * 3 * 3);
+		FloatBuffer normalBuffer = BufferUtils.createFloatBuffer(quads.size() * 3 * 3);
+		FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(quads.size() * 3 * 4);
+		FloatBuffer texBuffer = BufferUtils.createFloatBuffer(quads.size() * 3 * 2);
 
 		for (Face face : quads) {
 			Material currentMTL = model.materials.get(face.mtl);
@@ -132,8 +132,8 @@ public class OBJRender {
 					has_vn = false;
 				}
 				if (vt != null) {
-					texBuffer.put(texture.convertU(face.mtl, vt.x));
-					texBuffer.put(texture.convertV(face.mtl, -vt.y));
+					texBuffer.put(texture.convertU(face.mtl, vt.x - face.offsetUV.x));
+					texBuffer.put(texture.convertV(face.mtl, -(vt.y) - face.offsetUV.y));
 				} else {
 					texBuffer.put(texture.convertU(face.mtl, 0));
 					texBuffer.put(texture.convertV(face.mtl, 0));
@@ -162,7 +162,7 @@ public class OBJRender {
 			GL11.glNormalPointer(3 << 2, normalBuffer);
 		}
 		GL11.glVertexPointer(3, 3 << 2, vertexBuffer);
-		GL11.glDrawArrays(GL11.GL_QUADS, 0, quads.size() * 4);
+		GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, quads.size() * 3);
 
 		GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
 		GL11.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);

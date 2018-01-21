@@ -1,5 +1,8 @@
 package cam72cam.immersiverailroading.registry;
 
+import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,15 +15,15 @@ import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.ItemComponentType;
 import cam72cam.immersiverailroading.library.RenderComponentType;
-import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.entity.EntityBuildableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock.CouplerType;
 import cam72cam.immersiverailroading.model.RenderComponent;
+import cam72cam.immersiverailroading.model.obj.Face;
 import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.util.RealBB;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -47,9 +50,11 @@ public class EntityRollingStockDefinition {
 	private Vec3d passengerCenter = new Vec3d(0, 0, 0);
 	private float bogeyFront;
 	private float bogeyRear;
+	private float couplerOffsetFront;
+	private float couplerOffsetRear;
 
 	public  double frontBounds;
-	private double rearBounds;
+	public  double rearBounds;
 	private double heightBounds;
 	private double widthBounds;
 	private double passengerCompartmentLength;
@@ -60,6 +65,10 @@ public class EntityRollingStockDefinition {
 	
 	private Map<RenderComponentType, List<RenderComponent>> renderComponents;
 	ArrayList<ItemComponentType> itemComponents;
+	
+	private Map<RenderComponent, double[][]> partMapCache = new HashMap<RenderComponent, double[][]>();
+	private int xRes;
+	private int zRes;
 
 	public EntityRollingStockDefinition(String defID, JsonObject data) throws Exception {
 		this.defID = defID;
@@ -75,6 +84,8 @@ public class EntityRollingStockDefinition {
 		parseJson(data);
 		
 		addComponentIfExists(RenderComponent.parse(RenderComponentType.REMAINING, this, parseComponents()), true);
+		
+		initHeightMap();
 	}
 
 	public void parseJson(JsonObject data) throws Exception  {
@@ -96,6 +107,11 @@ public class EntityRollingStockDefinition {
 
 		bogeyFront = (float) (data.get("trucks").getAsJsonObject().get("front").getAsFloat() * internal_scale);
 		bogeyRear = (float) (data.get("trucks").getAsJsonObject().get("rear").getAsFloat() * internal_scale);
+		
+		if (data.has("couplers")) {
+			couplerOffsetFront = (float) (data.get("couplers").getAsJsonObject().get("front_offset").getAsFloat() * internal_scale);
+			couplerOffsetRear = (float) (data.get("couplers").getAsJsonObject().get("rear_offset").getAsFloat() * internal_scale);
+		}
 		
 		frontBounds = -model.minOfGroup(model.groups()).xCoord;
 		rearBounds = model.maxOfGroup(model.groups()).xCoord;
@@ -253,16 +269,94 @@ public class EntityRollingStockDefinition {
 	public double getCouplerPosition(CouplerType coupler, Gauge gauge) {
 		switch(coupler) {
 		case FRONT:
-			return gauge.scale() * (this.frontBounds + Config.couplerRange);
+			return gauge.scale() * (this.frontBounds + couplerOffsetFront);
 		case BACK:
-			return gauge.scale() * (this.rearBounds + Config.couplerRange);
+			return gauge.scale() * (this.rearBounds + couplerOffsetRear);
 		default:
 			return 0;
 		}
 	}
+	
+	private void initHeightMap() {
+		double ratio = 8;
+		xRes = (int) Math.ceil((this.frontBounds + this.rearBounds) * ratio);
+		zRes = (int) Math.ceil(this.widthBounds * ratio);
+		
+		int precision = (int) Math.ceil(this.heightBounds * 4); 
+		
+		for (List<RenderComponent> rcl : this.renderComponents.values()) {
+			for (RenderComponent rc : rcl) {
+				double[][] heightMap = new double[xRes][zRes];
+				for (String group : rc.modelIDs) {
+					List<Face> faces = model.groups.get(group);
+					for (Face face : faces) {
+						Path2D path = new Path2D.Double();
+						double fheight = 0;
+						boolean first = true;
+						for (int[] point : face.points) {
+							Vec3d vert = model.vertices.get(point[0]);
+							vert = vert.addVector(this.frontBounds, 0, this.widthBounds/2);
+							if (first) {
+								path.moveTo(vert.xCoord, vert.zCoord);
+							} else {
+								path.lineTo(vert.xCoord, vert.zCoord);
+							}
+							fheight += vert.yCoord / face.points.length;
+							first = false;
+						}
+						Area a = new Area(path);
+						Rectangle2D bounds = a.getBounds2D();
+						for (int x = 0; x < xRes; x++) {
+							for (int z = 1; z < zRes; z++) {
+								double relX = ((xRes-1)-x) / ratio;
+								double relZ = z / ratio;
+								if (bounds.contains(relX, relZ) && a.contains(relX, relZ)) {
+									double relHeight = fheight / heightBounds;
+									relHeight = ((int)Math.ceil(relHeight * precision))/(double)precision;
+									heightMap[x][z] = Math.max(heightMap[x][z], relHeight);
+								}
+							}
+						}
+					}
+				}
+				
+				partMapCache.put(rc, heightMap);
+			}
+		}
+	}
+	
+	public double[][] createHeightMap(EntityBuildableRollingStock stock) {
+		double[][] heightMap = new double[xRes][zRes];
+		
 
-	public AxisAlignedBB getBounds(EntityMoveableRollingStock stock, Gauge gauge) {
-		return new RealBB(gauge.scale() * frontBounds, gauge.scale() * -rearBounds, gauge.scale() * widthBounds,
+		List<RenderComponentType> availComponents = new ArrayList<RenderComponentType>();
+		for (ItemComponentType item : stock.getItemComponents()) {
+			availComponents.addAll(item.render);
+		}
+		
+		for (List<RenderComponent> rcl : this.renderComponents.values()) {
+			for (RenderComponent rc : rcl) {
+				if (availComponents.contains(rc.type)) {
+					availComponents.remove(rc.type);
+				} else if (rc.type == RenderComponentType.REMAINING && stock.isBuilt()) {
+					//pass
+				} else {
+					continue;
+				}
+				double[][] pm = partMapCache.get(rc);
+				for (int x = 0; x < xRes; x++) {
+					for (int z = 1; z < zRes; z++) {
+						heightMap[x][z] = Math.max(heightMap[x][z], pm[x][z]);
+					}
+				}
+			}
+		}
+		
+		return heightMap;
+	}
+
+	public RealBB getBounds(EntityMoveableRollingStock stock, Gauge gauge) {
+		return (RealBB) new RealBB(gauge.scale() * frontBounds, gauge.scale() * -rearBounds, gauge.scale() * widthBounds,
 				gauge.scale() * heightBounds, stock.rotationYaw).offset(stock.getPositionVector());
 	}
 	

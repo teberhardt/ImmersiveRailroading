@@ -81,12 +81,14 @@ public class LocomotiveDiesel extends Locomotive {
 				for (RenderComponent exhaust : exhausts) {
 					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(exhaust.center(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
 					
-					EntitySmokeParticle sp = new EntitySmokeParticle(worldObj, (int) (40 * (1+throttle)), throttle, throttle, exhaust.width());
+					double smokeMod = (1 + Math.min(1, Math.max(0.2, Math.abs(this.getCurrentSpeed().minecraft())*2)))/2;
+					
+					EntitySmokeParticle sp = new EntitySmokeParticle(worldObj, (int) (40 * (1+throttle) * smokeMod), throttle, throttle, exhaust.width());
 					
 					particlePos = particlePos.subtract(fakeMotion);
 					
 					sp.setPosition(particlePos.xCoord, particlePos.yCoord, particlePos.zCoord);
-					sp.setVelocity(fakeMotion.xCoord, fakeMotion.yCoord + 0.4, fakeMotion.zCoord);
+					sp.setVelocity(fakeMotion.xCoord, fakeMotion.yCoord + 0.4 * gauge.scale(), fakeMotion.zCoord);
 					worldObj.spawnEntityInWorld(sp);
 				}
 			}

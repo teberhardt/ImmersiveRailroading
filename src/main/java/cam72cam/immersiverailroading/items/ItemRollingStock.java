@@ -70,7 +70,7 @@ public class ItemRollingStock extends BaseItemRollingStock {
 	
 	@Override
 	public CreativeTabs[] getCreativeTabs() {
-		return new CreativeTabs[] {ItemTabs.PASSENGER_TAB, ItemTabs.LOCOMOTIVE_TAB, ItemTabs.STOCK_TAB};
+        return new CreativeTabs[]{ ItemTabs.LOCOMOTIVE_TAB, ItemTabs.PASSENGER_TAB, ItemTabs.STOCK_TAB };
 	}
 	
 	@SideOnly(Side.CLIENT)
