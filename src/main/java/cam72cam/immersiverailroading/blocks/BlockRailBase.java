@@ -141,6 +141,11 @@ public abstract class BlockRailBase extends Block {
 		}
 		return true;
 	}
+	
+	@Override
+	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn) {
+		this.onNeighborChange(worldIn, pos, pos);
+	}
 
 	@Override
 	public void onNeighborChange(IBlockAccess world, BlockPos pos, BlockPos neighbor){
