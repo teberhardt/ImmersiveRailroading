@@ -380,7 +380,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 				IBlockState state = world.getBlockState(bp);
 				if (state.getBlock() != Blocks.AIR) {
 					if (!BlockUtil.isRail(world, bp)) {
-						if (bb.intersects(pos, pos)) { // This is slow, do it as little as possible
+						if (bb.contains(pos)) { // This is slow, do it as little as possible
 							if (!BlockUtil.isRail(world, bp.up())) {
 								world.destroyBlock(bp, true);										
 							}
