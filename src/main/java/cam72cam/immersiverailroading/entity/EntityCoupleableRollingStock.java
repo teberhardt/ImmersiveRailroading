@@ -719,7 +719,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			} else {
 				// diagram 2 or diagram 3
 				AxisAlignedBB myBB = this.getCollisionBoundingBox().contract(0.25); // Prevent overlap on other rails
-				if (!myBB.intersects(stockCouplerPos, stockCouplerPos)) {
+				if (!myBB.isVecInside(stockCouplerPos)) {
 					continue;
 				}
 			}

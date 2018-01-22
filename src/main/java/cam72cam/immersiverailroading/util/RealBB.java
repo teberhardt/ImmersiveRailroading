@@ -166,11 +166,6 @@ public class RealBB extends AxisAlignedBB {
 		return 0;
 	}
 	
-	// Does not exist server side, whyyyyyyy
-	public boolean intersects(Vec3d min, Vec3d max) {
-        return this.intersects(Math.min(min.xCoord, max.xCoord), Math.min(min.yCoord, max.yCoord), Math.min(min.zCoord, max.zCoord), Math.max(min.xCoord, max.xCoord), Math.max(min.yCoord, max.yCoord), Math.max(min.zCoord, max.zCoord));
-	}
-	
 	@Override
 	public boolean intersects(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
 		return intersectsAt(minX, minY, minZ, maxX, maxY, maxZ, true).getLeft();
@@ -249,9 +244,12 @@ public class RealBB extends AxisAlignedBB {
 		return Pair.of(true, this.maxY);
 	}
 	
-	public boolean contains(Vec3d vec) {
+	@Override
+	public boolean isVecInside(Vec3d vec) {
 		return this.intersectsAt(vec.xCoord, vec.yCoord, vec.zCoord, vec.xCoord, vec.yCoord, vec.zCoord, false).getLeft();
 	}
+	
+	@Override
 	public RayTraceResult calculateIntercept(Vec3d vecA, Vec3d vecB) {
 		// This does NOT set enumfacing.  The places where this code (entity) is used don't use that value as of 1.12.
 		int steps = 10;
@@ -263,7 +261,7 @@ public class RealBB extends AxisAlignedBB {
 		double zDelta = zDist / steps;
 		for (int step = 0; step < steps; step ++) {
 			Vec3d stepPos = new Vec3d(vecA.xCoord + xDelta * step, vecA.yCoord + yDelta * step, vecA.zCoord + zDelta * step);
-			if (this.contains(stepPos)) {
+			if (this.isVecInside(stepPos)) {
 				return new RayTraceResult(stepPos, EnumFacing.UP); 
 			}
 		}
