@@ -96,25 +96,23 @@ public abstract class BlockRailBase extends Block {
     {
     	IExtendedBlockState state = (IExtendedBlockState)origState;
     	TileRailBase te = TileRailBase.get(world, pos);
-    	if (te != null) {
-			if (te.getRenderRailBed() != null) {
-				state = state.withProperty(RAIL_BED, te.getRenderRailBed());
-				state = state.withProperty(HEIGHT, te.getHeight());
-				state = state.withProperty(SNOW, (float)te.getSnowLayers());
-				state = state.withProperty(GAUGE, (float)te.getTrackGauge());
-				state = state.withProperty(AUGMENT, te.getAugment());
-				state = state.withProperty(LIQUID, (float)te.getTankLevel());
-				TileRail parent = te.getParentTile();
-				if (parent != null) {
-					if (parent.getFacing().getAxis() == Axis.X) {
-						if (parent.getPos().getZ() == te.getPos().getZ()) {
-							state = state.withProperty(FACING, te.getParentTile().getFacing());
-						}
+    	if (te != null && te.isLoaded() && te.getParentTile() != null) {
+			state = state.withProperty(RAIL_BED, te.getRenderRailBed());
+			state = state.withProperty(HEIGHT, te.getHeight());
+			state = state.withProperty(SNOW, (float)te.getSnowLayers());
+			state = state.withProperty(GAUGE, (float)te.getTrackGauge());
+			state = state.withProperty(AUGMENT, te.getAugment());
+			state = state.withProperty(LIQUID, (float)te.getTankLevel());
+			TileRail parent = te.getParentTile();
+			if (parent != null) {
+				if (parent.getFacing().getAxis() == Axis.X) {
+					if (parent.getPos().getZ() == te.getPos().getZ()) {
+						state = state.withProperty(FACING, te.getParentTile().getFacing());
 					}
-					if (parent.getFacing().getAxis() == Axis.Z) {
-						if (parent.getPos().getX() == te.getPos().getX()) {
-							state = state.withProperty(FACING, te.getParentTile().getFacing());
-						}
+				}
+				if (parent.getFacing().getAxis() == Axis.Z) {
+					if (parent.getPos().getX() == te.getPos().getX()) {
+						state = state.withProperty(FACING, te.getParentTile().getFacing());
 					}
 				}
 			}

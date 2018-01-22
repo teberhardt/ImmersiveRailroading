@@ -18,7 +18,6 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -31,8 +30,8 @@ public class RailBaseModel implements IBakedModel {
 	public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
 		if (state instanceof IExtendedBlockState) {
 			IExtendedBlockState railState = (IExtendedBlockState)state;
-			ItemStack bed = railState.getValue(BlockRailBase.RAIL_BED);
-			if (bed != null) { // wait for tile to be initialized
+			if (railState.getValue(BlockRailBase.HEIGHT) != null) { // wait for tile to be initialized
+				ItemStack bed = railState.getValue(BlockRailBase.RAIL_BED);
 				float height = railState.getValue(BlockRailBase.HEIGHT).floatValue();
 				int snow = railState.getValue(BlockRailBase.SNOW).intValue();
 				Augment augment = railState.getValue(BlockRailBase.AUGMENT);
