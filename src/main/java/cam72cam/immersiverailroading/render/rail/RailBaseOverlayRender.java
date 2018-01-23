@@ -2,6 +2,7 @@ package cam72cam.immersiverailroading.render.rail;
 
 import org.lwjgl.opengl.GL11;
 
+import cam72cam.immersiverailroading.render.BakedModelCache;
 import cam72cam.immersiverailroading.render.BakedScaledModel;
 import cam72cam.immersiverailroading.track.TrackBase;
 import cam72cam.immersiverailroading.util.RailInfo;
@@ -16,41 +17,59 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 
 public class RailBaseOverlayRender {
-	protected static VertexBuffer getOverlayBuffer(RailInfo info) {
-		
-		// Get model for current state
-		final BlockRendererDispatcher blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
-		
-		IBlockState gravelState = Blocks.STAINED_GLASS.getDefaultState().withProperty(BlockStainedGlass.COLOR, EnumDyeColor.RED);
-		IBakedModel gravelModel = blockRenderer.getBlockModelShapes().getModelForState(gravelState);
+	private static VertexBuffer worldRenderer = new VertexBuffer(2048);
+	private static BlockRendererDispatcher blockRenderer;
+	private static IBlockState gravelState;
+	private static IBakedModel gravelModel;
+	private static BakedModelCache scaled = new BakedModelCache();
+	
+	private static VertexBuffer getOverlayBuffer(RailInfo info) {
+		if (blockRenderer == null) {
+			// Get model for current state
+			blockRenderer = Minecraft.getMinecraft().getBlockRendererDispatcher();
+			
+			gravelState = Blocks.STAINED_GLASS.getDefaultState().withProperty(BlockStainedGlass.COLOR, EnumDyeColor.RED);
+			gravelModel = blockRenderer.getBlockModelShapes().getModelForState(gravelState);
+		}
 		
 		// Create render targets
-		VertexBuffer worldRenderer = new VertexBuffer(2048);
 		
 		worldRenderer.setTranslation(-info.position.getX(), -info.position.getY(), -info.position.getZ());
 
 		// Start drawing
-		worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-
-		// From IE
-		worldRenderer.color(255, 255, 255, 255);
-		
-		boolean hasIssue = false;
-		
-		// This is evil but really fast :D
-		for (TrackBase base : info.getBuilder(info.position).getTracksForRender()) {
-			if (!base.canPlaceTrack() ) {
-				hasIssue = true;
-				blockRenderer.getBlockModelRenderer().renderModel(info.world, new BakedScaledModel(gravelModel, base.getHeight()+0.2f), gravelState, base.getPos(), worldRenderer, false);
+		try {
+			worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
+	
+			// From IE
+			worldRenderer.color(255, 255, 255, 255);
+			
+			boolean hasIssue = false;
+			
+			// This is evil but really fast :D
+			for (TrackBase base : info.getBuilder(info.position).getTracksForRender()) {
+				if (!base.canPlaceTrack() ) {
+					hasIssue = true;
+					String key = ""+ base.getHeight();
+					if (!scaled.containsKey(key)) {
+						scaled.put(key, new BakedScaledModel(gravelModel, base.getHeight() + 0.2f));
+					}
+					
+					blockRenderer.getBlockModelRenderer().renderModel(info.world, scaled.get(key), gravelState, base.getPos(), worldRenderer, false);
+				}
 			}
+			
+			if (!hasIssue) {
+				return null;
+			}
+			
+		} finally {
+			worldRenderer.finishDrawing();
 		}
-		
-		if (!hasIssue) {
-			return null;
-		}
-		
-		worldRenderer.finishDrawing();
 		
 		return worldRenderer;
+	}
+
+	public static synchronized void draw(RailInfo info) {
+		RailRenderUtil.draw(RailBaseOverlayRender.getOverlayBuffer(info));
 	}
 }
