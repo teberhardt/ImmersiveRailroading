@@ -1,15 +1,13 @@
 package cam72cam.immersiverailroading.render.rail;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.lwjgl.opengl.GL11;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.TrackDirection;
 import cam72cam.immersiverailroading.model.obj.OBJModel;
+import cam72cam.immersiverailroading.render.DisplayListCache;
 import cam72cam.immersiverailroading.render.OBJRender;
 import cam72cam.immersiverailroading.track.BuilderBase.VecYawPitch;
 import cam72cam.immersiverailroading.util.RailInfo;
@@ -31,7 +29,7 @@ public class RailBuilderRender {
 		}
 	}
 
-	private static Map<String, Integer> displayLists = new HashMap<String, Integer>();
+	private static DisplayListCache displayLists = new DisplayListCache();
 	public static void renderRailBuilder(RailInfo info) {
 
 		Vec3d renderOff = new Vec3d(-0.5, 0, -0.5);
@@ -62,8 +60,9 @@ public class RailBuilderRender {
 		renderOff = VecUtil.fromYaw((info.gauge.value() - Gauge.STANDARD.value()) * 0.34828 *2, info.facing.getOpposite().getHorizontalAngle()-90);
 		GL11.glTranslated(renderOff.x, renderOff.y, renderOff.z);
 
-		if (!displayLists.containsKey(RailRenderUtil.renderID(info))) {
-			int displayList = GL11.glGenLists(1);
+		Integer displayList = displayLists.get(RailRenderUtil.renderID(info));
+		if (displayList == null) {
+			displayList = GL11.glGenLists(1);
 			GL11.glNewList(displayList, GL11.GL_COMPILE);		
 			
 			for (VecYawPitch piece : info.getBuilder().getRenderData()) {
@@ -102,7 +101,7 @@ public class RailBuilderRender {
 		}
 		
 		baseRailModel.bindTexture();
-		GL11.glCallList(displayLists.get(RailRenderUtil.renderID(info)));
+		GL11.glCallList(displayList);
 		baseRailModel.restoreTexture();
 	}
 }
