@@ -89,13 +89,19 @@ public class BuilderSwitch extends BuilderBase {
 		return data;
 	}
 
+	private boolean between(double start, double end, double offset) {
+		return Math.abs(start - end) < offset;
+	}
 
 	public boolean isOnStraight(Vec3d position) {
-		for(TrackBase gag : straightBuilder.tracks) {
-			if (gag.getPos().add(new BlockPos(info.placementPosition)).equals(new BlockPos(position))) {
-				return true;
-			}
+		if (between(straightBuilder.x + info.placementPosition.xCoord, position.xCoord, gauge.scale())) {
+			return true;
 		}
+		
+		if (between(straightBuilder.z + info.placementPosition.zCoord, position.zCoord, gauge.scale())) {
+			return true;
+		}
+		
 		return false;
 	}
 }
