@@ -2,7 +2,6 @@ package cam72cam.immersiverailroading.blocks;
 
 import java.util.Random;
 
-import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -20,7 +19,7 @@ public class BlockRailGag extends BlockRailBase {
 	public static final String NAME = "block_rail_gag";
 	
 	public BlockRailGag() {
-		super(Material.IRON);
+		super();
         setUnlocalizedName(ImmersiveRailroading.MODID + ":" + NAME);
         setRegistryName(new ResourceLocation(ImmersiveRailroading.MODID, NAME));
 	}
@@ -33,11 +32,6 @@ public class BlockRailGag extends BlockRailBase {
 	@Override
 	public int quantityDropped(Random par1Random) {
 		return 0;
-	}
-
-	@Override
-    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
-		return ItemStack.EMPTY;
 	}
 
 	@Override
