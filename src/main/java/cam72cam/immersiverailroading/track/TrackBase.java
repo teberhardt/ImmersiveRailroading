@@ -39,7 +39,7 @@ public abstract class TrackBase {
 	public boolean canPlaceTrack() {
 		PosRot pos = getPos();
 		IBlockState down = builder.world.getBlockState(pos.down());
-		boolean downOK = down.isSideSolid(builder.world, pos, EnumFacing.UP) || (BlockUtil.canBeReplaced(builder.world, pos.down(), false) && builder.info.railBedFill != null);
+		boolean downOK = down.isSideSolid(builder.world, pos.down(), EnumFacing.UP) || (BlockUtil.canBeReplaced(builder.world, pos.down(), false) && builder.info.railBedFill != null);
 		return BlockUtil.canBeReplaced(builder.world, pos, flexible || builder.overrideFlexible) && downOK;
 	}
 
