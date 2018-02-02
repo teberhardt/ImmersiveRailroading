@@ -217,7 +217,7 @@ public class TrackGui extends GuiScreen {
         this.lengthInput.textboxKeyTyped(typedChar, keyCode);
         // Enter or ESC
         if (keyCode == 1 || keyCode == 28 || keyCode == 156) {
-        	if (this.lengthInput.getText() != null) {
+        	if (!this.lengthInput.getText().isEmpty()) {
         		if (this.tilePreviewPos != null) {
     				ImmersiveRailroading.net.sendToServer(
     						new ItemRailUpdatePacket(tilePreviewPos, Integer.parseInt(lengthInput.getText()), quartersSlider.getValueInt(), type, gauge.value(), posType, bedSelector.choosenItem, bedFillSelector.choosenItem, isPreview));
