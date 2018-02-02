@@ -2,6 +2,8 @@ package cam72cam.immersiverailroading.blocks;
 
 import java.util.Random;
 
+import javax.annotation.Nullable;
+
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.tile.TileRailPreview;
@@ -44,7 +46,8 @@ public class BlockRailPreview extends Block {
 		return false;
 	}
 	
-	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+	@Override 
+	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
 		if (playerIn.isSneaking()) {
 			if (!worldIn.isRemote) {
 				TileRailPreview te = TileRailPreview.get(worldIn, pos);
