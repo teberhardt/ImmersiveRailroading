@@ -77,6 +77,7 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 public abstract class CommonProxy implements IGuiHandler {
 	protected static List<Class<? extends EntityRollingStock>> entityClasses = new ArrayList<Class<? extends EntityRollingStock>>();
 	protected String configDir;
+	private static String cacheDir;
     static {
     	entityClasses.add(LocomotiveSteam.class);
     	entityClasses.add(LocomotiveDiesel.class);
@@ -87,8 +88,16 @@ public abstract class CommonProxy implements IGuiHandler {
     	entityClasses.add(HandCar.class);
     }
     
+    public static String getCacheFile(String fname) {
+    	return cacheDir + fname;
+    }
+    
     public void preInit(FMLPreInitializationEvent event) throws IOException {
     	configDir = event.getModConfigurationDirectory().getAbsolutePath() + File.separator + ImmersiveRailroading.MODID;
+    	// foo/config/immersiverailroading/../../cache/fname
+    	cacheDir = configDir + File.separator + ".." + File.separator + ".." + File.separator + "cache" + File.separator;
+    	new File(cacheDir).mkdirs();
+    	
     	DefinitionManager.initDefinitions();
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, Blocks.BRICK_BLOCK);
     	OreDictionary.registerOre(ImmersiveRailroading.ORE_RAIL_BED, Blocks.COBBLESTONE);
