@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GLContext;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.blocks.BlockRailBase;
 import cam72cam.immersiverailroading.entity.CarFreight;
+import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.FreightTank;
 import cam72cam.immersiverailroading.entity.EntityRidableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
@@ -40,6 +41,7 @@ import cam72cam.immersiverailroading.gui.TrackGui;
 import cam72cam.immersiverailroading.gui.overlay.DieselLocomotiveOverlay;
 import cam72cam.immersiverailroading.gui.overlay.HandCarOverlay;
 import cam72cam.immersiverailroading.gui.overlay.SteamLocomotiveOverlay;
+import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;
 import cam72cam.immersiverailroading.net.KeyPressPacket;
@@ -59,6 +61,8 @@ import cam72cam.immersiverailroading.render.rail.RailRenderUtil;
 import cam72cam.immersiverailroading.render.tile.TileMultiblockRender;
 import cam72cam.immersiverailroading.render.tile.TileRailPreviewRender;
 import cam72cam.immersiverailroading.render.tile.TileRailRender;
+import cam72cam.immersiverailroading.sound.IRSoundManager;
+import cam72cam.immersiverailroading.sound.ISound;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import cam72cam.immersiverailroading.tile.TileRail;
 import cam72cam.immersiverailroading.tile.TileRailPreview;
@@ -92,8 +96,12 @@ import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.sound.SoundLoadEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
+import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
+import net.minecraftforge.event.world.WorldEvent.Load;
+import net.minecraftforge.event.world.WorldEvent.Unload;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
@@ -109,6 +117,8 @@ import net.minecraftforge.fml.relauncher.Side;
 @EventBusSubscriber(Side.CLIENT)
 public class ClientProxy extends CommonProxy {
 	private static Map<KeyTypes, KeyBinding> keys = new HashMap<KeyTypes, KeyBinding>();
+
+	private static IRSoundManager manager;
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int entityIDorPosX, int posY, int posZ) {
@@ -495,6 +505,55 @@ public class ClientProxy extends CommonProxy {
 		}
 	}
 	
+	@SubscribeEvent
+	public static void onSoundLoad(SoundLoadEvent event) {
+		manager = new IRSoundManager(event.getManager());
+	}
+	
+	@SubscribeEvent
+	public static void onWorldLoad(Load event) {		
+		// This is super fragile
+		sndCache = new ArrayList<ISound>();
+		for (int i = 0; i < 16; i ++) {
+			sndCache.add(ImmersiveRailroading.proxy.newSound(new ResourceLocation(ImmersiveRailroading.MODID, "sounds/default/clack.ogg"), false, 40, Gauge.STANDARD));
+		}
+	}
+	
+	@SubscribeEvent
+	public static void onWorldUnload(Unload event) {
+		manager.stop();
+	}
+	
+	private static int sndCacheId = 0;
+	private static List<ISound> sndCache;
+	
+	@SubscribeEvent
+	public static void onEnterChunk(EnteringChunk event) {
+		if (event.getEntity() instanceof EntityMoveableRollingStock) {
+			
+			if(event.getNewChunkX() == event.getOldChunkX() && event.getNewChunkZ() % 4 == 0) {
+				return;
+			}
+			
+			if(event.getNewChunkZ() == event.getOldChunkZ() && event.getNewChunkX() % 4 == 0) {
+				return;
+			}
+			
+			ISound snd = sndCache.get(sndCacheId);
+			// TODO Doppler update
+			snd.setPitch((float) (1/((EntityMoveableRollingStock)event.getEntity()).gauge.scale()));
+			snd.play(0.5f + (float) Math.abs(((EntityMoveableRollingStock)event.getEntity()).getCurrentSpeed().metric() / 300f), 0.3f, event.getEntity().getPositionVector());
+	    	sndCacheId++;
+	    	sndCacheId = sndCacheId % sndCache.size();
+			
+		}
+	}
+	
+	@Override
+	public ISound newSound(ResourceLocation oggLocation, boolean repeats, float attenuationDistance, Gauge gauge) {
+		return manager.createSound(oggLocation, repeats, attenuationDistance, gauge);
+	}
+	
 	private static int tickCount = 0;
 	@SubscribeEvent
 	public static void onClientTick(TickEvent.ClientTickEvent event) {
@@ -502,5 +561,8 @@ public class ClientProxy extends CommonProxy {
 			StockRenderCache.doImageCache();
 		}
 		tickCount++;
+		manager.tick();
+		
+		StockRenderCache.tryCache();
 	}
 }

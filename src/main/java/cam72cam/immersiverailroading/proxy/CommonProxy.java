@@ -27,6 +27,7 @@ import cam72cam.immersiverailroading.gui.SteamHammerContainer;
 import cam72cam.immersiverailroading.gui.SteamLocomotiveContainer;
 import cam72cam.immersiverailroading.gui.TankContainer;
 import cam72cam.immersiverailroading.gui.TenderContainer;
+import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.multiblock.BoilerRollerMultiblock;
 import cam72cam.immersiverailroading.multiblock.CastingMultiblock;
@@ -42,6 +43,7 @@ import cam72cam.immersiverailroading.net.MousePressPacket;
 import cam72cam.immersiverailroading.net.PassengerPositionsPacket;
 import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
 import cam72cam.immersiverailroading.registry.DefinitionManager;
+import cam72cam.immersiverailroading.sound.ISound;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import cam72cam.immersiverailroading.tile.TileRail;
 import cam72cam.immersiverailroading.tile.TileRailGag;
@@ -231,7 +233,9 @@ public abstract class CommonProxy implements IGuiHandler {
 	public abstract InputStream getResourceStream(ResourceLocation modelLoc) throws IOException;
 	public abstract List<InputStream> getResourceStreamAll(ResourceLocation modelLoc) throws IOException;
 	
-
+	public ISound newSound(ResourceLocation oggLocation, boolean repeats, float attenuationDistance, Gauge gauge) {
+		return null;
+	}
 
     @Override
     public Object getServerGuiElement(int ID, EntityPlayer player, World world, int entityIDorX, int y, int z) {

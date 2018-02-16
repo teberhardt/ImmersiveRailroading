@@ -183,7 +183,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			return;
 		}
 		
-		if (this.getCurrentSpeed().minecraft() != 0) {
+		if (this.getCurrentSpeed().minecraft() != 0 || Config.keepStockLoaded) {
 			ChunkManager.flagEntityPos(this.worldObj, this.getPosition());
 			if (this.lastKnownFront != null) {
 				ChunkManager.flagEntityPos(this.worldObj, this.lastKnownFront);

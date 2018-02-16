@@ -154,22 +154,34 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	
 	@Override
 	protected void addPassenger(Entity passenger) {
+		Vec3d ppos = new Vec3d(passenger.lastTickPosX, passenger.lastTickPosY, passenger.lastTickPosZ);
 		super.addPassenger(passenger);
+		
+		if (!worldObj.isRemote) {
+			Vec3d center = this.getDefinition().getPassengerCenter(gauge);
+			center = VecUtil.rotateYaw(center, this.rotationYaw);
+			center = center.add(this.getPositionVector());
+			Vec3d off = VecUtil.rotateYaw(center.subtract(ppos), -this.rotationYaw);
+			
+			off = this.getDefinition().correctPassengerBounds(gauge, off);
+			off = off.addVector(0, -off.yCoord, 0);
+			
+			passengerPositions.put(passenger.getPersistentID(), off);
+			updatePassenger(passenger);
+			sendToObserving(new PassengerPositionsPacket(this));
+		}
 	}
 	
 	@Override
 	public void updatePassenger(Entity passenger) {
-		if (this.isPassenger(passenger)) {
-			if (!passengerPositions.containsKey(passenger.getPersistentID())) {
-				passengerPositions.put(passenger.getPersistentID(), new Vec3d(0, 0, 0));
-			}
-			
+		if (this.isPassenger(passenger) && passengerPositions.containsKey(passenger.getPersistentID())) {
 			Vec3d pos = this.getDefinition().getPassengerCenter(gauge);
 			pos = pos.add(passengerPositions.get(passenger.getPersistentID()));
 			pos = VecUtil.rotateYaw(pos, this.rotationYaw);
 			pos = pos.add(this.getPositionVector());
 			passenger.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 			
+			passenger.prevRotationYaw = passenger.rotationYaw;
 			passenger.rotationYaw += (this.rotationYaw - this.prevRotationYaw);
 		}
 	}
@@ -177,7 +189,36 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	@Override
 	public void removePassenger(Entity passenger) {
 		super.removePassenger(passenger);
-		Vec3d delta = VecUtil.fromYaw(this.getDefinition().getPassengerCompartmentWidth(gauge)/2 + 1.3, this.rotationYaw - 90);
-		passenger.setPositionAndUpdate(passenger.posX += delta.xCoord, passenger.posY, passenger.posZ += delta.zCoord);
+		
+		if (passengerPositions.containsKey(passenger.getPersistentID()) ) {
+			Vec3d ppos = passengerPositions.get(passenger.getPersistentID());
+			
+			Vec3d delta = VecUtil.fromYaw(this.getDefinition().getPassengerCompartmentWidth(gauge)/2 + 1.3 * gauge.scale(), this.rotationYaw + (ppos.zCoord > 0 ? 90 : -90));
+			
+			ppos = ppos.add(this.getDefinition().getPassengerCenter(gauge));
+			Vec3d offppos = VecUtil.rotateYaw(ppos, this.rotationYaw);
+			
+			delta = delta.addVector(offppos.xCoord, offppos.yCoord, 0);
+			delta = delta.add(this.getPositionVector());
+			
+			passengerPositions.remove(passenger.getPersistentID());
+			passenger.setPositionAndUpdate(delta.xCoord, passenger.posY, delta.zCoord);
+		}
+	}
+
+	public void handlePassengerPositions(Map<UUID, Vec3d> passengerPositions) {
+		this.passengerPositions = passengerPositions;
+		for (UUID id : passengerPositions.keySet()) {
+			for (Entity ent : worldObj.loadedEntityList) {
+				if (ent.getPersistentID().equals(id)) {
+					Vec3d pos = this.getDefinition().getPassengerCenter(gauge);
+					pos = pos.add(passengerPositions.get(id));
+					pos = VecUtil.rotateYaw(pos, this.rotationYaw);
+					pos = pos.add(this.getPositionVector());
+					ent.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
+					break;
+				}
+			}
+		}
 	}
 }

@@ -68,6 +68,15 @@ public class Config {
 	@Comment("Break blocks around the border of the tracks in creative")
 	public static boolean enableSideBlockClearing = true;
 
+	@Comment("Keep rolling stock loaded even when it is not moving")
+	public static boolean keepStockLoaded = false;
+	
+	@Comment("Sound Distance Multiplier")
+	public static double soundDistanceScale = 1;
+
+	@Comment("Enable priming of item render cache.  Disable this if you keep crashing right before the loading screen")
+	public static boolean enableItemRenderPriming = true;
+
 	public static boolean isFuelRequired(Gauge gauge) {
 		return !(!FuelRequired || (!ModelFuelRequired && gauge.equals(Gauge.MODEL)));
 	}
