@@ -5,11 +5,13 @@ import java.util.List;
 
 import blusunrize.immersiveengineering.api.energy.DieselHandler;
 import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;
 import cam72cam.immersiverailroading.library.RenderComponentType;
 import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.registry.LocomotiveDieselDefinition;
+import cam72cam.immersiverailroading.sound.ISound;
 import cam72cam.immersiverailroading.util.FluidQuantity;
 import cam72cam.immersiverailroading.util.VecUtil;
 import net.minecraft.entity.Entity;
@@ -19,13 +21,16 @@ import net.minecraftforge.fluids.*;
 
 public class LocomotiveDiesel extends Locomotive {
 
+	private ISound horn;
+	private ISound idle;
+	private float soundThrottle;
+
 	public LocomotiveDiesel(World world) {
 		this(world, null);
 	}
 
 	public LocomotiveDiesel(World world, String defID) {
 		super(world, defID);
-		//runSound.setDynamicPitch();
 	}
 
 	public LocomotiveDieselDefinition getDefinition() {
@@ -72,11 +77,47 @@ public class LocomotiveDiesel extends Locomotive {
 				return;
 			}
 			
+			boolean hasFuel = (this.getLiquidAmount() > 0 || !Config.isFuelRequired(gauge));
+			
+			if (this.horn == null) {
+				this.horn = ImmersiveRailroading.proxy.newSound(this.getDefinition().horn, false, 100, gauge);
+				this.idle = ImmersiveRailroading.proxy.newSound(this.getDefinition().idle, true, 80, gauge);
+			}
+			
+			if (hasFuel) {
+				if (!idle.isPlaying()) {
+					this.idle.play(1, 1, getPositionVector());
+				}
+			} else {
+				if (idle.isPlaying()) {
+					idle.stop();
+				}
+			}
+			
+			if (this.getDataManager().get(HORN) != 0 && !horn.isPlaying()) {
+				horn.play(1, 1, getPositionVector());
+			}
+			
+			horn.update(getPositionVector(), getVelocity());
+			idle.update(getPositionVector(), getVelocity());
+			
+			float absThrottle = Math.abs(this.getThrottle());
+			if (this.soundThrottle > absThrottle) {
+				this.soundThrottle -= Math.min(0.01f, this.soundThrottle - absThrottle); 
+			} else if (this.soundThrottle < Math.abs(this.getThrottle())) {
+				this.soundThrottle += Math.min(0.01f, absThrottle - this.soundThrottle);
+			}
+			
+			idle.setPitch(0.7f+this.soundThrottle/4);
+			idle.setVolume(Math.max(0.1f, this.soundThrottle));
+			// Apply doppler effect
+			horn.setPitch(1);
+			
 			Vec3d fakeMotion = new Vec3d(this.motionX, this.motionY, this.motionZ);//VecUtil.fromYaw(this.getCurrentSpeed().minecraft(), this.rotationYaw);
 			
 			List<RenderComponent> exhausts = this.getDefinition().getComponents(RenderComponentType.DIESEL_EXHAUST_X, gauge);
 			float throttle = Math.abs(this.getThrottle());
-			if (exhausts != null && throttle > 0 && (this.getLiquidAmount() > 0 || !Config.isFuelRequired(gauge))) {
+			if (exhausts != null && throttle > 0 && hasFuel) {
 				for (RenderComponent exhaust : exhausts) {
 					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(exhaust.center(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
 					
@@ -108,6 +149,18 @@ public class LocomotiveDiesel extends Locomotive {
 		}
 	}
 	
+	@Override
+	public void setDead() {
+		if (idle != null) {
+			idle.stop();
+		}
+		if (horn != null) {
+			horn.stop();
+		}
+		// Don't do drops if from explosion
+		super.setDead();
+	}
+
 	@Override
 	public List<Fluid> getFluidFilter() {
 		ArrayList<Fluid> filter = new ArrayList<Fluid>();

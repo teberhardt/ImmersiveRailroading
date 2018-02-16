@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.RenderComponentType;
 import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
+import cam72cam.immersiverailroading.sound.ISound;
 import cam72cam.immersiverailroading.util.BurnUtil;
 import cam72cam.immersiverailroading.util.DataSerializerUtil;
 import cam72cam.immersiverailroading.util.FluidQuantity;
@@ -160,6 +162,17 @@ public class LocomotiveSteam extends Locomotive {
 		}
 		setBurnTime(burnTime);
 	}
+
+	private double getPhase(int spikes, float offsetDegrees, double perc) {
+		if (driverDiameter == 0) {
+			return 0;
+		}
+		double circumference = (driverDiameter * Math.PI);
+		double skewDistance = this.distanceTraveled - this.getCurrentSpeed().minecraft() * perc;
+		double phase = (skewDistance % circumference)/circumference;
+		phase = Math.abs(Math.cos(phase*Math.PI*spikes + Math.toRadians(offsetDegrees)));
+		return phase;
+	}
 	
 	private double getPhase(int spikes, float offsetDegrees) {
 		if (driverDiameter == 0) {
@@ -171,22 +184,65 @@ public class LocomotiveSteam extends Locomotive {
 		return phase;
 	}
 	
+	private Map<String, Boolean> phaseOn = new HashMap<String, Boolean>();
+	private List<ISound> sndCache = new ArrayList<ISound>();
+	private int sndCacheId = 0;
+	private ISound whistle;
+	private ISound idle;
+	private ISound pressure;
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
 
 		if (world.isRemote) {
-			// Particles
+			// Particles and Sound
 			
 			if (!Config.particlesEnabled) {
 				return;
 			}
 			
+			if (this.getDataManager().get(HORN) != 0 && !whistle.isPlaying() && (this.getBoilerPressure() > 0 || !Config.isFuelRequired(gauge))) {
+				whistle.play(1, 1, getPositionVector());
+			}
+			
+			if (this.sndCache.size() == 0) {
+				this.whistle = ImmersiveRailroading.proxy.newSound(this.getDefinition().whistle, false, 150, gauge);
+
+				for (int i = 0; i < 32; i ++) {
+					sndCache.add(ImmersiveRailroading.proxy.newSound(this.getDefinition().chuff, false, 80, gauge));
+				}
+				
+				this.idle = ImmersiveRailroading.proxy.newSound(this.getDefinition().idle, true, 40, gauge);
+				idle.setVolume(0.1f);
+				this.pressure = ImmersiveRailroading.proxy.newSound(this.getDefinition().pressure, true, 40, gauge);
+				pressure.setVolume(0.5f);
+			}
+
+			// Update sound positions
+			whistle.update(getPositionVector(), getVelocity());
+			idle.update(getPositionVector(), getVelocity());
+			pressure.update(getPositionVector(), getVelocity());
+			for (int i = 0; i < sndCache.size(); i ++) {
+				sndCache.get(i).update(getPositionVector(), getVelocity());
+			}
+			
+			if (this.getBoilerTemperature() > 0) {
+				if (!idle.isPlaying()) {
+					idle.play();
+				}
+			} else {
+				if (idle.isPlaying()) {
+					idle.stop();
+				}
+			}
+			
+			double phase = getPhase(4, 0);
+			
 			Vec3d fakeMotion = new Vec3d(this.motionX, this.motionY, this.motionZ);//VecUtil.fromYaw(this.getCurrentSpeed().minecraft(), this.rotationYaw);
 			
 			List<RenderComponent> smokes = this.getDefinition().getComponents(RenderComponentType.PARTICLE_CHIMNEY_X, gauge);
 			if (smokes != null) {
-				double phase = getPhase(4, 0);
+				phase = getPhase(4, 0);
 				//System.out.println(phase);
 				for (RenderComponent smoke : smokes) {
 					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(smoke.center(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
@@ -229,7 +285,7 @@ public class LocomotiveSteam extends Locomotive {
 			
 			List<RenderComponent> pistons = this.getDefinition().getComponents(RenderComponentType.PISTON_ROD_SIDE, gauge);
 			double csm = Math.abs(this.getCurrentSpeed().metric()) / gauge.scale();
-			if (pistons != null && csm > 0.1 && csm  < 20 && (this.getBoilerPressure() > 0 || !Config.isFuelRequired(gauge))) {
+			if (pistons != null && (this.getBoilerPressure() > 0 || !Config.isFuelRequired(gauge))) {
 				for (RenderComponent piston : pistons) {
 					float phaseOffset = 0;
 					switch (piston.side) {
@@ -255,26 +311,55 @@ public class LocomotiveSteam extends Locomotive {
 						continue;
 					}
 					
-					double phase = this.getPhase(2, phaseOffset);
+					phase = this.getPhase(2, phaseOffset);
 					double phaseSpike = Math.pow(phase, 4);
 					
-					if (phaseSpike < 0.6) {
-						continue;
+					if (phaseSpike >= 0.6 && csm > 0.1 && csm  < 20 ) {
+						Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(piston.min(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
+						EntitySmokeParticle sp = new EntitySmokeParticle(world, 80, 0, 0.6f, 0.2);
+						sp.setPosition(particlePos.x, particlePos.y, particlePos.z);
+						double accell = (piston.side.contains("RIGHT") ? 1 : -1) * 0.3 * gauge.scale();
+						Vec3d sideMotion = fakeMotion.add(VecUtil.fromYaw(accell, this.rotationYaw+90));
+						sp.setVelocity(sideMotion.x, sideMotion.y+0.01, sideMotion.z);
+						world.spawnEntity(sp);
 					}
 					
+					String key = piston.side;
+					if (!phaseOn.containsKey(key)) {
+						phaseOn.put(key, false);
+					}
 					
-					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(piston.min(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
-					EntitySmokeParticle sp = new EntitySmokeParticle(world, 80, 0, 0.6f, 0.2);
-					sp.setPosition(particlePos.x, particlePos.y, particlePos.z);
-					double accell = (piston.side.contains("RIGHT") ? 1 : -1) * 0.3 * gauge.scale();
-					Vec3d sideMotion = fakeMotion.add(VecUtil.fromYaw(accell, this.rotationYaw+90));
-					sp.setVelocity(sideMotion.x, sideMotion.y+0.01, sideMotion.z);
-					world.spawnEntity(sp);
+					for (int i = 0; i < 10; i++) {
+						phase = this.getPhase(2, phaseOffset + 45, 1-i/10.0);
+						
+						if (!phaseOn.get(key)) {
+							if (phase > 0.5) {
+						    	double speed = Math.abs(getCurrentSpeed().minecraft());
+						    	double maxSpeed = Math.abs(getDefinition().getMaxSpeed(gauge).minecraft());
+						    	float volume = (float) Math.max(1-speed/maxSpeed, 0.3) * Math.max(0.3f, Math.abs(this.getThrottle()));
+						    	volume = (float) Math.sqrt(volume);
+						    	double fraction = 3;
+						    	float pitch = 0.8f + (float) (speed/maxSpeed/fraction);
+						    	pitch += (this.ticksExisted % 10) / 300.0;
+						    	sndCache.get(sndCacheId).play(pitch, volume, getPositionVector());
+						    	sndCacheId++;
+						    	sndCacheId = sndCacheId % sndCache.size();
+								phaseOn.put(key, true);
+							}
+						} else {
+							if (phase < 0.5) {
+								phaseOn.put(key, false);
+							}
+						}
+					}
 				}
 			}
 			
 			List<RenderComponent> steams = this.getDefinition().getComponents(RenderComponentType.PRESSURE_VALVE_X, gauge);
 			if (steams != null && (this.getBoilerPressure() >= this.getDefinition().getMaxPSI(gauge) || !Config.isFuelRequired(gauge))) {
+				if (!pressure.isPlaying()) {
+					pressure.play();
+				}
 				for (RenderComponent steam : steams) {
 					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(steam.center(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
 					particlePos = particlePos.subtract(fakeMotion);
@@ -282,6 +367,10 @@ public class LocomotiveSteam extends Locomotive {
 					sp.setPosition(particlePos.x, particlePos.y, particlePos.z);
 					sp.setVelocity(fakeMotion.x, fakeMotion.y + 0.2 * gauge.scale(), fakeMotion.z);
 					world.spawnEntity(sp);
+				}
+			} else {
+				if (pressure.isPlaying()) {
+					pressure.stop();;
 				}
 			}
 			
@@ -420,12 +509,15 @@ public class LocomotiveSteam extends Locomotive {
 			world.removeEntity(this);
 		}
 	}
-	
+
 	@Override
 	public void setDead() {
 		if (this.gonnaExplode) {
 			this.isDead = true;
 			return;
+		}
+		if (idle != null) {
+			idle.stop();
 		}
 		// Don't do drops if from explosion
 		super.setDead();
