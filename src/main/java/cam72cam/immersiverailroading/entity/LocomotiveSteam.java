@@ -533,6 +533,10 @@ public class LocomotiveSteam extends Locomotive {
 		if (idle != null) {
 			idle.stop();
 		}
+		if (pressure != null) {
+			pressure.stop();
+		}
+		
 		// Don't do drops if from explosion
 		super.setDead();
 	}
