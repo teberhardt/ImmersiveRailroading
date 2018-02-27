@@ -9,7 +9,7 @@
 		"water_capacity_l": 27000, 
 		"horsepower": 4200,
 		"tractive_effort_lbf": 44460,
-		"max_speed_kmh": 120,
+		"max_speed_kmh": 152,
 		"valve_gear": "walschaerts",
 		"weight_kg": 140110
 	},
@@ -31,5 +31,10 @@
 	"couplers": {
 		"front_offset": -0.08,
 		"rear_offset": -1
+	},
+	"sounds": {
+		"whistle": "sounds/steam/k4_sounds/whistle.ogg",
+		"idle": "sounds/steam/k4_sounds/idle.ogg",
+		"chuff": "sounds/steam/k4_sounds/chuff.ogg"
 	}
 }

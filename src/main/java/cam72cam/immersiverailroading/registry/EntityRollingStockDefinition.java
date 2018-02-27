@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.gson.JsonObject;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
@@ -124,7 +125,30 @@ public abstract class EntityRollingStockDefinition {
 		frontBounds = -model.minOfGroup(model.groups()).xCoord + couplerOffsetFront;
 		rearBounds = model.maxOfGroup(model.groups()).xCoord + couplerOffsetRear;
 		widthBounds = model.widthOfGroups(model.groups());
-		heightBounds = model.heightOfGroups(model.groups());
+		
+		// Bad hack for height bounds
+		ArrayList<String> heightGroups = new ArrayList<String>();
+		for (String group : model.groups()) {
+			boolean ignore = false;
+			for (RenderComponentType rct : RenderComponentType.values()) {
+				if (rct.collisionsEnabled) {
+					continue;
+				}
+				for (int i = 0; i < 10; i++) {
+					if (Pattern.matches(rct.regex.replace("#ID#", "" + i), group)) {
+						ignore = true;
+						break;
+					}
+				}
+				if (ignore) {
+					break;
+				}
+			}
+			if (!ignore) {
+				heightGroups.add(group);
+			}
+		}
+		heightBounds = model.heightOfGroups(heightGroups);
 		
 		weight = (int)Math.ceil(data.get("properties").getAsJsonObject().get("weight_kg").getAsInt() * internal_scale);
 	}
@@ -310,7 +334,6 @@ public abstract class EntityRollingStockDefinition {
 							break;
 						}
 					}
-
 					double[][] heightMap = new double[xRes][zRes];
 					
 					for (int x = 0; x < xRes; x++) {
@@ -319,8 +342,11 @@ public abstract class EntityRollingStockDefinition {
 							heightMap[x][z] = Double.parseDouble(data[z]);
 						}
 					}
-					
-					this.partMapCache.put(rc, heightMap);
+
+
+					if (rc.type.collisionsEnabled) {
+						this.partMapCache.put(rc, heightMap);
+					}
 				}
 				
 				reader.close();
@@ -379,6 +405,9 @@ public abstract class EntityRollingStockDefinition {
 		
 		for (List<RenderComponent> rcl : this.renderComponents.values()) {
 			for (RenderComponent rc : rcl) {
+				if (!rc.type.collisionsEnabled) {
+					continue;
+				}
 				double[][] heightMap = new double[xRes][zRes];
 				for (String group : rc.modelIDs) {
 					List<Face> faces = model.groups.get(group);
@@ -431,6 +460,10 @@ public abstract class EntityRollingStockDefinition {
 		
 		for (List<RenderComponent> rcl : this.renderComponents.values()) {
 			for (RenderComponent rc : rcl) {
+				if (!rc.type.collisionsEnabled) {
+					continue;
+				}
+				
 				if (availComponents.contains(rc.type)) {
 					availComponents.remove(rc.type);
 				} else if (rc.type == RenderComponentType.REMAINING && stock.isBuilt()) {
