@@ -60,7 +60,7 @@ dependencies {
 	)
 
 	compile files(
-		'TrackAPI-1.1_1.12.jar'
+		'TrackAPI-1.1_1.11.jar'
 	)
 }
 
