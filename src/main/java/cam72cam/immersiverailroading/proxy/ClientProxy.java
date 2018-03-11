@@ -113,6 +113,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.relauncher.Side;
 
 @EventBusSubscriber(Side.CLIENT)
@@ -581,6 +582,10 @@ public class ClientProxy extends CommonProxy {
 	private static int tickCount = 0;
 	@SubscribeEvent
 	public static void onClientTick(TickEvent.ClientTickEvent event) {
+		if (event.phase != Phase.START) {
+			return;
+		}
+		
 		if (tickCount % 40 == 39 ) {
 			StockRenderCache.doImageCache();
 		}
@@ -588,5 +593,11 @@ public class ClientProxy extends CommonProxy {
 		manager.tick();
 		
 		StockRenderCache.tryCache();
+	}
+
+
+	@Override
+	public int getTicks() {
+		return tickCount;
 	}
 }

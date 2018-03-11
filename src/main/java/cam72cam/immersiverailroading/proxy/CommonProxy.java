@@ -66,6 +66,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -80,7 +81,6 @@ public abstract class CommonProxy implements IGuiHandler {
 	protected static List<Class<? extends EntityRollingStock>> entityClasses = new ArrayList<Class<? extends EntityRollingStock>>();
 	protected String configDir;
 	private static String cacheDir;
-	private static int ticks = 0;
     static {
     	entityClasses.add(LocomotiveSteam.class);
     	entityClasses.add(LocomotiveDiesel.class);
@@ -218,6 +218,9 @@ public abstract class CommonProxy implements IGuiHandler {
 	
 	@SubscribeEvent
 	public static void onWorldTick(WorldTickEvent event) {
+		if (event.phase != Phase.START) {
+			return;
+		}
 		if (!event.world.isRemote) {
 			ChunkManager.handleWorldTick(event.world);
 			WorldServer world = event.world.getMinecraftServer().worldServerForDimension(event.world.provider.getDimension());
@@ -229,15 +232,9 @@ public abstract class CommonProxy implements IGuiHandler {
 				stock.tickPosRemainingCheck();
 			}
 		}
-		
-		if (event.world.provider.getDimension() == 0) {
-			ticks++;
-		}
 	}
 	
-	public int getTicks() {
-		return ticks/2;
-	}
+	public abstract int getTicks();
 
 	public abstract InputStream getResourceStream(ResourceLocation modelLoc) throws IOException;
 	public abstract List<InputStream> getResourceStreamAll(ResourceLocation modelLoc) throws IOException;
