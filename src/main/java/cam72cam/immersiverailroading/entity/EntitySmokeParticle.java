@@ -1,5 +1,6 @@
 package cam72cam.immersiverailroading.entity;
 
+import cam72cam.immersiverailroading.ImmersiveRailroading;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -17,6 +18,7 @@ public class EntitySmokeParticle extends Entity {
 	public final double diameter;
 	public double radius;
 	public float alpha;
+	private int startTick = 0;
 
 
 	public EntitySmokeParticle(World worldIn, int lifespan, float darken, float thickness, double diameter) {
@@ -26,6 +28,7 @@ public class EntitySmokeParticle extends Entity {
 		this.darken = darken;
 		this.thickness = thickness;
 		this.diameter = diameter;
+		this.startTick = ImmersiveRailroading.proxy.getTicks() - 1;
 	}
 	
 	@Override
@@ -65,7 +68,9 @@ public class EntitySmokeParticle extends Entity {
 		this.prevPosY = this.posY;
 		this.prevPosZ = this.posZ;
 		
-		double life = this.ticksExisted / (float)this.lifespan;
+		int ticks = ImmersiveRailroading.proxy.getTicks() - this.startTick;
+		
+		double life = ticks  / (float)this.lifespan;
 		
 		double expansionRate = 16;
 		
@@ -83,7 +88,7 @@ public class EntitySmokeParticle extends Entity {
 		this.posY += this.motionY;
 		this.posZ += this.motionZ;
 		
-		if (this.ticksExisted >= this.lifespan) {
+		if (ticks >= this.lifespan) {
 			worldObj.removeEntity(this);
 		}
 	}

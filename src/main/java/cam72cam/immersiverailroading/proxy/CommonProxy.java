@@ -80,6 +80,7 @@ public abstract class CommonProxy implements IGuiHandler {
 	protected static List<Class<? extends EntityRollingStock>> entityClasses = new ArrayList<Class<? extends EntityRollingStock>>();
 	protected String configDir;
 	private static String cacheDir;
+	private static int ticks = 0;
     static {
     	entityClasses.add(LocomotiveSteam.class);
     	entityClasses.add(LocomotiveDiesel.class);
@@ -228,6 +229,14 @@ public abstract class CommonProxy implements IGuiHandler {
 				stock.tickPosRemainingCheck();
 			}
 		}
+		
+		if (event.world.provider.getDimension() == 0) {
+			ticks++;
+		}
+	}
+	
+	public int getTicks() {
+		return ticks/2;
 	}
 
 	public abstract InputStream getResourceStream(ResourceLocation modelLoc) throws IOException;
@@ -258,5 +267,4 @@ public abstract class CommonProxy implements IGuiHandler {
 		default:
 			return null;
     	}
-    }
-}
+    }}
