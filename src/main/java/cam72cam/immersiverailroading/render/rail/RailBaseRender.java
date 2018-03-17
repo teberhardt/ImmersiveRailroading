@@ -38,7 +38,7 @@ public class RailBaseRender {
 		
 		// Create render targets
 		VertexBuffer worldRenderer = new VertexBuffer(2048);
-
+		
 		// Start drawing
 		try {
 			worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);

@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import cam72cam.immersiverailroading.IRBlocks;
+import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.blocks.BlockMultiblock;
 import cam72cam.immersiverailroading.blocks.BlockRail;
@@ -44,6 +46,7 @@ import cam72cam.immersiverailroading.net.PassengerPositionsPacket;
 import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
 import cam72cam.immersiverailroading.registry.DefinitionManager;
 import cam72cam.immersiverailroading.sound.ISound;
+import cam72cam.immersiverailroading.thirdparty.CompatLoader;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import cam72cam.immersiverailroading.tile.TileRail;
 import cam72cam.immersiverailroading.tile.TileRailGag;
@@ -131,30 +134,37 @@ public abstract class CommonProxy implements IGuiHandler {
     	MultiblockRegistry.register(BoilerRollerMultiblock.NAME, new BoilerRollerMultiblock());
     	MultiblockRegistry.register(CastingMultiblock.NAME, new CastingMultiblock());
 
-    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_HOOK),
+
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_HOOK),
     		    "dd ",
     		    "d  ",
     		    "d  ",
     		    'd', "ingotSteel"));
-    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_MANUAL, 1),  
+
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_MANUAL, 1),
     			"d d",
     		    "dbd",
     		    "d d",
     		    'd', "ingotSteel",
     		    'b', new ItemStack(Items.BOOK, 1)));
-    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_RAIL_BLOCK, 1),  
+
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_TRACK_BLUEPRINT, 1),
     			"d d",
     		    "dbd",
     		    "d d",
     		    'd', "ingotSteel",
     		    'b', new ItemStack(Items.PAPER, 1)));
-    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ImmersiveRailroading.ITEM_LARGE_WRENCH),  
+
+
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_LARGE_WRENCH),
     			" d ",
     		    "ddd",
     		    "d d",
     		    'd', "ingotSteel"));
     	
     	NetworkRegistry.INSTANCE.registerGuiHandler(ImmersiveRailroading.instance, this);
+    	
+    	CompatLoader.load();
     }
 
 
@@ -174,10 +184,10 @@ public abstract class CommonProxy implements IGuiHandler {
     @SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event)
     {
-		event.getRegistry().register(ImmersiveRailroading.BLOCK_RAIL_GAG);
-		event.getRegistry().register(ImmersiveRailroading.BLOCK_RAIL);
-		event.getRegistry().register(ImmersiveRailroading.BLOCK_RAIL_PREVIEW);
-		event.getRegistry().register(ImmersiveRailroading.BLOCK_MULTIBLOCK);
+		event.getRegistry().register(IRBlocks.BLOCK_RAIL_GAG);
+		event.getRegistry().register(IRBlocks.BLOCK_RAIL);
+		event.getRegistry().register(IRBlocks.BLOCK_RAIL_PREVIEW);
+		event.getRegistry().register(IRBlocks.BLOCK_MULTIBLOCK);
     	GameRegistry.registerTileEntity(TileRailGag.class, BlockRailGag.NAME);
     	GameRegistry.registerTileEntity(TileRail.class, BlockRail.NAME);
     	GameRegistry.registerTileEntity(TileRailPreview.class, BlockRailPreview.NAME);
@@ -187,16 +197,16 @@ public abstract class CommonProxy implements IGuiHandler {
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> event)
     {
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_RAIL_BLOCK);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_ROLLING_STOCK);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_LARGE_WRENCH);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_HOOK);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_AUGMENT);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_MANUAL);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_RAIL);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_PLATE);
-    	event.getRegistry().register(ImmersiveRailroading.ITEM_CAST_RAIL);
+    	event.getRegistry().register(IRItems.ITEM_TRACK_BLUEPRINT);
+    	event.getRegistry().register(IRItems.ITEM_ROLLING_STOCK);
+    	event.getRegistry().register(IRItems.ITEM_ROLLING_STOCK_COMPONENT);
+    	event.getRegistry().register(IRItems.ITEM_LARGE_WRENCH);
+    	event.getRegistry().register(IRItems.ITEM_HOOK);
+    	event.getRegistry().register(IRItems.ITEM_AUGMENT);
+    	event.getRegistry().register(IRItems.ITEM_MANUAL);
+    	event.getRegistry().register(IRItems.ITEM_RAIL);
+    	event.getRegistry().register(IRItems.ITEM_PLATE);
+    	event.getRegistry().register(IRItems.ITEM_CAST_RAIL);
     }
     
     public static void registerEntities() {

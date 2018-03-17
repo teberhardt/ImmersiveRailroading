@@ -3,7 +3,6 @@ package cam72cam.immersiverailroading.gui;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -111,7 +110,7 @@ public abstract class ContainerBase extends Container implements ISyncableSlots 
 
             for (int j = 0; j < this.listeners.size(); ++j)
             {
-                ((IContainerListener)this.listeners.get(j)).sendSlotContents(this, i, itemstack);
+                this.listeners.get(j).sendSlotContents(this, i, itemstack);
             }
         }
     }

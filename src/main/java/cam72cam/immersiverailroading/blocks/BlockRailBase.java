@@ -3,13 +3,14 @@ package cam72cam.immersiverailroading.blocks;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import cam72cam.immersiverailroading.ImmersiveRailroading;
+import cam72cam.immersiverailroading.Config.ConfigBalance;
+import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.items.ItemTabs;
 import cam72cam.immersiverailroading.items.ItemTrackBlueprint;
 import cam72cam.immersiverailroading.library.Augment;
 import cam72cam.immersiverailroading.library.Gauge;
-import cam72cam.immersiverailroading.library.StockDetectorMode;
 import cam72cam.immersiverailroading.library.SwitchState;
+import cam72cam.immersiverailroading.tile.SyncdTileEntity;
 import cam72cam.immersiverailroading.tile.TileRail;
 import cam72cam.immersiverailroading.tile.TileRailBase;
 import cam72cam.immersiverailroading.tile.TileRailGag;
@@ -32,6 +33,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk.EnumCreateEntityType;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
@@ -59,7 +61,7 @@ public abstract class BlockRailBase extends Block {
 
 	@Override
 	public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
-		ItemStack stack = new ItemStack(ImmersiveRailroading.ITEM_RAIL_BLOCK, 1);
+		ItemStack stack = new ItemStack(IRItems.ITEM_TRACK_BLUEPRINT, 1);
 		TileRailBase rail = TileRailBase.get(world, pos);
 		if (rail == null || !rail.isLoaded()) {
 			return stack;
@@ -175,7 +177,7 @@ public abstract class BlockRailBase extends Block {
 
 	@Override
 	public void onNeighborChange(IBlockAccess world, BlockPos pos, BlockPos neighbor){
-		TileRailBase tileEntity = TileRailBase.get(world, pos);
+		TileRailBase tileEntity = SyncdTileEntity.get(world, pos, EnumCreateEntityType.CHECK); // Prevent recursive loading
 		if (tileEntity == null) {
 			return;
 		}
@@ -184,12 +186,26 @@ public abstract class BlockRailBase extends Block {
 		}
 		boolean isOriginAir = tileEntity.getParentTile() == null || tileEntity.getParentTile().getParentTile() == null;
 		boolean isOnRealBlock = world.isSideSolid(pos.down(), EnumFacing.UP, false);
-		if (isOriginAir || !isOnRealBlock) {
+		
+		if (isOriginAir) {
 			if (tryBreakRail(world, pos)) { 
 				tileEntity.getWorld().destroyBlock(pos, true);
 			}
 			return;
 		}
+		
+		if (!isOnRealBlock) {
+			double floating = tileEntity.getParentTile().percentFloating();
+			System.out.println(floating);
+			if (floating > ConfigBalance.trackFloatingPercent) {
+				if (tryBreakRail(world, pos)) { 
+					tileEntity.getWorld().destroyBlock(pos, true);
+				}
+				return;
+			}
+		}
+		
+		
 		
 		IBlockState up = world.getBlockState(pos.up());
 		if (up.getBlock() == Blocks.SNOW_LAYER) {
@@ -226,6 +242,7 @@ public abstract class BlockRailBase extends Block {
 	}
 	
 	
+	@Override
 	public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
 		TileRailBase te = TileRailBase.get(source, pos);
 		return new AxisAlignedBB(0.0F, 0.0F, 0.0F, 1.0F, Math.max(te == null ? 0 : te.getFullHeight(),0.25), 1.0F);
@@ -242,7 +259,6 @@ public abstract class BlockRailBase extends Block {
 	public int getMetaFromState(IBlockState state) {
 		return 0;
 	}
-	
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, @Nullable ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
 		ItemStack stack = playerIn.getHeldItem(hand);
@@ -253,7 +269,7 @@ public abstract class BlockRailBase extends Block {
 		TileRailBase te = TileRailBase.get(worldIn, pos);
 		if (te != null) {
 			if (block == Blocks.REDSTONE_TORCH) {
-				StockDetectorMode next = te.nextAugmentRedstoneMode();
+				String next = te.nextAugmentRedstoneMode();
 				if (next != null) {
 					if (!worldIn.isRemote) {
 						playerIn.addChatMessage(new TextComponentString(next.toString()));
@@ -270,7 +286,7 @@ public abstract class BlockRailBase extends Block {
 			if (block == Blocks.SNOW) {
 				if (!worldIn.isRemote) {
 					for (int i = 0; i < 8; i ++) {
-						((TileRailBase) te).handleSnowTick();
+						te.handleSnowTick();
 					}
 				}
 				return true;
@@ -287,7 +303,8 @@ public abstract class BlockRailBase extends Block {
 		
 	}
 
-    public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
+    @Override
+	public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
     {
     	TileRailBase te = TileRailBase.get(blockAccess, pos);
     	if (te != null && te.getAugment() == Augment.DETECTOR) {
@@ -296,12 +313,14 @@ public abstract class BlockRailBase extends Block {
     	return 0;
     }
 
-    public int getStrongPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
+    @Override
+	public int getStrongPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
     {
         return this.getWeakPower(blockState, blockAccess, pos, side);
     }
 
-    public boolean canProvidePower(IBlockState state)
+    @Override
+	public boolean canProvidePower(IBlockState state)
     {
         return true;
     }

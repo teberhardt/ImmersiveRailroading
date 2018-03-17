@@ -15,7 +15,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Predicate;
 
-import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.Config.ConfigDebug;
+import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.net.MRSSyncPacket;
@@ -51,6 +52,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			return this == FRONT ? BACK : FRONT;
 		}
 		
+		@Override
 		public String toString() {
 			return (this == FRONT ? ChatText.COUPLER_FRONT : ChatText.COUPLER_BACK).toString();
 		}
@@ -141,7 +143,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 	
 	@Override
 	public boolean processInitialInteract(EntityPlayer player, @Nullable ItemStack stack, EnumHand hand) {
-		if (player.getHeldItem(hand) != null && player.getHeldItem(hand).getItem() == ImmersiveRailroading.ITEM_HOOK) {
+		if (player.getHeldItem(hand) != null && player.getHeldItem(hand).getItem() == IRItems.ITEM_HOOK) {
 			CouplerType coupler = CouplerType.FRONT;
 			if (this.getCouplerPosition(CouplerType.FRONT).distanceTo(player.getPositionVector()) > this.getCouplerPosition(CouplerType.BACK).distanceTo(player.getPositionVector())) {
 				coupler = CouplerType.BACK;
@@ -183,7 +185,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			return;
 		}
 		
-		if (this.getCurrentSpeed().minecraft() != 0 || Config.keepStockLoaded) {
+		if (this.getCurrentSpeed().minecraft() != 0 || ConfigDebug.keepStockLoaded) {
 			ChunkManager.flagEntityPos(this.worldObj, this.getPosition());
 			if (this.lastKnownFront != null) {
 				ChunkManager.flagEntityPos(this.worldObj, this.lastKnownFront);
@@ -222,7 +224,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 				if (otherCoupler == null) {
 					continue;
 				}
-				if (this.getCouplerPosition(coupler).distanceTo(coupled.getCouplerPosition(otherCoupler)) > Config.couplerRange*4) {
+				if (this.getCouplerPosition(coupler).distanceTo(coupled.getCouplerPosition(otherCoupler)) > ConfigDebug.couplerRange*4) {
 					this.decouple(coupled);
 				}
 			}
@@ -639,7 +641,8 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 		
 		List<EntityCoupleableRollingStock> nearBy = worldObj.getEntities(EntityCoupleableRollingStock.class, new Predicate<EntityCoupleableRollingStock>()
 	    {
-	        public boolean apply(@Nullable EntityCoupleableRollingStock entity)
+	        @Override
+			public boolean apply(@Nullable EntityCoupleableRollingStock entity)
 	        {
 	        	if (entity == null) {
 	        		return false;
@@ -711,7 +714,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			
 			if (myCenterToMyCoupler < myCenterToOtherCoupler && this.isCouplerEngaged(coupler) && stock.isCouplerEngaged(otherCoupler)) {
 				// diagram 1, check that it is not too far away
-				if (myCouplerToOtherCoupler > Config.couplerRange) {
+				if (myCouplerToOtherCoupler > ConfigDebug.couplerRange) {
 					// Not close enough to consider
 					continue;
 				}

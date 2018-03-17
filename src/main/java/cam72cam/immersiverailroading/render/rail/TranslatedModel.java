@@ -57,6 +57,7 @@ public class TranslatedModel implements IBakedModel {
 	public ItemOverrideList getOverrides() { return source.getOverrides(); }
 
 	@Override
+	@Deprecated
 	public ItemCameraTransforms getItemCameraTransforms() { return source.getItemCameraTransforms(); }
 	
 }

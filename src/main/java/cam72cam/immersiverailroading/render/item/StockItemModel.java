@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
-import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ConfigGraphics;
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
 import cam72cam.immersiverailroading.render.OBJRender;
@@ -57,7 +57,7 @@ public class StockItemModel implements IBakedModel {
 		 * before actually setting up the correct GL context.
 		 */
 		
-		if (this.defID != null && Config.enableIconCache) {
+		if (this.defID != null && ConfigGraphics.enableIconCache) {
 			boolean hasIcon = StockRenderCache.renderIcon(defID);
 			if (!hasIcon) {
 				GLBoolTracker tex = new GLBoolTracker(GL11.GL_TEXTURE_2D, model.hasTexture());
@@ -120,6 +120,7 @@ public class StockItemModel implements IBakedModel {
 			super(new ArrayList<ItemOverride>());
 		}
 
+		@Override
 		public IBakedModel handleItemState(IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity) {
 			return new StockItemModel(stack);
 		}
@@ -144,22 +145,22 @@ public class StockItemModel implements IBakedModel {
 			return Pair.of(defaultVal.getLeft(),
 					new Matrix4().rotate(Math.toRadians(10), 1, 0, 0).rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
 		case GROUND:
-			return Pair.of(defaultVal.getLeft(), new Matrix4().rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
+			return Pair.of(defaultVal.getLeft(), new Matrix4().translate(-0.5, 0.25, 0.5).rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
 		case FIXED:
 			// Item Frame
-			return Pair.of(defaultVal.getLeft(), new Matrix4().rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
+			return Pair.of(defaultVal.getLeft(), new Matrix4().translate(0.5, 0.25, 0.5).toMatrix4f());
 		case GUI:
 			return Pair.of(defaultVal.getLeft(), new Matrix4().translate(0.5, 0, 0).rotate(Math.toRadians(+5+90), 0, 1, 0).toMatrix4f());
 		case HEAD:
 			return Pair.of(defaultVal.getLeft(),
-					new Matrix4().translate(0, 0, 0.5).rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
+					new Matrix4().scale(2,2,2).translate(-0.5, 0.6, 0.5).rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
 		case NONE:
 			return defaultVal;
 		}
 		return defaultVal;
 	}
 	*/
-
+	
 	@Override
 	public ItemCameraTransforms getItemCameraTransforms() {
 		return new ItemCameraTransforms(ItemCameraTransforms.DEFAULT) {

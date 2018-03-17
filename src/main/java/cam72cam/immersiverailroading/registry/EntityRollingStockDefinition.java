@@ -50,7 +50,7 @@ public abstract class EntityRollingStockDefinition {
 		return stock;
 	}
 
-	protected String defID;
+	public final String defID;
 	public String name = "Unknown";
 	private OBJModel model;
 	private Vec3d passengerCenter = new Vec3d(0, 0, 0);
@@ -518,7 +518,7 @@ public abstract class EntityRollingStockDefinition {
 
 	public List<String> getTooltip(Gauge gauge) {
 		List<String> tips = new ArrayList<String>();
-		tips.add(GuiText.RECOMMENDED_GAUGE_TOOLTIP.toString(this.recommended_gauge));
+		tips.add(GuiText.WEIGHT_TOOLTIP.toString(this.getWeight(gauge)));
 		return tips;
 	}
 

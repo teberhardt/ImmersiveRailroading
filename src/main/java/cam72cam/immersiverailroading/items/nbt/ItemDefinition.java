@@ -17,8 +17,8 @@ public class ItemDefinition {
 		if (stack.getTagCompound() != null){
 			return stack.getTagCompound().getString("defID");
 		}
-		stack.stackSize = (0);
-		return "BUG";
+		stack.stackSize = 0;
+		return "";
 	}
 	
 	public static EntityRollingStockDefinition get(ItemStack stack) {

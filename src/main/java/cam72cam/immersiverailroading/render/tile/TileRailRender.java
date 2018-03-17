@@ -19,7 +19,6 @@ public class TileRailRender extends TileEntitySpecialRenderer<TileRail> {
 
 	@Override
 	public void renderTileEntityAt(TileRail te, double x, double y, double z, float partialTicks, int destroyStage) {
-		super.renderTileEntityAt(te, x, y, z, partialTicks, destroyStage);
 		RailInfo info = te.getRailRenderInfo();
 		if (info == null) {
 			// Still loading...

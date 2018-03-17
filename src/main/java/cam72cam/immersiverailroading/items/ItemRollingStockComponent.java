@@ -71,10 +71,12 @@ public class ItemRollingStockComponent extends BaseItemRollingStock {
 		return ItemComponent.getComponentType(stack).crafting == CraftingType.CASTING_HAMMER && ItemRawCast.get(stack); 
 	}
 	
+	@Override
 	@SideOnly(Side.CLIENT)
-	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean flagIn)
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
 		overrideStackDisplayName(stack);
+        super.addInformation(stack, playerIn, tooltip, advanced);
         tooltip.add(GuiText.GAUGE_TOOLTIP.toString(ItemGauge.get(stack)));
         if (requiresHammering(stack)) {
         	tooltip.add("§c" + GuiText.RAW_CAST_TOOLTIP.toString() + "§f");

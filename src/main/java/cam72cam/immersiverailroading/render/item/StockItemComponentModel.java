@@ -131,6 +131,7 @@ public class StockItemComponentModel implements IBakedModel {
 			super(new ArrayList<ItemOverride>());
 		}
 
+		@Override
 		public IBakedModel handleItemState(IBakedModel originalModel, ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity) {
 			return new StockItemComponentModel(stack);
 		}
@@ -140,7 +141,8 @@ public class StockItemComponentModel implements IBakedModel {
 	public ItemOverrideList getOverrides() {
 		return new ItemOverrideListHack();
 	}
-/*
+	
+	/*
 	@Override
 	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
 
@@ -161,23 +163,20 @@ public class StockItemComponentModel implements IBakedModel {
 			return Pair.of(defaultVal.getLeft(),
 					new Matrix4().rotate(Math.toRadians(90), 0, 1, 0).rotate(Math.toRadians(-30), 0, 0, 1).translate(0.5,0.25,0.5).scale(0.2, 0.2, 0.2).toMatrix4f());
 		case GROUND:
-			return Pair.of(defaultVal.getLeft(), new Matrix4().translate(0.5,0.5,0.5).scale(0.2, 0.2, 0.2).toMatrix4f());
+			return Pair.of(defaultVal.getLeft(), new Matrix4().translate(0, 0.25, 0).scale(0.2, 0.2, 0.2).toMatrix4f());
 		case FIXED:
 			// Item Frame
 			return Pair.of(defaultVal.getLeft(), new Matrix4().rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
 		case GUI:
-			//.rotate(Math.toRadians(+5+90), 0, 1, 0)
 			return Pair.of(defaultVal.getLeft(), new Matrix4().scale(scale, scale, scale).translate(0.5, 0.5, 0).toMatrix4f());
 		case HEAD:
-			return Pair.of(defaultVal.getLeft(),
-					new Matrix4().translate(0, 0, 0.5).rotate(Math.toRadians(-90), 0, 1, 0).toMatrix4f());
 		case NONE:
 			return defaultVal;
 		}
 		return defaultVal;
 	}
 	*/
-
+	
 	@Override
 	public ItemCameraTransforms getItemCameraTransforms() {
 		return new ItemCameraTransforms(ItemCameraTransforms.DEFAULT) {

@@ -65,6 +65,7 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 		return this.defID;
 	}
 	
+	@Override
 	public void onUpdate() {
 		if (!worldObj.isRemote && this.ticksExisted % 5 == 0) {
 			EntityRollingStockDefinition def = DefinitionManager.getDefinition(defID);

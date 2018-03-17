@@ -76,7 +76,7 @@ public class RailItemRender implements IBakedModel {
 	public ItemOverrideList getOverrides() {
 		return ItemOverrideList.NONE;
 	}
-
+	
 	@Override
 	public ItemCameraTransforms getItemCameraTransforms() {
 		return ItemCameraTransforms.DEFAULT;

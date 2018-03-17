@@ -2,6 +2,7 @@ package cam72cam.immersiverailroading.items;
 
 import java.util.List;
 
+import cam72cam.immersiverailroading.IRBlocks;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.blocks.BlockRailBase;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
@@ -24,6 +25,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import net.minecraftforge.fml.common.Optional;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 @Optional.Interface(iface = "mezz.jei.api.ingredients.ISlowRenderItem", modid = "jei")
 public class ItemTrackBlueprint extends Item {
@@ -37,7 +40,7 @@ public class ItemTrackBlueprint extends Item {
 	
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if (worldIn.isRemote) {
+		if (worldIn.isRemote && handIn == EnumHand.MAIN_HAND) {
             playerIn.openGui(ImmersiveRailroading.instance, GuiTypes.RAIL.ordinal(), worldIn, (int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
         }
         return super.onItemRightClick(itemStackIn, worldIn, playerIn, handIn);
@@ -49,7 +52,7 @@ public class ItemTrackBlueprint extends Item {
 		
 		ItemStack stack = player.getHeldItem(hand);
 		if (ItemTrackBlueprint.isPreview(stack)) {
-			world.setBlockState(pos, ImmersiveRailroading.BLOCK_RAIL_PREVIEW.getDefaultState());
+			world.setBlockState(pos, IRBlocks.BLOCK_RAIL_PREVIEW.getDefaultState());
 			TileRailPreview te = TileRailPreview.get(world, pos);
 			if (te != null) {
 				te.init(stack, player.getRotationYawHead(), hitX, hitY, hitZ);
@@ -65,8 +68,11 @@ public class ItemTrackBlueprint extends Item {
 		return EnumActionResult.SUCCESS;
     }
 
+	@SideOnly(Side.CLIENT)
 	@Override
-	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean flagIn) {
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
+    {
+		super.addInformation(stack, playerIn, tooltip, advanced);
         tooltip.add(GuiText.TRACK_TYPE.toString(getType(stack)));
         tooltip.add(GuiText.TRACK_GAUGE.toString(ItemGauge.get(stack)));
         tooltip.add(GuiText.TRACK_LENGTH.toString(getLength(stack)));

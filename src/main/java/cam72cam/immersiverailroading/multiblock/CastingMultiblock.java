@@ -4,6 +4,7 @@ import java.util.List;
 
 import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.blocks.BlockTypes_MetalsAll;
+import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.nbt.ItemComponent;
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
@@ -42,7 +43,7 @@ public class CastingMultiblock extends Multiblock {
 	private static final BlockPos power = new BlockPos(3,7,0);
 	public static final double max_volume = 5 * 4 * 4.5 * 9;
 
-	private static MultiblockComponent[][][] blueprint() {
+	private static MultiblockComponent[][][] cast_blueprint() {
 		MultiblockComponent[][][] bp = new MultiblockComponent[7+16][][];
 		for (int z = 0; z < 7; z++) {
 			MultiblockComponent[] base = new MultiblockComponent[] { AIR, AIR, AIR, AIR, AIR, AIR, AIR };
@@ -106,7 +107,7 @@ public class CastingMultiblock extends Multiblock {
 	}
 	
 	public CastingMultiblock() {
-		super(NAME, blueprint());
+		super(NAME, cast_blueprint());
 	}
 	
 	@Override
@@ -185,7 +186,8 @@ public class CastingMultiblock extends Multiblock {
 				if (fluidTe == null) {
 					return;
 				}
-				AxisAlignedBB bb = new AxisAlignedBB(getPos(offset.add(0, 1, 0))).expand(3, 3, 3);
+				
+				AxisAlignedBB bb = new AxisAlignedBB(getPos(offset.add(0, 1, 0))).expand(3, 0, 3);
 				List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, bb);
 				for (EntityItem item : items) {
 					ItemStack stack = item.getEntityItem();
@@ -198,7 +200,7 @@ public class CastingMultiblock extends Multiblock {
 							stack.stackSize -= 1;
 							fluidTe.setCraftProgress(fluidTe.getCraftProgress() + 9);
 						}
-					} else if (stack != null && stack.getItem() == ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT && ItemComponent.getComponentType(stack).crafting.isCasting()) {
+					} else if (stack != null && stack.getItem() == IRItems.ITEM_ROLLING_STOCK_COMPONENT && ItemComponent.getComponentType(stack).crafting.isCasting()) {
 						// TODO drain more power on melt
 						int cost = ItemComponent.getComponentType(stack).getCastCost(ItemDefinition.get(stack), ItemGauge.get(stack));
 						while(stack.stackSize != 0 && fluidTe.getCraftProgress() < max_volume + cost) {
@@ -246,12 +248,12 @@ public class CastingMultiblock extends Multiblock {
 				
 				int cost = 0;
 				
-				if (item.getItem() == ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT) {
+				if (item.getItem() == IRItems.ITEM_ROLLING_STOCK_COMPONENT) {
 					ItemComponentType component = ItemComponent.getComponentType(item);
 					cost = component.getCastCost(ItemDefinition.get(item), ItemGauge.get(item));
-				} else if (item.getItem() == ImmersiveRailroading.ITEM_CAST_RAIL) {
+				} else if (item.getItem() == IRItems.ITEM_CAST_RAIL) {
 					cost = (int) Math.ceil(20 * ItemGauge.get(item).scale());
-				} else if (item.getItem() == ImmersiveRailroading.ITEM_AUGMENT) {
+				} else if (item.getItem() == IRItems.ITEM_AUGMENT) {
 					cost = (int) Math.ceil(8 * ItemGauge.get(item).scale());
 					item.stackSize = (8);
 				} else {

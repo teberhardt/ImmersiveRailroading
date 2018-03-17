@@ -3,8 +3,6 @@ package cam72cam.immersiverailroading.proxy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,16 +12,18 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GLContext;
 
-import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ConfigSound;
+import cam72cam.immersiverailroading.IRBlocks;
+import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.blocks.BlockRailBase;
 import cam72cam.immersiverailroading.entity.CarFreight;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.FreightTank;
+import cam72cam.immersiverailroading.entity.Locomotive;
 import cam72cam.immersiverailroading.entity.EntityRidableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.EntitySmokeParticle;
-import cam72cam.immersiverailroading.entity.Locomotive;
 import cam72cam.immersiverailroading.entity.LocomotiveSteam;
 import cam72cam.immersiverailroading.entity.Tender;
 import cam72cam.immersiverailroading.gui.CastingGUI;
@@ -42,6 +42,7 @@ import cam72cam.immersiverailroading.gui.TrackGui;
 import cam72cam.immersiverailroading.gui.overlay.DieselLocomotiveOverlay;
 import cam72cam.immersiverailroading.gui.overlay.HandCarOverlay;
 import cam72cam.immersiverailroading.gui.overlay.SteamLocomotiveOverlay;
+import cam72cam.immersiverailroading.items.nbt.ItemMultiblockType;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;
@@ -54,9 +55,11 @@ import cam72cam.immersiverailroading.render.item.RailItemRender;
 import cam72cam.immersiverailroading.render.item.StockItemComponentModel;
 import cam72cam.immersiverailroading.render.item.StockItemModel;
 import cam72cam.immersiverailroading.render.item.TrackBlueprintItemModel;
+import cam72cam.immersiverailroading.render.multiblock.MBBlueprintRender;
 import cam72cam.immersiverailroading.render.StockRenderCache;
 import cam72cam.immersiverailroading.render.block.RailBaseModel;
 import cam72cam.immersiverailroading.render.entity.ParticleRender;
+import cam72cam.immersiverailroading.render.entity.RenderOverride;
 import cam72cam.immersiverailroading.render.entity.StockEntityRender;
 import cam72cam.immersiverailroading.render.rail.RailRenderUtil;
 import cam72cam.immersiverailroading.render.tile.TileMultiblockRender;
@@ -71,11 +74,7 @@ import cam72cam.immersiverailroading.util.GLBoolTracker;
 import cam72cam.immersiverailroading.util.RailInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.IResource;
@@ -84,7 +83,6 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -107,14 +105,17 @@ import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLInterModComms;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.relauncher.Side;
+import paulscode.sound.SoundSystemConfig;
 
 @EventBusSubscriber(Side.CLIENT)
 public class ClientProxy extends CommonProxy {
@@ -171,8 +172,15 @@ public class ClientProxy extends CommonProxy {
 	public void preInit(FMLPreInitializationEvent event) throws IOException {
 		super.preInit(event);
 		registerEntities();
+		
+		if (ConfigSound.overrideSoundChannels) {
+			SoundSystemConfig.setNumberNormalChannels(2000);
+		}
+		
+		if (Loader.isModLoaded("igwmod")) {
+			FMLInterModComms.sendMessage("igwmod", "cam72cam.immersiverailroading.thirdparty.IGWMod", "init");
+		}
 	}
-	
 
 	@Override
 	public void init(FMLInitializationEvent event) {
@@ -201,6 +209,7 @@ public class ClientProxy extends CommonProxy {
 		((SimpleReloadableResourceManager)Minecraft.getMinecraft().getResourceManager()).registerReloadListener(new ClientResourceReloadListener());
 	}
 	
+	@Override
 	public World getWorld(int dimension)  {
 		return FMLClientHandler.instance().getWorldClient();
 	}
@@ -236,48 +245,48 @@ public class ClientProxy extends CommonProxy {
 		ClientRegistry.bindTileEntitySpecialRenderer(TileRailPreview.class, new TileRailPreviewRender());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileMultiblock.class, new TileMultiblockRender());
 		
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_LARGE_WRENCH, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_LARGE_WRENCH.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_LARGE_WRENCH, 0,
+				new ModelResourceLocation(IRItems.ITEM_LARGE_WRENCH.getRegistryName(), ""));
 
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_HOOK, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_HOOK.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_HOOK, 0,
+				new ModelResourceLocation(IRItems.ITEM_HOOK.getRegistryName(), ""));
 		
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_RAIL_BLOCK, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_RAIL_BLOCK.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_TRACK_BLUEPRINT, 0,
+				new ModelResourceLocation(IRItems.ITEM_TRACK_BLUEPRINT.getRegistryName(), ""));
 
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_ROLLING_STOCK_COMPONENT, 0,
+				new ModelResourceLocation(IRItems.ITEM_ROLLING_STOCK_COMPONENT.getRegistryName(), ""));
 
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_ROLLING_STOCK, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_ROLLING_STOCK.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_ROLLING_STOCK, 0,
+				new ModelResourceLocation(IRItems.ITEM_ROLLING_STOCK.getRegistryName(), ""));
 		
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_AUGMENT, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_AUGMENT.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_AUGMENT, 0,
+				new ModelResourceLocation(IRItems.ITEM_AUGMENT.getRegistryName(), ""));
 		
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_RAIL, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_RAIL.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_RAIL, 0,
+				new ModelResourceLocation(IRItems.ITEM_RAIL.getRegistryName(), ""));
 		
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_CAST_RAIL, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_CAST_RAIL.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_CAST_RAIL, 0,
+				new ModelResourceLocation(IRItems.ITEM_CAST_RAIL.getRegistryName(), ""));
 		
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_PLATE, 0,
-				new ModelResourceLocation(ImmersiveRailroading.ITEM_PLATE.getRegistryName(), ""));
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_PLATE, 0,
+				new ModelResourceLocation(IRItems.ITEM_PLATE.getRegistryName(), ""));
 		
-		ModelLoader.setCustomModelResourceLocation(ImmersiveRailroading.ITEM_MANUAL, 0,
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_MANUAL, 0,
 				new ModelResourceLocation("minecraft:written_book", ""));
 	}
 
 	@SubscribeEvent
 	public static void onModelBakeEvent(ModelBakeEvent event) {
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.ITEM_ROLLING_STOCK.getRegistryName(), ""), new StockItemModel());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.ITEM_RAIL_BLOCK.getRegistryName(), ""), new TrackBlueprintItemModel());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.ITEM_ROLLING_STOCK_COMPONENT.getRegistryName(), ""), new StockItemComponentModel());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.ITEM_AUGMENT.getRegistryName(), ""), new RailAugmentItemModel());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.ITEM_RAIL.getRegistryName(), ""), new RailItemRender());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.ITEM_CAST_RAIL.getRegistryName(), ""), new RailCastItemRender());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.ITEM_PLATE.getRegistryName(), ""), new PlateItemModel());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.BLOCK_RAIL.getRegistryName(), ""), new RailBaseModel());
-		event.getModelRegistry().putObject(new ModelResourceLocation(ImmersiveRailroading.BLOCK_RAIL_GAG.getRegistryName(), ""), new RailBaseModel());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRItems.ITEM_ROLLING_STOCK.getRegistryName(), ""), new StockItemModel());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRItems.ITEM_TRACK_BLUEPRINT.getRegistryName(), ""), new TrackBlueprintItemModel());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRItems.ITEM_ROLLING_STOCK_COMPONENT.getRegistryName(), ""), new StockItemComponentModel());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRItems.ITEM_AUGMENT.getRegistryName(), ""), new RailAugmentItemModel());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRItems.ITEM_RAIL.getRegistryName(), ""), new RailItemRender());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRItems.ITEM_CAST_RAIL.getRegistryName(), ""), new RailCastItemRender());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRItems.ITEM_PLATE.getRegistryName(), ""), new PlateItemModel());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRBlocks.BLOCK_RAIL.getRegistryName(), ""), new RailBaseModel());
+		event.getModelRegistry().putObject(new ModelResourceLocation(IRBlocks.BLOCK_RAIL_GAG.getRegistryName(), ""), new RailBaseModel());
 	}
 
 	@SubscribeEvent
@@ -349,10 +358,12 @@ public class ClientProxy extends CommonProxy {
 		}
 	}
 
+	@Override
 	public InputStream getResourceStream(ResourceLocation modelLoc) throws IOException {
 		return Minecraft.getMinecraft().getResourceManager().getResource(modelLoc).getInputStream();
 	}
 	
+	@Override
 	public List<InputStream> getResourceStreamAll(ResourceLocation modelLoc) throws IOException {
 		List<InputStream> res = new ArrayList<InputStream>();
 		for (IResource resource : Minecraft.getMinecraft().getResourceManager().getAllResources(modelLoc)) {
@@ -382,79 +393,8 @@ public class ClientProxy extends CommonProxy {
 		 * This is a bad hack but it works
 		 * 
 		 */
-		
-		Minecraft.getMinecraft().mcProfiler.startSection("ir_entity");
-
-        GLBoolTracker color = new GLBoolTracker(GL11.GL_COLOR_MATERIAL, true);
-        RenderHelper.enableStandardItemLighting();
-        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-
-		GlStateManager.enableAlpha();
         
-        float partialTicks = event.getPartialTicks();
-        ICamera camera = new Frustum();
-        Entity playerrRender = Minecraft.getMinecraft().getRenderViewEntity();
-        double d0 = playerrRender.lastTickPosX + (playerrRender.posX - playerrRender.lastTickPosX) * (double)partialTicks;
-        double d1 = playerrRender.lastTickPosY + (playerrRender.posY - playerrRender.lastTickPosY) * (double)partialTicks;
-        double d2 = playerrRender.lastTickPosZ + (playerrRender.posZ - playerrRender.lastTickPosZ) * (double)partialTicks;
-        camera.setPosition(d0, d1, d2);
-        
-        List<EntityRollingStock> entities = Minecraft.getMinecraft().thePlayer.getEntityWorld().getEntities(EntityRollingStock.class, EntitySelectors.IS_ALIVE);
-        for (EntityRollingStock entity : entities) {
-        	if (camera.isBoundingBoxInFrustum(entity.getRenderBoundingBox()) ) {
-        		Minecraft.getMinecraft().mcProfiler.startSection("render_stock");
-        		Minecraft.getMinecraft().getRenderManager().renderEntityStatic(entity, partialTicks, true);
-        		Minecraft.getMinecraft().mcProfiler.endSection();;
-        	}
-        }
-        
-        GlStateManager.depthMask(false);
-        
-        EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
-        Vec3d ep = player.getPositionEyes(partialTicks);
-        
-        List<EntitySmokeParticle> smokeEnts = player.getEntityWorld().getEntities(EntitySmokeParticle.class, EntitySelectors.IS_ALIVE);
-        Comparator<EntitySmokeParticle> compare = (EntitySmokeParticle e1, EntitySmokeParticle e2) -> {
-        	Double p1 = e1.getPositionVector().distanceTo(ep);
-        	Double p2 = e1.getPositionVector().distanceTo(ep);
-        	return p1.compareTo(p2);
-        };
-        Collections.sort(smokeEnts,  compare);
-        
-
-		Minecraft.getMinecraft().mcProfiler.startSection("ir_particles");
-		
-        ParticleRender.shader.bind();
-		GLBoolTracker light = new GLBoolTracker(GL11.GL_LIGHTING, false);
-		GLBoolTracker cull = new GLBoolTracker(GL11.GL_CULL_FACE, false);
-		GLBoolTracker tex = new GLBoolTracker(GL11.GL_TEXTURE_2D, false);
-		GLBoolTracker blend = new GLBoolTracker(GL11.GL_BLEND, true);
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        
-        for (EntitySmokeParticle entity : smokeEnts) {
-        	if (camera.isBoundingBoxInFrustum(entity.getRenderBoundingBox()) ) {
-        		Minecraft.getMinecraft().mcProfiler.startSection("render_particle");
-        		Minecraft.getMinecraft().getRenderManager().renderEntityStatic(entity, partialTicks, true);
-        		Minecraft.getMinecraft().mcProfiler.endSection();;
-        	}
-        }
-
-		blend.restore();
-		tex.restore();
-		cull.restore();
-		light.restore();
-		
-		ParticleRender.shader.unbind();
-		
-		Minecraft.getMinecraft().mcProfiler.endSection();
-        
-        Minecraft.getMinecraft().entityRenderer.disableLightmap();;
-        RenderHelper.disableStandardItemLighting();
-        color.restore();
-        
-        GlStateManager.depthMask(true);
-        
-        Minecraft.getMinecraft().mcProfiler.endSection();;
+        RenderOverride.renderStockAndParticles(event.getPartialTicks());
 	}
 	
 	@SubscribeEvent
@@ -468,14 +408,16 @@ public class ClientProxy extends CommonProxy {
 	
 	@SubscribeEvent
 	public static void onRenderMouseover(DrawBlockHighlightEvent event) {
+		EntityPlayer player = event.getPlayer();
+		ItemStack stack = event.getPlayer().getHeldItemMainhand();
+		BlockPos pos = event.getTarget().getBlockPos();
+		
 		if (event.getTarget().typeOfHit == RayTraceResult.Type.BLOCK) {
 			if (event.getPlayer().getHeldItemMainhand() == null ) {
 				return;
 			}
-			if (event.getPlayer().getHeldItemMainhand().getItem() == ImmersiveRailroading.ITEM_RAIL_BLOCK) {
-				EntityPlayer player = event.getPlayer();
-				ItemStack stack = event.getPlayer().getHeldItemMainhand();
-				BlockPos pos = event.getTarget().getBlockPos();
+			
+			if (event.getPlayer().getHeldItemMainhand().getItem() == IRItems.ITEM_TRACK_BLUEPRINT) {
 				
 				Vec3d vec = event.getTarget().hitVec;
 		        float hitX = (float)(vec.xCoord - (double)pos.getX());
@@ -498,14 +440,43 @@ public class ClientProxy extends CommonProxy {
 						GL14.glBlendColor(1, 1, 1, 0.5f);
 					}
 					
-	                double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double)event.getPartialTicks();
-	                double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)event.getPartialTicks();
-	                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)event.getPartialTicks();
+	                double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * event.getPartialTicks();
+	                double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * event.getPartialTicks();
+	                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * event.getPartialTicks();
 	                GL11.glTranslated(-d0, -d1, -d2);
 	                
 	                GL11.glTranslated(pos.getX(), pos.getY(), pos.getZ());
 	                
 	                RailRenderUtil.render(info, true);
+
+					blend.restore();
+				}
+				GL11.glPopMatrix();
+			}
+			if (stack.getItem() == IRItems.ITEM_MANUAL) {
+				pos = pos.up();
+				
+				GL11.glPushMatrix();
+				{
+					GLBoolTracker blend = new GLBoolTracker(GL11.GL_BLEND, true);
+					
+					GL11.glBlendFunc(GL11.GL_CONSTANT_ALPHA, GL11.GL_ONE);
+					if (GLContext.getCapabilities().OpenGL14) {
+						GL14.glBlendColor(1, 1, 1, 0.3f);
+					}
+					
+	                double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * event.getPartialTicks();
+	                double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * event.getPartialTicks();
+	                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * event.getPartialTicks();
+	                GL11.glTranslated(-d0, -d1, -d2);
+	                
+	                GL11.glTranslated(pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5);
+	                
+	                GL11.glRotated(-(int)((player.rotationYaw+45) / 90) * 90, 0, 1, 0);
+	                
+	                GL11.glTranslated(-0.5, -0.5, -0.5);
+	                
+	                MBBlueprintRender.draw(player.getEntityWorld(), ItemMultiblockType.get(stack));
 
 					blend.restore();
 				}
@@ -548,7 +519,7 @@ public class ClientProxy extends CommonProxy {
 			return;
 		}
 		
-		if (!Config.soundEnabled) {
+		if (!ConfigSound.soundEnabled) {
 			return;
 		}
 		

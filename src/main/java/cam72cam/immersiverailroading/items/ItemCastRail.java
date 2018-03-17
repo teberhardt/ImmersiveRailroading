@@ -25,8 +25,9 @@ public static final String NAME = "item_cast_rail";
 	
 	@Override
 	@SideOnly(Side.CLIENT)
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean flagIn)
+	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
+		super.addInformation(stack, playerIn, tooltip, advanced);
         tooltip.add(GuiText.GAUGE_TOOLTIP.toString(ItemGauge.get(stack)));
     }
 }
