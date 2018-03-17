@@ -3,7 +3,8 @@ package cam72cam.immersiverailroading.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import cam72cam.immersiverailroading.ImmersiveRailroading;
+import cam72cam.immersiverailroading.Config.ConfigDamage;
+import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.items.ItemTrackBlueprint;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
 import cam72cam.immersiverailroading.library.SwitchState;
@@ -100,8 +101,47 @@ public class RailInfo {
 			hitX = ((int)(hitX * 16)) / 16f;
 			hitZ = ((int)(hitZ * 16)) / 16f;
 			break;
+		case PIXELS_LOCKED:
+			hitX = ((int)(hitX * 16)) / 16f;
+			hitZ = ((int)(hitZ * 16)) / 16f;
+			
+			if (quarter != 0) {
+				break;
+			}
+			
+			switch (facing) {
+			case EAST:
+			case WEST:
+				hitZ = 0.5f;
+				break;
+			case NORTH:
+			case SOUTH:
+				hitX = 0.5f;
+				break;
+			default:
+				break;
+			}
+			break;
 		case SMOOTH:
 			// NOP
+			break;
+		case SMOOTH_LOCKED:
+			if (quarters != 0) {
+				break;
+			}
+			
+			switch (facing) {
+			case EAST:
+			case WEST:
+				hitZ = 0.5f;
+				break;
+			case NORTH:
+			case SOUTH:
+				hitX = 0.5f;
+				break;
+			default:
+				break;
+			}
 			break;
 		}
 		
@@ -112,6 +152,7 @@ public class RailInfo {
 		}
 	}
 	
+	@Override
 	public RailInfo clone() {
 		RailInfo c = new RailInfo(position, world, facing, type, direction, length, quarter, quarters, gauge, placementPosition, railBed, railBedFill);
 		return c;
@@ -145,7 +186,7 @@ public class RailInfo {
 	public boolean build(EntityPlayer player, BlockPos pos) {
 		BuilderBase builder = getBuilder(pos);
 		
-		if (player.isCreative()) {
+		if (player.isCreative() && ConfigDamage.creativePlacementClearsBlocks) {
 			builder.clearArea();
 		}
 		
@@ -165,7 +206,7 @@ public class RailInfo {
 				int fill = 0;
 				
 				for (ItemStack playerStack : player.inventory.mainInventory) {
-					if (playerStack.getItem() == ImmersiveRailroading.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
+					if (playerStack.getItem() == IRItems.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
 						rails += playerStack.getCount();
 					}
 					if (OreDictionaryContainsMatch(false, OreDictionary.getOres("plankTreatedWood"), playerStack)) {
@@ -206,7 +247,7 @@ public class RailInfo {
 				List<ItemStack> drops = new ArrayList<ItemStack>();
 				
 				for (ItemStack playerStack : player.inventory.mainInventory) {
-					if (playerStack.getItem() == ImmersiveRailroading.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
+					if (playerStack.getItem() == IRItems.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
 						if (rails > playerStack.getCount()) {
 							rails -= playerStack.getCount();
 							ItemStack copy = playerStack.copy();

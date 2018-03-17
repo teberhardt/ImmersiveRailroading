@@ -39,6 +39,7 @@ public abstract class Locomotive extends FreightTank {
 	 * 
 	 */
 	
+	@Override
 	public LocomotiveDefinition getDefinition() {
 		return super.getDefinition(LocomotiveDefinition.class);
 	}
@@ -71,7 +72,7 @@ public abstract class Locomotive extends FreightTank {
 	public void handleKeyPress(Entity source, KeyTypes key) {
 		switch(key) {
 		case HORN:
-			this.getDataManager().set(HORN, 5);
+			setHorn(5);
 			break;
 		case THROTTLE_UP:
 			if (getThrottle() < 1) {
@@ -172,6 +173,10 @@ public abstract class Locomotive extends FreightTank {
 			dataManager.set(THROTTLE, newThrottle);
 			triggerResimulate();
 		}
+	}
+	
+	public void setHorn(int val) {
+		this.getDataManager().set(HORN, val);
 	}
 	
 	public float getAirBrake() {

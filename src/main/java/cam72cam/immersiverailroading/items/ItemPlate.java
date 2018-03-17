@@ -74,8 +74,8 @@ public class ItemPlate extends Item {
 		return super.getUnlocalizedName(stack) + "." + plate.toString();
 	}
 	
-	@SideOnly(Side.CLIENT)
 	@Override
+	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
 		super.addInformation(stack, playerIn, tooltip, advanced);

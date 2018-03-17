@@ -2,6 +2,7 @@ package cam72cam.immersiverailroading.items;
 
 import java.util.List;
 
+import cam72cam.immersiverailroading.IRBlocks;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.blocks.BlockRailBase;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
@@ -37,8 +38,9 @@ public class ItemTrackBlueprint extends Item {
         this.setCreativeTab(ItemTabs.MAIN_TAB);
 	}
 	
+	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
-		if (worldIn.isRemote) {
+		if (worldIn.isRemote && handIn == EnumHand.MAIN_HAND) {
             playerIn.openGui(ImmersiveRailroading.instance, GuiTypes.RAIL.ordinal(), worldIn, (int) playerIn.posX, (int) playerIn.posY, (int) playerIn.posZ);
         }
         return super.onItemRightClick(worldIn, playerIn, handIn);
@@ -50,7 +52,7 @@ public class ItemTrackBlueprint extends Item {
 		
 		ItemStack stack = player.getHeldItem(hand);
 		if (ItemTrackBlueprint.isPreview(stack)) {
-			world.setBlockState(pos, ImmersiveRailroading.BLOCK_RAIL_PREVIEW.getDefaultState());
+			world.setBlockState(pos, IRBlocks.BLOCK_RAIL_PREVIEW.getDefaultState());
 			TileRailPreview te = TileRailPreview.get(world, pos);
 			if (te != null) {
 				te.init(stack, player.getRotationYawHead(), hitX, hitY, hitZ);

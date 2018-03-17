@@ -22,6 +22,7 @@ public class ItemRail extends Item {
         this.setCreativeTab(ItemTabs.MAIN_TAB);
 	}
 	
+	@Override
 	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {

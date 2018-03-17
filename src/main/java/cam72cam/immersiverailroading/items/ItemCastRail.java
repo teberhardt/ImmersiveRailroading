@@ -23,8 +23,8 @@ public static final String NAME = "item_cast_rail";
         this.setMaxStackSize(16);
 	}
 	
-	@SideOnly(Side.CLIENT)
 	@Override
+	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
 		super.addInformation(stack, playerIn, tooltip, advanced);

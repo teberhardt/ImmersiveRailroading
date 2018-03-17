@@ -3,7 +3,7 @@ package cam72cam.immersiverailroading.items;
 import java.util.List;
 
 
-import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ConfigGraphics;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
@@ -76,8 +76,8 @@ public class ItemRollingStock extends BaseItemRollingStock {
         return new CreativeTabs[]{ ItemTabs.LOCOMOTIVE_TAB, ItemTabs.PASSENGER_TAB, ItemTabs.STOCK_TAB };
     }
 	
-	@SideOnly(Side.CLIENT)
 	@Override
+	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
 		overrideStackDisplayName(stack);
@@ -122,6 +122,6 @@ public class ItemRollingStock extends BaseItemRollingStock {
 	
 	@Override
 	public boolean isValidArmor(ItemStack stack, EntityEquipmentSlot armorType, Entity entity) {
-		return armorType == EntityEquipmentSlot.HEAD && Config.trainsOnTheBrain;
+		return armorType == EntityEquipmentSlot.HEAD && ConfigGraphics.trainsOnTheBrain;
 	}
 }

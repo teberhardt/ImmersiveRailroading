@@ -5,6 +5,8 @@ import java.util.List;
 
 import blusunrize.immersiveengineering.api.energy.DieselHandler;
 import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ConfigGraphics;
+import cam72cam.immersiverailroading.ConfigSound;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;
@@ -33,6 +35,7 @@ public class LocomotiveDiesel extends Locomotive {
 		super(world, defID);
 	}
 
+	@Override
 	public LocomotiveDieselDefinition getDefinition() {
 		return super.getDefinition(LocomotiveDieselDefinition.class);
 	}
@@ -76,7 +79,7 @@ public class LocomotiveDiesel extends Locomotive {
 			
 			boolean hasFuel = (this.getLiquidAmount() > 0 || !Config.isFuelRequired(gauge));
 			
-			if (Config.soundEnabled) {
+			if (ConfigSound.soundEnabled) {
 				if (this.horn == null) {
 					this.horn = ImmersiveRailroading.proxy.newSound(this.getDefinition().horn, false, 100, gauge);
 					this.idle = ImmersiveRailroading.proxy.newSound(this.getDefinition().idle, true, 80, gauge);
@@ -119,7 +122,7 @@ public class LocomotiveDiesel extends Locomotive {
 			}
 			
 			
-			if (!Config.particlesEnabled) {
+			if (!ConfigGraphics.particlesEnabled) {
 				return;
 			}
 			
