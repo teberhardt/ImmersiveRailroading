@@ -14,7 +14,10 @@ public class ItemGauge {
 	}
 	
 	public static Gauge get(ItemStack stack) {
-		if (stack != null && stack.getTagCompound() != null && stack.getTagCompound().hasKey("gauge")){
+		if (stack == null) {
+			return Gauge.STANDARD;
+		}
+		if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("gauge")){
 			return Gauge.from(stack.getTagCompound().getDouble("gauge"));
 		}
 		
