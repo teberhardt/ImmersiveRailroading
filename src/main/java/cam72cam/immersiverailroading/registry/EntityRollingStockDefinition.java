@@ -30,6 +30,7 @@ import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.proxy.CommonProxy;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.util.RealBB;
+import cam72cam.immersiverailroading.util.TextUtil;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
@@ -51,7 +52,7 @@ public abstract class EntityRollingStockDefinition {
 	}
 
 	public final String defID;
-	public String name = "Unknown";
+	private String name = "Unknown";
 	private OBJModel model;
 	private Vec3d passengerCenter = new Vec3d(0, 0, 0);
 	private float bogeyFront;
@@ -505,15 +506,22 @@ public abstract class EntityRollingStockDefinition {
 			double maxY = gauge.scale() * heightBounds;
 			double minZ = gauge.scale() * -widthBounds / 2;
 			double maxZ = gauge.scale() * widthBounds / 2;
-			for (double x = minX; x <= maxX; x++) {
-				for (double y = minY; y <= maxY; y++) {
-					for (double z = minZ; z <= maxZ; z++) {
+			for (double x = minX; x <= maxX+1; x++) {
+				for (double y = minY; y <= maxY+1; y++) {
+					for (double z = minZ; z <= maxZ+1; z++) {
 						blocksInBounds.add(new Vec3d(x,y,z));
 					}
 				}
 			}
 		}
 		return blocksInBounds;
+	}
+	
+	public String name() {
+		String[] sp = this.defID.replaceAll(".json", "").split("/");
+		String localStr = String.format("%s:entity.%s.%s", ImmersiveRailroading.MODID, sp[sp.length-2], sp[sp.length-1]); 
+		String transStr = TextUtil.translate(localStr);
+		return localStr != transStr ? transStr : name;
 	}
 
 	public List<String> getTooltip(Gauge gauge) {
@@ -547,5 +555,13 @@ public abstract class EntityRollingStockDefinition {
 
 	public int getMaxPassengers() {
 		return this.maxPassengers;
+	}
+
+	public boolean acceptsPassengers() {
+		return false;
+	}
+	
+	public boolean acceptsLivestock() {
+		return false;
 	}
 }

@@ -55,7 +55,7 @@ public class PlateRollerGUI extends GuiScreen {
 	private void updatePickerButton() {
 		EntityRollingStockDefinition def = ItemDefinition.get(currentItem.copy());
 		if (def != null) {
-			pickerButton.displayString = GuiText.SELECTOR_PLATE_BOILER.toString(def.name);
+			pickerButton.displayString = GuiText.SELECTOR_PLATE_BOILER.toString(def.name());
 		}
 	}
 
@@ -118,7 +118,7 @@ public class PlateRollerGUI extends GuiScreen {
 			break;
     	}
 		currentItem.setCount(Math.max(1, (int) Math.floor(currentItem.getCount()/gauge.scale())));
-    	((PlateRollerInstance) tile.getMultiblock()).setCraftItem(currentItem);
+		tile.setCraftItem(currentItem);
     }
 	
 	@Override

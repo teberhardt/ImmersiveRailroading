@@ -50,6 +50,24 @@ public class Config {
 
 		@Comment("If more than X% of the tracks are above non solid blocks, break the track")
 		public static double trackFloatingPercent = 0.05;
+		
+		@Comment("Diesel Fuel Efficiency")
+		public static int locoDieselFuelEfficiency = 100;
+		
+		@Comment("Steam Fuel Efficiency")
+		public static int locoSteamFuelEfficiency = 100;
+
+		@Comment("How fast the locomotive should heat up.  1 is real world (slow), 72 is scaled to minecraft time")
+		public static int locoHeatTimeScale = 72;
+
+		@Comment("How much water the locomotive should use")
+		public static float locoWaterUsage = 10;
+
+		@Comment("How much you get payed per meter the villager traveled (default 1 emerald per km)")
+		public static double villagerPayoutPerMeter = 0.001;
+
+		@Comment("Distance the villagers will hear the conductor's whistle")
+		public static double villagerConductorDistance = 50;
 	}
 
 	public static ConfigDebug debug;

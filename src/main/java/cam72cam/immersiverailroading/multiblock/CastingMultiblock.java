@@ -2,17 +2,12 @@ package cam72cam.immersiverailroading.multiblock;
 
 import java.util.List;
 
-import blusunrize.immersiveengineering.common.IEContent;
-import blusunrize.immersiveengineering.common.blocks.BlockTypes_MetalsAll;
-import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
-import cam72cam.immersiverailroading.items.nbt.ItemComponent;
-import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
-import cam72cam.immersiverailroading.items.nbt.ItemGauge;
+import cam72cam.immersiverailroading.library.CraftingMachineMode;
 import cam72cam.immersiverailroading.library.GuiTypes;
-import cam72cam.immersiverailroading.library.ItemComponentType;
-import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
+import cam72cam.immersiverailroading.util.ItemCastingCost;
+import cam72cam.immersiverailroading.util.OreHelper;
 import cam72cam.immersiverailroading.util.ParticleUtil;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -140,9 +135,6 @@ public class CastingMultiblock extends Multiblock {
 					world.spawnEntity(new EntityItem(world, player.posX, player.posY, player.posZ, outTe.getContainer().getStackInSlot(0)));
 					outTe.getContainer().setStackInSlot(0, ItemStack.EMPTY);
 				}
-			} else if (craftTe.getCraftItem() != null && !craftTe.getCraftItem().isEmpty()){
-				//TODO user message
-				System.out.println("CRAFTING");
 			} else {
 				if (world.isRemote) {
 					BlockPos pos = getPos(craft);
@@ -190,7 +182,8 @@ public class CastingMultiblock extends Multiblock {
 				List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, bb);
 				for (EntityItem item : items) {
 					ItemStack stack = item.getItem();
-					if(steelBlock().isItemEqual(stack)) {
+					int cost = ItemCastingCost.getCastCost(stack);
+					if(OreHelper.matches(stack, "blockSteel", false)) {
 						// TODO drain more power on melt
 						while(stack.getCount() != 0 && fluidTe.getCraftProgress() < max_volume + 9) {
 							if (!hasPower()) {
@@ -199,9 +192,17 @@ public class CastingMultiblock extends Multiblock {
 							stack.shrink(1);
 							fluidTe.setCraftProgress(fluidTe.getCraftProgress() + 9);
 						}
-					} else if (stack.getItem() == IRItems.ITEM_ROLLING_STOCK_COMPONENT && ItemComponent.getComponentType(stack).crafting.isCasting()) {
+					} else if(OreHelper.matches(stack, "ingotSteel", false)) {
 						// TODO drain more power on melt
-						int cost = ItemComponent.getComponentType(stack).getCastCost(ItemDefinition.get(stack), ItemGauge.get(stack));
+						while(stack.getCount() != 0 && fluidTe.getCraftProgress() < max_volume + 1) {
+							if (!hasPower()) {
+								break;
+							}
+							stack.shrink(1);
+							fluidTe.setCraftProgress(fluidTe.getCraftProgress() + 1);
+						}
+					} else if (cost != ItemCastingCost.BAD_CAST_COST) {
+						// TODO drain more power on melt
 						while(stack.getCount() != 0 && fluidTe.getCraftProgress() < max_volume + cost) {
 							if (!hasPower()) {
 								break;
@@ -216,7 +217,7 @@ public class CastingMultiblock extends Multiblock {
 						}
 					}
 				}
-				List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, bb.grow(0,1.5,0));
+				List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, bb.expand(0,2.5,0));
 				for (EntityLivingBase alive : living) {
 					alive.attackEntityFrom(new DamageSource("immersiverailroading:casting"), 5);
 				}
@@ -245,33 +246,29 @@ public class CastingMultiblock extends Multiblock {
 					return;
 				}
 				
-				int cost = 0;
-				
-				if (item.getItem() == IRItems.ITEM_ROLLING_STOCK_COMPONENT) {
-					ItemComponentType component = ItemComponent.getComponentType(item);
-					cost = component.getCastCost(ItemDefinition.get(item), ItemGauge.get(item));
-				} else if (item.getItem() == IRItems.ITEM_CAST_RAIL) {
-					cost = (int) Math.ceil(20 * ItemGauge.get(item).scale());
-				} else if (item.getItem() == IRItems.ITEM_AUGMENT) {
-					cost = (int) Math.ceil(8 * ItemGauge.get(item).scale());
-					item.setCount(8);
-				} else {
-					System.out.println("BAD CAST");
-					cost = 10;
+				CraftingMachineMode mode = craftTe.getCraftMode();
+				if (mode == CraftingMachineMode.STOPPED) {
+					return;
 				}
+
+				if (! outTe.getContainer().getStackInSlot(0).isEmpty()) {
+					return;
+				}
+				
+				int cost = ItemCastingCost.getCastCost(item);
+				
 				if (craftTe.getCraftProgress() >= cost) {
 					craftTe.setCraftProgress(0);
-					craftTe.setCraftItem(ItemStack.EMPTY);
+					if (mode == CraftingMachineMode.SINGLE) {
+						craftTe.setCraftMode(CraftingMachineMode.STOPPED);
+					}
 					outTe.getContainer().setStackInSlot(0, item.copy());
 				} else {
 					if (craftTe.getRenderTicks() % 10 == 0) {
-						if (craftTe.getCraftProgress() + fluidTe.getCraftProgress() >= cost) {
-							if (outTe.getContainer().getStackInSlot(0).isEmpty()) {
-								if (fluidTe.getCraftProgress() > 0) {
-									fluidTe.setCraftProgress(fluidTe.getCraftProgress()-1);
-									craftTe.setCraftProgress(craftTe.getCraftProgress()+1);
-								}
-							}
+						if (fluidTe.getCraftProgress() > 0) {
+							// Drain
+							fluidTe.setCraftProgress(fluidTe.getCraftProgress() - 1);
+							craftTe.setCraftProgress(craftTe.getCraftProgress() + 1);
 						}
 					}
 				}
@@ -315,17 +312,13 @@ public class CastingMultiblock extends Multiblock {
 			IEnergyStorage energy = powerTe.getCapability(CapabilityEnergy.ENERGY, null);
 			return energy.getEnergyStored() > 32;
 		}
-		
-		public ItemStack steelBlock() {
-			return new ItemStack(IEContent.blockStorage,1, BlockTypes_MetalsAll.STEEL.getMeta());
-		}
 
 		public boolean isPouring() {
 			TileMultiblock craftTe = getTile(craft);
 			if (craftTe == null) {
 				return false;
 			}
-			return craftTe.getCraftProgress() != 0;
+			return craftTe.getCraftProgress() > 0;
 		}
 
 		public double getSteelLevel() {
@@ -333,11 +326,7 @@ public class CastingMultiblock extends Multiblock {
 			if (fluidTe == null) {
 				return 0;
 			}
-			return fluidTe.getCraftProgress() * 4.5 / max_volume;
-		}
-
-		public void setCraftItem(ItemStack stack) {
-			ImmersiveRailroading.net.sendToServer(new MultiblockSelectCraftPacket(getPos(craft), stack));
+			return fluidTe.getCraftProgress() / max_volume;
 		}
 		
 		public ItemStack getCraftItem() {

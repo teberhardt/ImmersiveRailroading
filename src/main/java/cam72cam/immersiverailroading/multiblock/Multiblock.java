@@ -3,13 +3,9 @@ package cam72cam.immersiverailroading.multiblock;
 import java.util.List;
 import java.util.Map;
 
-import blusunrize.immersiveengineering.common.IEContent;
-import blusunrize.immersiveengineering.common.blocks.BlockTypes_MetalsAll;
-import blusunrize.immersiveengineering.common.blocks.metal.BlockTypes_MetalDecoration0;
-import blusunrize.immersiveengineering.common.blocks.metal.BlockTypes_MetalDecoration1;
-import blusunrize.immersiveengineering.common.blocks.stone.BlockTypes_StoneDecoration;
 import cam72cam.immersiverailroading.IRBlocks;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
+import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import cam72cam.immersiverailroading.util.BlockUtil;
 
@@ -35,34 +31,22 @@ public abstract class Multiblock {
 	
 	protected static final MultiblockComponent AIR = new MultiblockComponent(Blocks.AIR);
 	protected static final MultiblockComponent STEEL() {
-		IBlockState data = IEContent.blockStorage.getStateFromMeta(BlockTypes_MetalsAll.STEEL.getMeta());
-		ItemStack stack = new ItemStack(IEContent.blockStorage,1, BlockTypes_MetalsAll.STEEL.getMeta());
-		return new MultiblockComponent(data, stack);
+		return new MultiblockComponent("blockSteel");
 	}
 	
 	protected static final MultiblockComponent CASING() {
-		IBlockState data = IEContent.blockStoneDecoration.getStateFromMeta(BlockTypes_StoneDecoration.BLASTBRICK.getMeta());
-		ItemStack stack = new ItemStack(IEContent.blockStoneDecoration,1, BlockTypes_StoneDecoration.BLASTBRICK.getMeta());
-		return new MultiblockComponent(data, stack);
+		return new MultiblockComponent("irCastingCasing");
 	}
 	
 	protected static final MultiblockComponent L_ENG() {
-		IBlockState data = IEContent.blockMetalDecoration0.getStateFromMeta(BlockTypes_MetalDecoration0.LIGHT_ENGINEERING.getMeta());
-		ItemStack stack = new ItemStack(IEContent.blockMetalDecoration0,1, BlockTypes_MetalDecoration0.LIGHT_ENGINEERING.getMeta());
-		return new MultiblockComponent(data, stack);
+		return new MultiblockComponent("irLightEngineering");
 	}
 	protected static final MultiblockComponent H_ENG() {
-		IBlockState data = IEContent.blockMetalDecoration0.getStateFromMeta(BlockTypes_MetalDecoration0.HEAVY_ENGINEERING.getMeta());
-		ItemStack stack = new ItemStack(IEContent.blockMetalDecoration0,1, BlockTypes_MetalDecoration0.HEAVY_ENGINEERING.getMeta());
-		return new MultiblockComponent(data, stack);
+		return new MultiblockComponent("irHeavyEngineering");
 	}
 	protected static final MultiblockComponent S_SCAF() {
-		
-		IBlockState data = IEContent.blockMetalDecoration1.getStateFromMeta(BlockTypes_MetalDecoration1.STEEL_SCAFFOLDING_0.getMeta());
-		ItemStack stack = new ItemStack(IEContent.blockMetalDecoration1,1, BlockTypes_MetalDecoration1.STEEL_SCAFFOLDING_0.getMeta());
-		return new MultiblockComponent(data, stack);
+		return new MultiblockComponent("scaffoldingSteel");
 	}
-
 
 	protected Multiblock(String name, MultiblockComponent[][][] components) {
 		this.name = name;
@@ -120,8 +104,7 @@ public abstract class Multiblock {
 					if (BlockUtil.canBeReplaced(world, compPos, false)) {
 						world.destroyBlock(compPos, true);
 					} else {
-						//TODO Localization
-						player.sendMessage(new TextComponentString(String.format("Invalid block at x=%s y=%s z=%s", compPos.getX(), compPos.getY(), compPos.getZ())));
+						player.sendMessage(ChatText.INVALID_BLOCK.getMessage(compPos.getX(), compPos.getY(), compPos.getZ()));
 						return;
 					}
 				}
@@ -142,9 +125,8 @@ public abstract class Multiblock {
 		}
 		
 		if (missing.size() != 0) {
-			player.sendMessage(new TextComponentString("Missing: "));
+			player.sendMessage(ChatText.STOCK_MISSING.getMessage());
 			for (String name : missing.keySet()) {
-				//TODO localize
 				player.sendMessage(new TextComponentString(String.format("  - %d x %s", missing.get(name), name)));
 			}
 		}

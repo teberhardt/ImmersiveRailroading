@@ -12,11 +12,12 @@ item.immersiverailroading:item_rail_part.name=Rail Segment
 item.immersiverailroading:item_cast_rail.name=Rail Casting
 item.immersiverailroading:item_manual.name=Immersive Railroading Manual
 item.immersiverailroading:item_rail.name=Track Blueprint
+item.immersiverailroading:item_conductor_whistle.name=Conductor's Whistle
 
 tile.immersiverailroading:block_rail.name=Rail
 tile.immersiverailroading:block_rail_gag.name=Rail (Gag)
 tile.immersiverailroading:block_rail_preview.name=Rail Preview
-tile.immersiverailroading:block_steam_hammer.name=Steam Hammer
+tile.immersiverailroading:block_steam_hammer.name=Power Hammer
 
 chat.immersiverailroading:stock.built=%s is complete!
 chat.immersiverailroading:stock.dissasembled=%s is disassembled!
@@ -36,7 +37,9 @@ chat.immersiverailroading:build.missing.rails=Missing %s rails
 chat.immersiverailroading:build.missing.rail_bed=Missing %s rail_bed
 chat.immersiverailroading:build.missing.rail_bed_fill=Missing %s rail bed fill
 chat.immersiverailroading:augment.set=Set Augment to act only upon %s
-chat.immersiverailroading:augment.reset=Set Augment to act upon any stock 
+chat.immersiverailroading:augment.reset=Set Augment to act upon any stock
+chat.immersiverailroading:misc.wood_planks=Wood Planks
+chat.immersiverailroading:build.invalid_block=Invalid block at x=%s y=%s z=%s
 
 gui.immersiverailroading:label.brake=Brake
 gui.immersiverailroading:label.throttle=Throttle
@@ -49,6 +52,8 @@ gui.immersiverailroading:selector.position=Position: %s
 gui.immersiverailroading:selector.place_blueprint=Place Blueprint
 gui.immersiverailroading:selector.plate_type=Plate Type: %s
 gui.immersiverailroading:selector.plate_boiler=Plate Boiler: %s
+gui.immersiverailroading:selector.cast_single=Single Casting
+gui.immersiverailroading:selector.cast_repeat=Repeat Casting
 gui.immersiverailroading:none=None
 
 gui.immersiverailroading:track.type=Type:      %s
@@ -139,7 +144,7 @@ part.immersiverailroading:component.smokebox=Smokebox
 
 
 immersiverailroading:crafting_type.casting=Casting
-immersiverailroading:crafting_type.casting_hammer=Casting,Steam Hammer
+immersiverailroading:crafting_type.casting_hammer=Casting,Power Hammer
 immersiverailroading:crafting_type.plate_small=Plate Roller
 immersiverailroading:crafting_type.plate_medium=Plate Roller
 immersiverailroading:crafting_type.plate_large=Plate Roller
@@ -164,3 +169,12 @@ immersiverailroading:loco_control_mode.throttle_reverse=Throttle Reverse
 immersiverailroading:loco_control_mode.brake=Brake
 immersiverailroading:loco_control_mode.horn=Horn
 immersiverailroading:loco_control_mode.computer=Computer
+
+key.categories.immersiverailroading=Immersive Railroading
+immersiverailroading:keys.increase_throttle=Increase Throttle
+immersiverailroading:keys.zero_throttle=Zero Throttle
+immersiverailroading:keys.decrease_throttle=Decrease Throttle
+immersiverailroading:keys.increase_brake=Increase Air Brake
+immersiverailroading:keys.zero_brake=Zero Air Brake
+immersiverailroading:keys.decrease_brake=Decrease Air Brake
+immersiverailroading:keys.horn=Sound Horn

@@ -13,6 +13,7 @@ import cam72cam.immersiverailroading.items.nbt.ItemGauge;
 import cam72cam.immersiverailroading.items.nbt.ItemPlateType;
 import cam72cam.immersiverailroading.library.AssemblyStep;
 import cam72cam.immersiverailroading.library.ItemComponentType;
+import cam72cam.immersiverailroading.library.StockDeathType;
 import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.net.BuildableStockSyncPacket;
 import cam72cam.immersiverailroading.util.BufferUtil;
@@ -163,7 +164,7 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 	
 	public void addNextComponent(EntityPlayer player) {
 		if (this.isBuilt()) {
-			player.sendMessage(ChatText.STOCK_BUILT.getMessage(this.getDefinition().name));
+			player.sendMessage(ChatText.STOCK_BUILT.getMessage(this.getDefinition().name()));
 			return;
 		}
 		
@@ -325,8 +326,7 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 					break;
 				}
 			} else {
-				//TODO localize
-				str += String.format(" (%d x %s)", component.getWoodCost(gauge, getDefinition()), "Wood Planks");
+				str += String.format(" (%d x %s)", component.getWoodCost(gauge, getDefinition()), ChatText.WOOD_PLANKS.toString());
 			}
 			player.sendMessage(new TextComponentString(str));
 		}
@@ -339,7 +339,7 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 		
 		this.isBuilt = false;
 		if (this.builtItems.size() <= 1) {
-			player.sendMessage(ChatText.STOCK_DISSASEMBLED.getMessage(this.getDefinition().name));
+			player.sendMessage(ChatText.STOCK_DISSASEMBLED.getMessage(this.getDefinition().name()));
 			return null;
 		}
 		
@@ -398,14 +398,10 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 	}
 	
 	@Override
-	public void setDead() {
-		super.setDead();
+	public void onDeath(StockDeathType type) {
+		super.onDeath(type);
 		
-		if (world.isRemote) {
-			return;
-		}
-		
-		if (this.isBuilt) {
+		if (this.isBuilt && type != StockDeathType.CATACYSM) {
 			ItemStack item = new ItemStack(IRItems.ITEM_ROLLING_STOCK, 1, 0);
 			ItemDefinition.setID(item, defID);
 			ItemGauge.set(item, gauge);
@@ -419,8 +415,6 @@ public class EntityBuildableRollingStock extends EntityRollingStock {
 				world.spawnEntity(new EntityItem(world, posX, posY, posZ, item));
 			}
 		}
-		this.isBuilt = false;
-		this.builtItems = new ArrayList<ItemComponentType>();
 	}
 
 	public void onAssemble() {

@@ -57,8 +57,9 @@ import cam72cam.immersiverailroading.render.item.TrackBlueprintItemModel;
 import cam72cam.immersiverailroading.render.multiblock.MBBlueprintRender;
 import cam72cam.immersiverailroading.render.StockRenderCache;
 import cam72cam.immersiverailroading.render.block.RailBaseModel;
+import cam72cam.immersiverailroading.render.entity.MagicEntityRender;
+import cam72cam.immersiverailroading.render.entity.MagicEntity;
 import cam72cam.immersiverailroading.render.entity.ParticleRender;
-import cam72cam.immersiverailroading.render.entity.RenderOverride;
 import cam72cam.immersiverailroading.render.entity.StockEntityRender;
 import cam72cam.immersiverailroading.render.rail.RailRenderUtil;
 import cam72cam.immersiverailroading.render.tile.TileMultiblockRender;
@@ -97,11 +98,13 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.client.event.sound.SoundLoadEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
+import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 import net.minecraftforge.event.world.WorldEvent.Load;
 import net.minecraftforge.event.world.WorldEvent.Unload;
 import net.minecraftforge.fml.client.FMLClientHandler;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
@@ -123,6 +126,8 @@ public class ClientProxy extends CommonProxy {
 	private static Map<KeyTypes, KeyBinding> keys = new HashMap<KeyTypes, KeyBinding>();
 
 	private static IRSoundManager manager;
+
+	private static MagicEntity magical;
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int entityIDorPosX, int posY, int posZ) {
@@ -185,17 +190,13 @@ public class ClientProxy extends CommonProxy {
 	public void init(FMLInitializationEvent event) {
 		super.init(event);
 		
-		keys.put(KeyTypes.THROTTLE_UP, new KeyBinding("Increase Throttle", Keyboard.KEY_NUMPAD8, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.THROTTLE_ZERO, new KeyBinding("Zero Throttle", Keyboard.KEY_NUMPAD5, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.THROTTLE_DOWN, new KeyBinding("Decrease Throttle", Keyboard.KEY_NUMPAD2, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.AIR_BRAKE_UP, new KeyBinding("Increase Air Brake", Keyboard.KEY_NUMPAD7, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.AIR_BRAKE_ZERO, new KeyBinding("Zero Air Brake", Keyboard.KEY_NUMPAD4, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.AIR_BRAKE_DOWN, new KeyBinding("Decrease Air Brake", Keyboard.KEY_NUMPAD1, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.HORN, new KeyBinding("Sound Horn", Keyboard.KEY_NUMPADENTER, "key.categories." + ImmersiveRailroading.MODID));
-		//keys.put(KeyTypes.PLAYER_FORWARD, Minecraft.getMinecraft().gameSettings.keyBindForward);
-		//keys.put(KeyTypes.PLAYER_BACKWARD, Minecraft.getMinecraft().gameSettings.keyBindBack);
-		//keys.put(KeyTypes.PLAYER_LEFT, Minecraft.getMinecraft().gameSettings.keyBindLeft);
-		//keys.put(KeyTypes.PLAYER_RIGHT, Minecraft.getMinecraft().gameSettings.keyBindRight);
+		keys.put(KeyTypes.THROTTLE_UP, new KeyBinding("immersiverailroading:keys.increase_throttle", Keyboard.KEY_NUMPAD8, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.THROTTLE_ZERO, new KeyBinding("immersiverailroading:keys.zero_throttle", Keyboard.KEY_NUMPAD5, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.THROTTLE_DOWN, new KeyBinding("immersiverailroading:keys.decrease_throttle", Keyboard.KEY_NUMPAD2, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.AIR_BRAKE_UP, new KeyBinding("immersiverailroading:keys.increase_brake", Keyboard.KEY_NUMPAD7, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.AIR_BRAKE_ZERO, new KeyBinding("immersiverailroading:keys.zero_brake", Keyboard.KEY_NUMPAD4, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.AIR_BRAKE_DOWN, new KeyBinding("immersiverailroading:keys.decrease_brake", Keyboard.KEY_NUMPAD1, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.HORN, new KeyBinding("immersiverailroading:keys.horn", Keyboard.KEY_NUMPADENTER, "key.categories." + ImmersiveRailroading.MODID));
 		
 		ClientRegistry.registerKeyBinding(keys.get(KeyTypes.THROTTLE_UP));
 		ClientRegistry.registerKeyBinding(keys.get(KeyTypes.THROTTLE_DOWN));
@@ -226,6 +227,13 @@ public class ClientProxy extends CommonProxy {
 			return new ParticleRender(manager);
 		}
 	};
+	
+	public static final IRenderFactory<MagicEntity> MAGIC_RENDER = new IRenderFactory<MagicEntity>() {
+		@Override
+		public Render<? super MagicEntity> createRenderFor(RenderManager manager) {
+			return new MagicEntityRender(manager);
+		}
+	};
 
 	@SubscribeEvent
 	public static void registerEntities(RegistryEvent.Register<EntityEntry> event) {
@@ -234,6 +242,7 @@ public class ClientProxy extends CommonProxy {
 		}
 
 		RenderingRegistry.registerEntityRenderingHandler(EntitySmokeParticle.class, PARTICLE_RENDER);
+		RenderingRegistry.registerEntityRenderingHandler(MagicEntity.class, MAGIC_RENDER);
 	}
 
 	@SubscribeEvent
@@ -249,6 +258,9 @@ public class ClientProxy extends CommonProxy {
 
 		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_HOOK, 0,
 				new ModelResourceLocation(IRItems.ITEM_HOOK.getRegistryName(), ""));
+		
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_CONDUCTOR_WHISTLE, 0,
+				new ModelResourceLocation(IRItems.ITEM_CONDUCTOR_WHISTLE.getRegistryName(), ""));
 		
 		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_TRACK_BLUEPRINT, 0,
 				new ModelResourceLocation(IRItems.ITEM_TRACK_BLUEPRINT.getRegistryName(), ""));
@@ -382,8 +394,10 @@ public class ClientProxy extends CommonProxy {
 		 * This is a bad hack but it works
 		 * 
 		 */
+		
+		// This has been moved to MagicEntity which is probably a better solution
         
-        RenderOverride.renderStockAndParticles(event.getPartialTicks());
+        //RenderOverride.renderStockAndParticles(event.getPartialTicks());
 	}
 	
 	@SubscribeEvent
@@ -414,7 +428,7 @@ public class ClientProxy extends CommonProxy {
 		        }
 		        
 		        pos = pos.up();
-		        RailInfo info = new RailInfo(stack, player.world, player.rotationYaw, pos, hitX, hitY, hitZ);
+		        RailInfo info = new RailInfo(stack, player.world, player.getRotationYawHead(), pos, hitX, hitY, hitZ);
 		        
 		        GL11.glPushMatrix();
 				{
@@ -457,7 +471,9 @@ public class ClientProxy extends CommonProxy {
 	                
 	                GL11.glTranslated(pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5);
 	                
-	                GL11.glRotated(-(int)((player.rotationYaw+45) / 90) * 90, 0, 1, 0);
+	                if (Math.random() < 0.1) {
+	                }
+	                GL11.glRotated(-(int)(((player.getRotationYawHead()%360+360)%360+45) / 90) * 90, 0, 1, 0);
 	                
 	                GL11.glTranslated(-0.5, -0.5, -0.5);
 	                
@@ -486,11 +502,14 @@ public class ClientProxy extends CommonProxy {
 		for (int i = 0; i < 16; i ++) {
 			sndCache.add(ImmersiveRailroading.proxy.newSound(new ResourceLocation(ImmersiveRailroading.MODID, "sounds/default/clack.ogg"), false, 40, Gauge.STANDARD));
 		}
+		magical = new MagicEntity(event.getWorld());
+		event.getWorld().loadedEntityList.add(magical);
 	}
 	
 	@SubscribeEvent
 	public static void onWorldUnload(Unload event) {
 		manager.stop();
+		magical = null;
 	}
 	
 	private static int sndCacheId = 0;
@@ -542,6 +561,10 @@ public class ClientProxy extends CommonProxy {
 			return;
 		}
 		
+		if (magical != null) {
+			magical.onUpdate();
+		}
+		
 		if (tickCount % 40 == 39 ) {
 			StockRenderCache.doImageCache();
 		}
@@ -555,5 +578,14 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public int getTicks() {
 		return tickCount;
+	}
+	
+
+	
+	@SubscribeEvent
+	public static void configChanged(OnConfigChangedEvent event) {
+		if (event.getModID().equals(ImmersiveRailroading.MODID)) {
+			ConfigManager.sync(ImmersiveRailroading.MODID, net.minecraftforge.common.config.Config.Type.INSTANCE);
+		}
 	}
 }
