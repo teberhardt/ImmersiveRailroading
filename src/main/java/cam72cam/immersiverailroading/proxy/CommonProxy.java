@@ -167,6 +167,11 @@ public abstract class CommonProxy implements IGuiHandler {
     		    "ddd",
     		    "d d",
     		    'd', "ingotSteel"));
+    	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_CONDUCTOR_WHISTLE),  
+    			" gg",
+    		    " gg",
+    		    " gg",
+    		    'g', "ingotGold"));
     	
     	NetworkRegistry.INSTANCE.registerGuiHandler(ImmersiveRailroading.instance, this);
     }
