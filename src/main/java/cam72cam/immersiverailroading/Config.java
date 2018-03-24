@@ -1,6 +1,12 @@
 package cam72cam.immersiverailroading;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cam72cam.immersiverailroading.library.Gauge;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Config.Comment;
 
 @net.minecraftforge.common.config.Config(modid = ImmersiveRailroading.MODID)
@@ -33,8 +39,14 @@ public class Config {
 		@Comment("All gauges require fuel")
 		public static boolean FuelRequired = true;
 
+		@Comment("Slope Multiplier: Higher numbers increase slowdown, lower numbers decrease slowdown")
+		public static double slopeMultiplier = 1.0;
+		
+		@Comment("Brake Multiplier: Higher numbers increase slowdown, lower numbers decrease slowdown")
+		public static double brakeMultiplier = 1.0;
+		
 		@Comment({ "How heavy is a single block in Kg" })
-		public static int blockWeight = 100;
+		public static int blockWeight = 10;
 
 		@Comment({ "MilliBuckets per Liter" })
 		public static int MB_PER_LITER = 1;
@@ -68,6 +80,22 @@ public class Config {
 
 		@Comment("Distance the villagers will hear the conductor's whistle")
 		public static double villagerConductorDistance = 50;
+		
+		@Comment("Villager payout items")
+		public static String[] villagerPayoutItems = new String[] {
+			Items.EMERALD.getRegistryName().toString(),
+		};
+		
+		public static List<Item> getVillagerPayout() {
+			List<Item> items = new ArrayList<Item>();
+			for (String irl : villagerPayoutItems) {
+				Item item = Item.REGISTRY.getObject(new ResourceLocation(irl));
+				if(item != null) {
+					items.add(item);
+				}
+			}
+			return items;
+		}
 	}
 
 	public static ConfigDebug debug;

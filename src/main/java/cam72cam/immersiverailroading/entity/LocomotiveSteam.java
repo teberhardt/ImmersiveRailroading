@@ -35,6 +35,9 @@ public class LocomotiveSteam extends Locomotive {
 	private static DataParameter<Float> BOILER_PRESSURE = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.FLOAT);
 	// Celsius
 	private static DataParameter<Float> BOILER_TEMPERATURE = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.FLOAT);
+
+	private static DataParameter<Boolean> PRESSURE_VALVE = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.BOOLEAN);
+	
 	// Map<Slot, TicksToBurn>
 	private static DataParameter<NBTTagCompound> BURN_TIME = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializerUtil.COMPOUND_TAG);
 	private static DataParameter<NBTTagCompound> BURN_MAX = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializerUtil.COMPOUND_TAG);
@@ -49,6 +52,7 @@ public class LocomotiveSteam extends Locomotive {
 		
 		this.getDataManager().register(BOILER_PRESSURE, 0f);
 		this.getDataManager().register(BOILER_TEMPERATURE, 0f);
+		this.getDataManager().register(PRESSURE_VALVE, false);
 		this.getDataManager().register(BURN_TIME, new NBTTagCompound());
 		this.getDataManager().register(BURN_MAX, new NBTTagCompound());
 	}
@@ -356,7 +360,7 @@ public class LocomotiveSteam extends Locomotive {
 			}
 			
 			List<RenderComponent> steams = this.getDefinition().getComponents(RenderComponentType.PRESSURE_VALVE_X, gauge);
-			if (steams != null && (this.getBoilerPressure() >= this.getDefinition().getMaxPSI(gauge) || !Config.isFuelRequired(gauge))) {
+			if (steams != null && (this.getDataManager().get(PRESSURE_VALVE) || !Config.isFuelRequired(gauge))) {
 				if (ConfigSound.soundEnabled && ConfigSound.soundPressureValve) {
 					if (!pressure.isPlaying()) {
 						pressure.play(getPositionVector());
@@ -495,13 +499,13 @@ public class LocomotiveSteam extends Locomotive {
 			// 1 KCal raises 1KG water at STP 1 degree
 			// 1 KG of water == 1 m^3 of water 
 			// TODO what happens when we change liters per mb FluidQuantity.FromMillibuckets((int) waterLevelMB).Liters()
-			boilerTemperature += energyKCalDeltaTick / (waterLevelMB / 1000);
+			//  +1 prevents div by zero
+			boilerTemperature += energyKCalDeltaTick / ((waterLevelMB + 1) / 1000);
 		}
 		
 		if (boilerTemperature > 100) {
 			// Assume linear relationship between temperature and pressure
-			// Max 2 degree per second
-			float heatTransfer = Math.min(2.0f/20, boilerTemperature - 100);
+			float heatTransfer = boilerTemperature - 100;
 			boilerPressure += heatTransfer;
 
 			if (this.getPercentLiquidFull() > 25) {
@@ -510,6 +514,7 @@ public class LocomotiveSteam extends Locomotive {
 			
 			// Pressure relief valve
 			int maxPSI = this.getDefinition().getMaxPSI(gauge);
+			this.getDataManager().set(PRESSURE_VALVE, boilerPressure > maxPSI);
 			if (boilerPressure > maxPSI) {
 				waterUsed += boilerPressure - maxPSI; 
 				boilerPressure = maxPSI;
@@ -527,6 +532,7 @@ public class LocomotiveSteam extends Locomotive {
 			double burnableSlots = this.cargoItems.getSlots()-2;
 			double maxKCalTick = burnableSlots * coalEnergyKCalTick();
 			double maxPressureTick = maxKCalTick / (this.getTankCapacity().MilliBuckets() / 1000);
+			maxPressureTick = maxPressureTick * 0.8; // 20% more pressure gen capability to balance heat loss
 			
 			float delta = (float) (throttle * maxPressureTick);
 			
