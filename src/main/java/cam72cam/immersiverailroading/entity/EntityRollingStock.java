@@ -151,7 +151,9 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 		
 		if (damagesource.isExplosion()) {
 			if (amount > 5) {
-				this.onDeath(amount > 20 ? StockDeathType.CATACYSM : StockDeathType.EXPLOSION);
+				if (!this.isDead) {
+						this.onDeath(amount > 20 ? StockDeathType.CATACYSM : StockDeathType.EXPLOSION);
+				}
 				worldObj.removeEntity(this);
 				return false;
 			}
@@ -160,7 +162,9 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 		if (damagesource.getSourceOfDamage() instanceof EntityPlayer && !damagesource.isProjectile()) {
 			EntityPlayer player = (EntityPlayer) damagesource.getSourceOfDamage();
 			if (player.isSneaking()) {
-				this.onDeath(StockDeathType.PLAYER);
+				if (!this.isDead) {
+						this.onDeath(StockDeathType.PLAYER);
+				}
 				worldObj.removeEntity(this);
 				return false;
 			}
