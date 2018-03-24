@@ -5,9 +5,12 @@ import javax.annotation.Nullable;
 import cam72cam.immersiverailroading.Config.ConfigBalance;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.GuiTypes;
+import cam72cam.immersiverailroading.library.StockDeathType;
 import cam72cam.immersiverailroading.util.VecUtil;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
@@ -15,6 +18,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
@@ -87,6 +91,35 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 		if (!this.isBuilt()) {
 			return false;
 		}
+
+		// See ItemLead.attachToFence
+		double dist = 10.0D;
+		double i = player.posX;
+		double j = player.posY;
+		double k = player.posZ;
+
+		for (EntityLiving entityliving : worldObj.getEntitiesWithinAABB(EntityLiving.class, new AxisAlignedBB((double) i - dist, (double) j - 7.0D,
+				(double) k - dist, (double) i + dist, (double) j + dist, (double) k + dist))) {
+			if (entityliving.getLeashed() && entityliving.getLeashedToEntity() == player) {
+				if (canFitPassenger(entityliving) && this.getDefinition().acceptsLivestock()) {
+					entityliving.clearLeashed(true, !player.isCreative());
+					this.addStaticPassenger(entityliving, player.getPositionVector());
+					return true;
+				}
+			}
+		}
+
+		if (player.getHeldItemMainhand().getItem() == Items.LEAD) {
+			EntityLiving passenger = this.removeStaticPasssenger(player.getPositionVector(), false);
+			if (passenger != null) {
+				if (passenger.canBeLeashedTo(player)) {
+					passenger.setLeashedToEntity(player, true);
+					player.getHeldItemMainhand().stackSize -= 1;
+					return true;
+				}
+				return true;
+			}
+		}
 		
 		// I don't believe the positions are used
 		if (guiType() != null) {
@@ -141,8 +174,8 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 	}
 	
 	@Override
-	public void setDead() {
-		super.setDead();
+	public void onDeath(StockDeathType type) {
+		super.onDeath(type);
 		
 		if (worldObj.isRemote) {
 			return;

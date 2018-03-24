@@ -368,7 +368,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 			entity.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 		}
 		if (!worldObj.isRemote && this.ticksExisted % 5 == 0 && ConfigDamage.TrainsBreakBlocks && Math.abs(this.getCurrentSpeed().metric()) > 0.5) {
-			bb = this.getCollisionBoundingBox();
+			bb = this.getCollisionBoundingBox().expand(-0.25 * gauge.scale(), 0, -0.25 * gauge.scale());
 			
 			for (Vec3d pos : this.getDefinition().getBlocksInBounds(gauge)) {
 				pos = VecUtil.rotateYaw(pos, this.rotationYaw);
@@ -376,10 +376,15 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 				BlockPos bp = new BlockPos(pos);
 				IBlockState state = worldObj.getBlockState(bp);
 				if (state.getBlock() != Blocks.AIR) {
-					if (!BlockUtil.isRail(worldObj, bp)) {
-						if (bb.isVecInside(pos)) { // This is slow, do it as little as possible
-							if (!BlockUtil.isRail(worldObj, bp.up())) {
-								worldObj.destroyBlock(bp, true);										
+					if (!BlockUtil.isIRRail(worldObj, bp)) {
+						AxisAlignedBB bbb = state.getCollisionBoundingBox(worldObj, bp);
+						if (bbb == null) {
+							continue;
+						}
+						bbb = bbb.offset(bp);
+						if (bb.intersectsWith(bbb)) { // This is slow, do it as little as possible
+							if (!BlockUtil.isIRRail(worldObj, bp.up())) {
+								worldObj.destroyBlock(bp, true);
 							}
 						}
 					} else {

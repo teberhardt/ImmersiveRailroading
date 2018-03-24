@@ -136,9 +136,15 @@ public class AugmentDriver implements SidedBlock {
 				EntityRollingStockDefinition def = stock.getDefinition();
 
 				info.put("id", def.defID);
-				info.put("name", def.name);
+				info.put("name", def.name());
+				info.put("tag", stock.tag);
+				EnumFacing dir = EnumFacing.fromAngle(stock.rotationYaw);
+				if (stock.getCurrentSpeed().metric() < 0) {
+					dir = dir.getOpposite();
+				}
+				info.put("direction", dir.toString());
 
-				info.put("passengers", stock.getPassengers().size());
+				info.put("passengers", stock.getPassengers().size() + stock.staticPassengers.size());
 				info.put("speed", stock.getCurrentSpeed().metric());
 				info.put("weight", stock.getWeight());
 
@@ -194,8 +200,33 @@ public class AugmentDriver implements SidedBlock {
 				info.put("tractive_effort_N", acc.tractiveEffortNewtons);
 				info.put("weight_kg", acc.massToMoveKg);
 				info.put("speed_km", stock.getCurrentSpeed().metric());
+				EnumFacing dir = EnumFacing.fromAngle(stock.rotationYaw);
+				if (stock.getCurrentSpeed().metric() < 0) {
+					dir = dir.getOpposite();
+				}
+				info.put("direction", dir.toString());
 				
 				return new Object[] { info };
+			}
+			return null;
+		}
+		
+		@Callback(doc = "function():table -- gets the stock's tag")
+		public Object[] getTag(Context context, Arguments arguments) {
+			TileRailBase te = TileRailBase.get(world, pos);
+			EntityMoveableRollingStock stock = te.getStockNearBy(null);
+			if (stock != null) {
+				return new Object[] {stock.tag};
+			}
+			return null;
+		}
+		
+		@Callback(doc = "function():table -- sets the stock's tag")
+		public Object[] setTag(Context context, Arguments arguments) {
+			TileRailBase te = TileRailBase.get(world, pos);
+			EntityMoveableRollingStock stock = te.getStockNearBy(null);
+			if (stock != null) {
+				stock.tag = arguments.checkString(0);
 			}
 			return null;
 		}
@@ -216,9 +247,19 @@ public class AugmentDriver implements SidedBlock {
 			TileRailBase te = TileRailBase.get(world, pos);
 			Locomotive stock = te.getStockNearBy(Locomotive.class, null);
 			if (stock != null) {
-				stock.setThrottle((float) arguments.checkDouble(0));
+				stock.setThrottle(normalize(arguments.checkDouble(0)));
 			}
 			return null;
+		}
+		
+		private float normalize(double val) {
+			if (val > 1) {
+				return 1;
+			}
+			if (val < -1) {
+				return -1;
+			}
+			return (float)val;
 		}
 
 		@Callback(doc = "function(double) -- sets the locomotive brake")
@@ -226,7 +267,7 @@ public class AugmentDriver implements SidedBlock {
 			TileRailBase te = TileRailBase.get(world, pos);
 			Locomotive stock = te.getStockNearBy(Locomotive.class, null);
 			if (stock != null) {
-				stock.setAirBrake((float) arguments.checkDouble(0));
+				stock.setAirBrake(normalize(arguments.checkDouble(0)));
 			}
 			return null;
 		}

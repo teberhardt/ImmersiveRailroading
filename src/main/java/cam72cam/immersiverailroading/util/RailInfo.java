@@ -25,7 +25,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.oredict.OreDictionary;
 
 public class RailInfo {
 	public BlockPos position;
@@ -124,7 +123,7 @@ public class RailInfo {
 			// NOP
 			break;
 		case SMOOTH_LOCKED:
-			if (quarters != 0) {
+			if (quarter != 0) {
 				break;
 			}
 			
@@ -210,7 +209,7 @@ public class RailInfo {
 					if (playerStack.getItem() == IRItems.ITEM_RAIL && ItemGauge.get(playerStack) == builder.gauge) {
 						rails += playerStack.stackSize;
 					}
-					if (OreDictionaryContainsMatch(false, OreDictionary.getOres("plankTreatedWood"), playerStack)) {
+					if (OreHelper.matches(playerStack, "plankTreatedWood", false)) {
 						ties += playerStack.stackSize;
 					}
 					if (railBed != null && railBed.getItem() == playerStack.getItem() && railBed.getMetadata() == playerStack.getMetadata()) {
@@ -266,7 +265,8 @@ public class RailInfo {
 							rails = 0;
 						}
 					}
-					if (OreDictionaryContainsMatch(false, OreDictionary.getOres("plankTreatedWood"), playerStack)) {
+
+					if (OreHelper.matches(playerStack, "plankTreatedWood", false)) {
 						if (ties > playerStack.stackSize) {
 							ties -= playerStack.stackSize;
 							ItemStack copy = playerStack.copy();
@@ -318,17 +318,5 @@ public class RailInfo {
 			}
 		}
 		return false;
-	}
-
-	
-	private boolean OreDictionaryContainsMatch(boolean strict, List<ItemStack> ores, ItemStack playerStack) {
-        for (ItemStack target : ores)
-        {
-            if (OreDictionary.itemMatches(target, playerStack, strict))
-            {
-                return true;
-            }
-        }
-        return false;
 	}
 }

@@ -103,7 +103,7 @@ public class ItemRollingStock extends BaseItemRollingStock {
 					if (!worldIn.isRemote) {
 						boolean set = te.setAugmentFilter(ItemDefinition.getID(player.getHeldItem(hand)));
 						if (set) {
-							player.addChatMessage(ChatText.SET_AUGMENT_FILTER.getMessage(ItemDefinition.get(player.getHeldItem(hand)).name));
+							player.addChatMessage(ChatText.SET_AUGMENT_FILTER.getMessage(ItemDefinition.get(player.getHeldItem(hand)).name()));
 						} else {
 							player.addChatMessage(ChatText.RESET_AUGMENT_FILTER.getMessage());
 						}

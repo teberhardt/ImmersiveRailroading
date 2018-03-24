@@ -10,7 +10,6 @@ import cam72cam.immersiverailroading.library.CraftingType;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiText;
 import cam72cam.immersiverailroading.library.PlateType;
-import cam72cam.immersiverailroading.multiblock.PlateRollerMultiblock.PlateRollerInstance;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import net.minecraft.client.gui.GuiButton;
@@ -32,7 +31,7 @@ public class PlateRollerGUI extends GuiScreen {
 	
 	public PlateRollerGUI(TileMultiblock te) {
 		this.tile = te;
-		currentItem = ((PlateRollerInstance) te.getMultiblock()).getCraftItem();
+		currentItem = te.getCraftItem();
 		if (currentItem == null) {
 			currentItem = new ItemStack(IRItems.ITEM_PLATE, 1);
 		}
@@ -55,7 +54,7 @@ public class PlateRollerGUI extends GuiScreen {
 	private void updatePickerButton() {
 		EntityRollingStockDefinition def = ItemDefinition.get(currentItem.copy());
 		if (def != null) {
-			pickerButton.displayString = GuiText.SELECTOR_PLATE_BOILER.toString(def.name);
+			pickerButton.displayString = GuiText.SELECTOR_PLATE_BOILER.toString(def.name());
 		}
 	}
 
@@ -118,7 +117,7 @@ public class PlateRollerGUI extends GuiScreen {
 			break;
     	}
 		currentItem.stackSize = (Math.max(1, (int) Math.floor(currentItem.stackSize/gauge.scale())));
-    	((PlateRollerInstance) tile.getMultiblock()).setCraftItem(currentItem);
+		tile.setCraftItem(currentItem);
     }
 	
 	@Override

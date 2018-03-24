@@ -1,6 +1,9 @@
 package cam72cam.immersiverailroading.tile;
 
+import cam72cam.immersiverailroading.ImmersiveRailroading;
+import cam72cam.immersiverailroading.library.CraftingMachineMode;
 import cam72cam.immersiverailroading.multiblock.Multiblock.MultiblockInstance;
+import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
 
 import javax.annotation.Nonnull;
 
@@ -40,6 +43,7 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	private BlockPos offset;
 	private Rotation rotation;
 	private String name;
+	private CraftingMachineMode craftMode = CraftingMachineMode.STOPPED;
 	private long ticks;
 	private MultiblockInstance mb;
 	
@@ -100,6 +104,11 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 		nbt = super.writeToNBT(nbt);
+		
+		if (name == null) {
+			// Probably in some weird block break path
+			return nbt;
+		}
 
 		nbt.setString("name", name);
 		nbt.setInteger("rotation", rotation.ordinal());
@@ -109,6 +118,7 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 		nbt.setTag("inventory", container.serializeNBT());
 		nbt.setTag("craftItem", craftItem == null ?  new NBTTagCompound() : craftItem.serializeNBT());
 		nbt.setInteger("craftProgress", craftProgress);
+		nbt.setInteger("craftMode", craftMode.ordinal());
 		
 		nbt.setInteger("energy", energy.getEnergyStored());
 		
@@ -127,6 +137,11 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 		container.deserializeNBT(nbt.getCompoundTag("inventory"));
 		craftItem = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("craftItem"));
 		craftProgress = nbt.getInteger("craftProgress");
+		
+		craftMode = CraftingMachineMode.STOPPED;
+		if (nbt.hasKey("craftMode")) {
+			craftMode = CraftingMachineMode.values()[nbt.getInteger("craftMode")];
+		}
 		
 		// Empty and then refill energy storage
 		energy.extractEnergy(energy.getEnergyStored(), false);
@@ -154,7 +169,7 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	}
 	
 	public MultiblockInstance getMultiblock() {
-		if (this.mb == null) {
+		if (this.mb == null && this.isLoaded()) {
 			this.mb = MultiblockRegistry.get(name).instance(worldObj, getOrigin(), rotation);
 		}
 		return this.mb;
@@ -176,7 +191,9 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 	 * Block Functions to pass on to the multiblock
 	 */
 	public void breakBlock() {
-		getMultiblock().onBreak();
+		if (getMultiblock() != null) {
+			getMultiblock().onBreak();
+		}
 	}
 
 	public boolean onBlockActivated(EntityPlayer player, EnumHand hand) {
@@ -220,16 +237,35 @@ public class TileMultiblock extends SyncdTileEntity implements ITickable {
 		}
 	}
 	
+	public CraftingMachineMode getCraftMode() {
+		return craftMode;
+	}
+	
+	public void setCraftMode(CraftingMachineMode mode) {
+		if (!worldObj.isRemote) {
+			if (craftMode != mode) {
+				craftMode = mode;
+				this.markDirty();
+			}
+		} else {
+			ImmersiveRailroading.net.sendToServer(new MultiblockSelectCraftPacket(getPos(), craftItem, mode));
+		}
+	}
+	
 	public ItemStack getCraftItem() {
 		return craftItem;
 	}
 
 	public void setCraftItem(ItemStack selected) {
-		if (selected != null) {
-			selected = selected.copy();
+		if (!worldObj.isRemote) {
+			if (craftItem == null || selected == null || !ItemStack.areItemStacksEqual(selected, craftItem)) {
+				this.craftItem = selected.copy();
+				this.craftProgress = 0;
+				this.markDirty();
+			}
+		} else {
+			ImmersiveRailroading.net.sendToServer(new MultiblockSelectCraftPacket(getPos(), selected, craftMode));
 		}
-		this.craftItem = selected;
-		this.markDirty();
 	}
 	
 	/*

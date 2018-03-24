@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.Gauge;
+import cam72cam.immersiverailroading.library.StockDeathType;
 import cam72cam.immersiverailroading.registry.DefinitionManager;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.util.BufferUtil;
@@ -32,6 +33,7 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 	
 	protected String defID;
 	public Gauge gauge;
+	public String tag = "";
 
 	public EntityRollingStock(World world, String defID) {
 		super(world);
@@ -42,6 +44,11 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 		super.isImmuneToFire = true;
 		super.entityCollisionReduction = 1F;
 		super.ignoreFrustumCheck = true;
+	}
+	
+	@Override
+	public String getName() {
+		return this.getDefinition().name();
 	}
 
 	public EntityRollingStockDefinition getDefinition() {
@@ -84,18 +91,21 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 	public void readSpawnData(ByteBuf additionalData) {
 		defID = BufferUtil.readString(additionalData);
 		gauge = Gauge.from(additionalData.readDouble());
+		tag = BufferUtil.readString(additionalData);
 	}
 
 	@Override
 	public void writeSpawnData(ByteBuf buffer) {
 		BufferUtil.writeString(buffer, defID);
 		buffer.writeDouble(gauge.value());
+		BufferUtil.writeString(buffer, tag);
 	}
 
 	@Override
 	protected void writeEntityToNBT(NBTTagCompound nbttagcompound) {
 		nbttagcompound.setString("defID", defID);
 		nbttagcompound.setDouble("gauge", gauge.value());
+		nbttagcompound.setString("tag", tag);
 	}
 
 	@Override
@@ -106,6 +116,8 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 		} else {
 			gauge = Gauge.STANDARD;
 		}
+		
+		tag = nbttagcompound.getString("tag");
 	}
 
 	@Override
@@ -126,6 +138,10 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 		// Needed for right click, probably a forge or MC bug
 		return true;
 	}
+	
+	public void onDeath(StockDeathType type) {
+		setDead();
+	}
 
 	@Override
 	public boolean attackEntityFrom(DamageSource damagesource, float amount) {
@@ -133,14 +149,23 @@ public abstract class EntityRollingStock extends Entity implements IEntityAdditi
 			return false;
 		}
 		
-		if (damagesource.getSourceOfDamage() instanceof EntityPlayer && !damagesource.isProjectile()) {
-			EntityPlayer player = (EntityPlayer) damagesource.getSourceOfDamage();
-			if (player.isSneaking()) {
-				this.setDead();
+		if (damagesource.isExplosion()) {
+			if (amount > 5) {
+				this.onDeath(amount > 20 ? StockDeathType.CATACYSM : StockDeathType.EXPLOSION);
 				worldObj.removeEntity(this);
 				return false;
 			}
 		}
+		
+		if (damagesource.getSourceOfDamage() instanceof EntityPlayer && !damagesource.isProjectile()) {
+			EntityPlayer player = (EntityPlayer) damagesource.getSourceOfDamage();
+			if (player.isSneaking()) {
+				this.onDeath(StockDeathType.PLAYER);
+				worldObj.removeEntity(this);
+				return false;
+			}
+		}
+		
 		return false;
 	}
 	

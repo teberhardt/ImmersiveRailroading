@@ -49,6 +49,7 @@ public class OBJTextureSheet {
 		SubTexture(ResourceLocation tex) throws IOException {
 			InputStream input = ImmersiveRailroading.proxy.getResourceStream(tex);
 			this.image = TextureUtil.readBufferedImage(input);
+			input.close();
 			realWidth = image.getWidth();
 			realHeight = image.getHeight();
 			this.tex = tex;
