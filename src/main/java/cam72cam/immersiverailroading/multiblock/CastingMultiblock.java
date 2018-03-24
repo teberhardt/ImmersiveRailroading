@@ -258,6 +258,9 @@ public class CastingMultiblock extends Multiblock {
 				}
 				
 				int cost = ItemCastingCost.getCastCost(item);
+				if (cost == ItemCastingCost.BAD_CAST_COST) {
+					return;
+				}
 				
 				if (craftTe.getCraftProgress() >= cost) {
 					craftTe.setCraftProgress(0);
