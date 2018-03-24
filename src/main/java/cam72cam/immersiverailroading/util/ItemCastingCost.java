@@ -11,6 +11,10 @@ public class ItemCastingCost {
 	public static final int BAD_CAST_COST = -999;
 	
 	public static int getCastCost(ItemStack item) {
+		if (item == null) {
+			return BAD_CAST_COST;
+		}
+		
 		int cost = 0;
 		if (item.getItem() == IRItems.ITEM_ROLLING_STOCK_COMPONENT) {
 			ItemComponentType component = ItemComponent.getComponentType(item);

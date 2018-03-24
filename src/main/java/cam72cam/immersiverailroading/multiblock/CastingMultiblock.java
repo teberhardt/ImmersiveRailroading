@@ -253,7 +253,7 @@ public class CastingMultiblock extends Multiblock {
 					return;
 				}
 
-				if (outTe.getContainer().getStackInSlot(0).stackSize != 0) {
+				if (outTe.getContainer().getStackInSlot(0) != null && outTe.getContainer().getStackInSlot(0).stackSize != 0) {
 					return;
 				}
 				
