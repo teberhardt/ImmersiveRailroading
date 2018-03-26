@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
@@ -83,8 +84,6 @@ public class AugmentDriver implements DriverBlock {
 	}
 
 	public abstract class AugmentManagerBase extends AbstractManagedEnvironment implements NamedBlock {
-		private final static int delayTicks = 5; 
-
 		protected final World world;
 		protected final BlockPos pos;
 		private int ticksAlive;
@@ -94,7 +93,7 @@ public class AugmentDriver implements DriverBlock {
 		public AugmentManagerBase(World world, BlockPos pos) {
 			this.world = world;
 			this.pos = pos;
-			setNode(Network.newNode(this, Visibility.Network).withComponent("ir_augment", Visibility.Network).create());
+			setNode(Network.newNode(this, Visibility.Network).withComponent(preferredName(), Visibility.Network).create());
 		}
 
 		@Override
@@ -111,12 +110,13 @@ public class AugmentDriver implements DriverBlock {
 				wasOverhead = nearby != null ? nearby.getPersistentID() : null;
 			}
 			
-			if (node != null && this.ticksAlive % delayTicks == 0) {
+			if (node != null && this.ticksAlive % Math.max(Config.ConfigDebug.ocPollDelayTicks, 1) == 0) {
 				TileRailBase te = TileRailBase.get(world, pos);
 				EntityRollingStock nearby = te.getStockNearBy(typeFilter, null);
 				UUID isOverhead = nearby != null ? nearby.getPersistentID() : null;
 				if (isOverhead != wasOverhead) {
-					node.sendToReachable("computer.signal", "ir_train_overhead", te.getAugment().toString(), isOverhead == null ? null : isOverhead.toString());
+					Node neighbor = node.neighbors().iterator().next();
+					neighbor.sendToReachable("computer.signal", "ir_train_overhead", te.getAugment().toString(), isOverhead == null ? null : isOverhead.toString());
 				}
 				
 				wasOverhead = isOverhead;
@@ -136,7 +136,7 @@ public class AugmentDriver implements DriverBlock {
 
 		@Override
 		public int priority() {
-			return 0;
+			return 3;
 		}
 	}
 
