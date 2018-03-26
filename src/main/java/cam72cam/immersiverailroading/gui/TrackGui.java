@@ -14,6 +14,7 @@ import cam72cam.immersiverailroading.library.TrackItems;
 import cam72cam.immersiverailroading.library.TrackPositionType;
 import cam72cam.immersiverailroading.net.ItemRailUpdatePacket;
 import cam72cam.immersiverailroading.tile.TileRailPreview;
+import cam72cam.immersiverailroading.util.OreHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -91,7 +92,7 @@ public class TrackGui extends GuiScreen {
 		
 		oreDict.add(new ItemStack(Items.AIR));
 		
-		for (ItemStack ore : OreDictionary.getOres(ImmersiveRailroading.ORE_RAIL_BED)) {
+		for (ItemStack ore : OreHelper.IR_RAIL_BED.getOres()) {
 			if (ore.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
 				ore.getItem().getSubItems(null, ore.getItem().getCreativeTab(), oreDict);
 			} else {
@@ -159,16 +160,16 @@ public class TrackGui extends GuiScreen {
 	public void initGui() {
 		int buttonID = 0;
 
-		typeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 30, GuiText.SELECTOR_TYPE.toString(type));
+		typeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 22-1, GuiText.SELECTOR_TYPE.toString(type));
 		this.buttonList.add(typeButton);
 
-		this.lengthInput = new GuiTextField(buttonID++, this.fontRenderer, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 30, 200, 20);
+		this.lengthInput = new GuiTextField(buttonID++, this.fontRenderer, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 22, 200, 20);
 		this.lengthInput.setText("" + length);
 		this.lengthInput.setMaxStringLength(3);
 		this.lengthInput.setValidator(this.integerFilter);
 		this.lengthInput.setFocused(true);
 
-		this.quartersSlider = new GuiSlider(buttonID++, this.width / 2 - 75, this.height / 8 - 24 + buttonID * 30, "", 1, 4, quarters,
+		this.quartersSlider = new GuiSlider(buttonID++, this.width / 2 - 75, this.height / 8 - 24 + buttonID * 22+1, "", 1, 4, quarters,
 				null) {
 			@Override
 			public void updateSlider() {
@@ -181,19 +182,19 @@ public class TrackGui extends GuiScreen {
 		quartersSlider.visible = type == TrackItems.SWITCH || type == TrackItems.TURN;
 		this.buttonList.add(quartersSlider);
 		
-		bedTypeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 30, GuiText.SELECTOR_RAIL_BED.toString(getBedstackName()));
+		bedTypeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 22, GuiText.SELECTOR_RAIL_BED.toString(getBedstackName()));
 		this.buttonList.add(bedTypeButton);
 
-		bedFillButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 30, GuiText.SELECTOR_RAIL_BED_FILL.toString(getBedFillName()));
+		bedFillButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 22, GuiText.SELECTOR_RAIL_BED_FILL.toString(getBedFillName()));
 		this.buttonList.add(bedFillButton);
 		
-		posTypeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 30, GuiText.SELECTOR_POSITION.toString(posType));
+		posTypeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 22, GuiText.SELECTOR_POSITION.toString(posType));
 		this.buttonList.add(posTypeButton);
 		
-		isPreviewCB = new GuiCheckBox(buttonID++, this.width / 2 - 75, this.height / 8 - 24 + buttonID * 30, GuiText.SELECTOR_PLACE_BLUEPRINT.toString(), isPreview);
+		isPreviewCB = new GuiCheckBox(buttonID++, this.width / 2 - 75, this.height / 8 - 24 + buttonID * 22+4, GuiText.SELECTOR_PLACE_BLUEPRINT.toString(), isPreview);
 		this.buttonList.add(isPreviewCB);
 		
-		gaugeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 30, GuiText.SELECTOR_GAUGE.toString(gauge));
+		gaugeButton = new GuiButton(buttonID++, this.width / 2 - 100, this.height / 8 - 24 + buttonID * 22, GuiText.SELECTOR_GAUGE.toString(gauge));
 		this.buttonList.add(gaugeButton);
 		
 		bedSelector.initGui();
