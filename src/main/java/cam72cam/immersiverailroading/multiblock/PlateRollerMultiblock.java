@@ -92,7 +92,7 @@ public class PlateRollerMultiblock extends Multiblock {
 						}
 						return true;
 					}
-				} else if (held != null && OreHelper.matches(held, "blockSteel", false)) {
+				} else if (held != null && OreHelper.IR_STEEL_BLOCK.matches(held, false)) {
 					TileMultiblock inputTe = getTile(input);
 					if (inputTe == null) {
 						return false;
@@ -179,11 +179,12 @@ public class PlateRollerMultiblock extends Multiblock {
 			
 			if (progress == 0) {
 				// Try to start crafting
-				if (input != null && OreHelper.matches(input, "blockSteel", false) && output == null && craftingTe.getCraftItem() != null) {
+				if (input != null && OreHelper.IR_STEEL_BLOCK.matches(input, false) && output == null && craftingTe.getCraftItem() != null) {
 					input.stackSize = (input.stackSize - 1);
 					if (input.stackSize == 0) {
 						input = null;
 					}
+					
 					inputTe.getContainer().setStackInSlot(0, input);;
 					progress = 100;
 					craftingTe.setCraftProgress(100);
@@ -198,7 +199,7 @@ public class PlateRollerMultiblock extends Multiblock {
 
 		@Override
 		public boolean canInsertItem(BlockPos offset, int slot, ItemStack stack) {
-			return offset.equals(input) && OreHelper.matches(stack, "blockSteel", false);
+			return offset.equals(input) && OreHelper.IR_STEEL_BLOCK.matches(stack, false);
 		}
 
 		@Override

@@ -28,6 +28,12 @@ public class Config {
 
 		@Comment("Clear blocsk in creative mode when placing tracks")
 		public static boolean creativePlacementClearsBlocks = true;
+
+		@Comment("Requires solid blocks to be placed under the rails")
+		public static boolean requireSolidBlocks = true;
+
+		@Comment("Drop snowballs when the train can't push a block out of the way")
+		public static boolean dropSnowBalls = false;
 	}
 
 	public static ConfigBalance balance;
@@ -44,6 +50,9 @@ public class Config {
 		
 		@Comment("Brake Multiplier: Higher numbers increase slowdown, lower numbers decrease slowdown")
 		public static double brakeMultiplier = 1.0;
+		
+		@Comment("Traction Multiplier: Higher numbers decreases wheel slip, lower numders increase wheel slip")
+		public static double tractionMultiplier = 1.0;
 		
 		@Comment({ "How heavy is a single block in Kg" })
 		public static int blockWeight = 10;

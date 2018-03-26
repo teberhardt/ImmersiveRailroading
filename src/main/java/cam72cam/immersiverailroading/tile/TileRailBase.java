@@ -98,6 +98,9 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 		return this.augmentFilterID != null;
 	}
 	public String nextAugmentRedstoneMode() {
+		if (this.augment == null) {
+			return null;
+		}
 		switch(this.augment) {
 		case DETECTOR:
 			redstoneMode = StockDetectorMode.values()[((redstoneMode.ordinal() + 1) % (StockDetectorMode.values().length))];
@@ -535,6 +538,16 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 		}
 		
 		ticksExisted += 1;
+		
+		if (ticksExisted % (20 * 5) == 0) {
+			// Double check every 5 seconds that the master is not gone
+			// Wont fire on first due to incr above
+
+			if (this.getParentTile() == null || this.getParentTile().getParentTile() == null) {
+				// Fire update event
+				getWorld().destroyBlock(getPos(), true);
+			}
+		}
 		
 		if (this.augment == null) {
 			return;

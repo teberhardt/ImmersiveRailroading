@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import cam72cam.immersiverailroading.Config.ConfigBalance;
+import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.items.ItemTabs;
 import cam72cam.immersiverailroading.items.ItemTrackBlueprint;
@@ -188,7 +189,7 @@ public abstract class BlockRailBase extends Block {
 			return;
 		}
 		boolean isOriginAir = tileEntity.getParentTile() == null || tileEntity.getParentTile().getParentTile() == null;
-		boolean isOnRealBlock = world.isSideSolid(pos.down(), EnumFacing.UP, false);
+		boolean isOnRealBlock = world.isSideSolid(pos.down(), EnumFacing.UP, false) || !Config.ConfigDamage.requireSolidBlocks && !world.isAirBlock(pos.down());
 		
 		if (isOriginAir) {
 			if (tryBreakRail(world, pos)) { 

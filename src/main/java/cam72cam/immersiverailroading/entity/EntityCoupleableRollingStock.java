@@ -385,7 +385,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			return onTrack;
 		}
 		
-		if ((!this.isCouplerEngaged(coupler) || !parent.isCouplerEngaged(otherCoupler))) {
+		if ((!this.isCouplerEngaged(coupler) || !parent.isCouplerEngaged(otherCoupler)) && this.ticksExisted > 5 && parent.ticksExisted > 5) {
 			if (parent.positions.size() >= 2) {
 				// Push only, no pull
 				double prevDist = currentPos.position.distanceTo(parent.positions.get(tickOffset-1).position);
@@ -540,8 +540,10 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 		switch (coupler) {
 		case FRONT:
 			frontCouplerEngaged = engaged;
+			break;
 		case BACK:
 			backCouplerEngaged = engaged;
+			break;
 		}
 	}
 

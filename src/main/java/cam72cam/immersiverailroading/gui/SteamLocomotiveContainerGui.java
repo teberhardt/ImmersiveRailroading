@@ -5,12 +5,15 @@ import java.util.Map;
 import cam72cam.immersiverailroading.entity.LocomotiveSteam;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 
 public class SteamLocomotiveContainerGui extends ContainerGuiBase {
 	
 	private int inventoryRows;
 	private int horizSlots;
 	private LocomotiveSteam stock;
+	private ItemStack template;
 
     public SteamLocomotiveContainerGui(LocomotiveSteam stock, SteamLocomotiveContainer container) {
         super(container);
@@ -19,6 +22,7 @@ public class SteamLocomotiveContainerGui extends ContainerGuiBase {
         this.horizSlots = stock.getInventoryWidth();
         this.xSize = paddingRight + horizSlots*2 * slotSize + paddingLeft;
         this.ySize = 114 + this.inventoryRows * slotSize*2;
+        this.template = new ItemStack(Items.WATER_BUCKET);
     }
 
 	@Override
@@ -31,17 +35,21 @@ public class SteamLocomotiveContainerGui extends ContainerGuiBase {
         this.mc.getTextureManager().bindTexture(CHEST_GUI_TEXTURE);
         
         currY = drawTopBar(i, currY, horizSlots*2);
-    	currY = drawSlotBlock(i, currY, horizSlots*2, inventoryRows);
+    	currY = drawSlotBlock(i, currY, horizSlots*2, inventoryRows, horizSlots*2 * inventoryRows);
     	
     	drawTankBlock(i + paddingLeft, currY - inventoryRows * slotSize, horizSlots*2, inventoryRows, stock.getLiquid(), stock.getLiquidAmount() / (float)stock.getTankCapacity().MilliBuckets());
+
+    	int quantX = i + paddingLeft + horizSlots*2 * slotSize/2;
+    	int quantY = currY - inventoryRows * slotSize + inventoryRows * slotSize/2 - 4;
     	
-    	drawSlot(i + paddingLeft+5, currY - inventoryRows * slotSize + (int)(slotSize * 1.5));
-    	drawSlot(i + paddingLeft + slotSize * horizSlots*2 - slotSize-5, currY - inventoryRows * slotSize + (int)(slotSize * 1.5));
+    	drawSlot(i + paddingLeft+5, currY - inventoryRows * slotSize + 4);
+    	drawSlotOverlay(template, i + paddingLeft+5, currY - inventoryRows * slotSize + 4);
+    	drawSlot(i + paddingLeft + slotSize * horizSlots*2 - slotSize-5, currY - inventoryRows * slotSize + 4);
     	
     	currY = drawBottomBar(i, currY, horizSlots*2);
 
     	int prevY = currY;
-    	currY = drawSlotBlock(i + horizSlots * slotSize/2, currY, horizSlots, inventoryRows);
+    	currY = drawSlotBlock(i + horizSlots * slotSize/2, currY, horizSlots, inventoryRows, stock.getInventorySize()-2);
     	try {
     		Map<Integer, Integer> burnTime = stock.getBurnTime();
     		Map<Integer, Integer> burnMax = stock.getBurnMax();
@@ -71,5 +79,8 @@ public class SteamLocomotiveContainerGui extends ContainerGuiBase {
     	
     	currY = drawPlayerInventoryConnector(i, currY, width, horizSlots);
     	currY = drawPlayerInventory((width - playerXSize) / 2, currY);
+    	
+    	String quantityStr = String.format("%s/%s", stock.getLiquidAmount(), stock.getTankCapacity().MilliBuckets());
+		this.drawCenteredString(this.fontRendererObj, quantityStr, quantX, quantY, 14737632);
     }
 }

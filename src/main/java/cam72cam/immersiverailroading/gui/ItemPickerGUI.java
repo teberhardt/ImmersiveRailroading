@@ -53,7 +53,7 @@ public class ItemPickerGUI extends GuiScreen {
 		int startX = this.width / 4;
 		int startY = this.height / 4;
 		
-		int stacksX = this.width/2 / 16;
+		int stacksX = this.width/2 / 32;
 		
 		this.buttonList.clear();
 		
@@ -64,7 +64,7 @@ public class ItemPickerGUI extends GuiScreen {
 			if (item == null) {
 				item = new ItemStack(Items.STRING);
 			}
-			this.buttonList.add(new ItemButton(i, item, startX + col * 16, startY + row * 16));
+			this.buttonList.add(new ItemButton(i, item, startX + col * 32, startY + row * 32));
 		}
 	}
 	
