@@ -183,6 +183,10 @@ public class RailInfo {
 	public boolean build(EntityPlayer player, BlockPos pos) {
 		BuilderBase builder = getBuilder(pos);
 		
+		if (world.isRemote) {
+			return builder.canBuild();
+		}
+		
 		if (player.isCreative() && ConfigDamage.creativePlacementClearsBlocks) {
 			builder.clearArea();
 		}
