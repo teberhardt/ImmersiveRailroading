@@ -24,6 +24,12 @@ public class ConfigGraphics {
 	@Comment("Use Icon Cache (experimental)")
 	public static boolean enableIconCache = false;
 
+	@Comment("If you are having render problems in game, try setting this to false")
+	public static boolean useShaderFriendlyRender = true;
+
+	@Comment("Limit GPU load while models/world is loading.  1 == slow load, 3 == reasonable load, 10 = fast load, 100 = as fast as possible")
+	public static int limitGraphicsLoadMS = 3;
+
 	@Comment({ "Self explanitory" })
 	public static boolean trainsOnTheBrain = true;
 
