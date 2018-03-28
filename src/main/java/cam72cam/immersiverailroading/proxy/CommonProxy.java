@@ -269,4 +269,9 @@ public abstract class CommonProxy implements IGuiHandler {
 		default:
 			return null;
     	}
-    }}
+    }
+
+	public int getRenderDistance() {
+		return 8;
+	}
+}

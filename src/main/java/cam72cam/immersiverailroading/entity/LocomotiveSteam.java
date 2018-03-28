@@ -197,9 +197,15 @@ public class LocomotiveSteam extends Locomotive {
 	private ISound whistle;
 	private ISound idle;
 	private ISound pressure;
+	private int tickMod = 0;
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
+		
+		if (this.ticksExisted < 2) {
+			// Prevent explosions
+			return;
+		}
 
 		if (world.isRemote) {
 			// Particles and Sound
@@ -215,7 +221,7 @@ public class LocomotiveSteam extends Locomotive {
 					this.idle = ImmersiveRailroading.proxy.newSound(this.getDefinition().idle, true, 40, gauge);
 					idle.setVolume(0.1f);
 					this.pressure = ImmersiveRailroading.proxy.newSound(this.getDefinition().pressure, true, 40, gauge);
-					pressure.setVolume(0.5f);
+					pressure.setVolume(0.3f);
 				}
 				
 				if (this.getDataManager().get(HORN) != 0 && !whistle.isPlaying() && (this.getBoilerPressure() > 0 || !Config.isFuelRequired(gauge))) {
@@ -285,23 +291,30 @@ public class LocomotiveSteam extends Locomotive {
 			if (pistons != null && (this.getBoilerPressure() > 0 || !Config.isFuelRequired(gauge))) {
 				for (RenderComponent piston : pistons) {
 					float phaseOffset = 0;
+					double tickDelt;
 					switch (piston.side) {
 					case "LEFT":
+						tickDelt = 2;
 						phaseOffset = 45+90;
 						break;
 					case "RIGHT":
+						tickDelt = 2;
 						phaseOffset = -45+90;
 						break;
 					case "LEFT_FRONT":
+						tickDelt = 1;
 						phaseOffset = 45+90;
 						break;
 					case "RIGHT_FRONT":
+						tickDelt = 1;
 						phaseOffset = -45+90;
 						break;
 					case "LEFT_REAR":
+						tickDelt = 1;
 						phaseOffset = 90;
 						break;
 					case "RIGHT_REAR":
+						tickDelt = 1;
 						phaseOffset = 0;
 						break;
 					default:
@@ -341,14 +354,19 @@ public class LocomotiveSteam extends Locomotive {
 						    	volume = (float) Math.sqrt(volume);
 						    	double fraction = 3;
 						    	float pitch = 0.8f + (float) (speed/maxSpeed/fraction);
-						    	pitch += (this.ticksExisted % 10) / 300.0;
+						    	float delta = (8-tickMod) / 200.0f;
 						    	ISound snd = sndCache.get(sndCacheId);
-						    	snd.setPitch(pitch);
-						    	snd.setVolume(volume);
+						    	snd.setPitch(pitch + delta);
+						    	snd.setVolume(volume + delta);
 						    	snd.play(getPositionVector());
 						    	sndCacheId++;
 						    	sndCacheId = sndCacheId % sndCache.size();
 								phaseOn.put(key, true);
+
+								tickMod += tickDelt;
+								if (tickMod > 8) {
+									tickMod = 0;
+								}
 							}
 						} else {
 							if (phase < 0.5) {
@@ -360,7 +378,7 @@ public class LocomotiveSteam extends Locomotive {
 			}
 			
 			List<RenderComponent> steams = this.getDefinition().getComponents(RenderComponentType.PRESSURE_VALVE_X, gauge);
-			if (steams != null && (this.getDataManager().get(PRESSURE_VALVE) || !Config.isFuelRequired(gauge))) {
+			if (steams != null && (this.getDataManager().get(PRESSURE_VALVE) && Config.isFuelRequired(gauge))) {
 				if (ConfigSound.soundEnabled && ConfigSound.soundPressureValve) {
 					if (!pressure.isPlaying()) {
 						pressure.play(getPositionVector());
