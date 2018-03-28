@@ -8,12 +8,12 @@ import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 
 public class ClientResourceReloadListener implements IResourceManagerReloadListener {
-	public static boolean skipFirst = true; 
+	public static int skipN = 2; 
 
 	@Override
 	public void onResourceManagerReload(IResourceManager resourceManager) {
-		if (skipFirst) {
-			skipFirst = false;
+		if (skipN != 0) {
+			skipN --;
 			return;
 		}
 		
