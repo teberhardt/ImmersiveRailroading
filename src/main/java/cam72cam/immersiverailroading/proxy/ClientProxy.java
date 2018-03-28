@@ -531,20 +531,21 @@ public class ClientProxy extends CommonProxy {
 	}
 	
 	@SubscribeEvent
-	public static void onWorldLoad(Load event) {		
-		// This is super fragile
-		sndCache = new ArrayList<ISound>();
-		for (int i = 0; i < 16; i ++) {
-			sndCache.add(ImmersiveRailroading.proxy.newSound(new ResourceLocation(ImmersiveRailroading.MODID, "sounds/default/clack.ogg"), false, 40, Gauge.STANDARD));
+	public static void onWorldLoad(Load event) {
+		manager.handleReload();
+		
+		if (sndCache == null) {
+			sndCache = new ArrayList<ISound>();
+			for (int i = 0; i < 16; i ++) {
+				sndCache.add(ImmersiveRailroading.proxy.newSound(new ResourceLocation(ImmersiveRailroading.MODID, "sounds/default/clack.ogg"), false, 30, Gauge.STANDARD));
+			}
 		}
-		magical = new MagicEntity(event.getWorld());
-		event.getWorld().loadedEntityList.add(magical);
 	}
 	
 	@SubscribeEvent
 	public static void onWorldUnload(Unload event) {
-		manager.stop();
-		magical = null;
+		//manager.stop();
+		//sndCache = null;
 	}
 	
 	private static int sndCacheId = 0;
@@ -562,21 +563,22 @@ public class ClientProxy extends CommonProxy {
 			return;
 		}
 		
-		if (event.getEntity() instanceof EntityMoveableRollingStock) {
+		if (sndCache != null && event.getEntity() instanceof EntityMoveableRollingStock) {
 			
-			if(event.getNewChunkX() == event.getOldChunkX() && event.getNewChunkZ() % 4 != 0) {
+			if(event.getNewChunkX() == event.getOldChunkX() && event.getNewChunkZ() % 8 != 0) {
 				return;
 			}
 			
-			if(event.getNewChunkZ() == event.getOldChunkZ() && event.getNewChunkX() % 4 != 0) {
+			if(event.getNewChunkZ() == event.getOldChunkZ() && event.getNewChunkX() % 8 != 0) {
 				return;
 			}
 			
 			ISound snd = sndCache.get(sndCacheId);
 			// TODO Doppler update
-			snd.setPitch((float) (1/((EntityMoveableRollingStock)event.getEntity()).gauge.scale()));
-			//0.5f + (float) Math.abs(((EntityMoveableRollingStock)event.getEntity()).getCurrentSpeed().metric() / 300f)
-			snd.setVolume(0.3f);
+			EntityMoveableRollingStock stock = ((EntityMoveableRollingStock)event.getEntity());
+			float adjust = (float) Math.abs(stock.getCurrentSpeed().metric()) / 300;
+			snd.setPitch((float) ((adjust + 0.7)/stock.gauge.scale()));
+			snd.setVolume(0.01f + adjust);
 			snd.play(event.getEntity().getPositionVector());
 	    	sndCacheId++;
 	    	sndCacheId = sndCacheId % sndCache.size();
@@ -595,20 +597,41 @@ public class ClientProxy extends CommonProxy {
 		if (event.phase != Phase.START) {
 			return;
 		}
+				
+		EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+		World world = null;
+		if (player != null) {
+			world = player.worldObj;
+		}
 		
-		if (magical != null) {
-			magical.onUpdate();
-			
-			if (magical.isDead) {
-				magical.isDead = false;
-				ImmersiveRailroading.warn("Reanimating magic entity");
-				magical.worldObj.spawnEntityInWorld(magical);
+
+		if (world == null && manager != null && manager.hasSounds()) {
+			System.out.println("Unloading IR sound system");
+			manager.stop();
+			sndCache = null;
+		}
+		
+		if (world != null) {
+			if (magical == null) {
+				magical = new MagicEntity(world);
+				world.spawnEntityInWorld(magical);
 			}
-			if (tickCount % 20 == 0) {
-				if (!magical.worldObj.loadedEntityList.contains(magical)) {
-					ImmersiveRailroading.warn("Respawning magic entity");
+			
+			if (magical != null) {
+				magical.onUpdate();
+				
+				if (magical.isDead) {
 					magical.isDead = false;
+					ImmersiveRailroading.warn("Reanimating magic entity");
 					magical.worldObj.spawnEntityInWorld(magical);
+				}
+				if (tickCount % 20 == 0) {
+					if (!world.loadedEntityList.contains(magical)) {
+						ImmersiveRailroading.warn("Respawning magic entity");
+						magical.worldObj.removeEntity(magical);
+						magical.isDead = false;
+						world.spawnEntityInWorld(magical);
+					}
 				}
 			}
 		}
@@ -624,5 +647,10 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public int getTicks() {
 		return tickCount;
+	}
+	
+	@Override
+	public int getRenderDistance() {
+		return Minecraft.getMinecraft().gameSettings.renderDistanceChunks;
 	}
 }
