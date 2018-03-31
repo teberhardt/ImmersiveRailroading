@@ -15,7 +15,7 @@
 	},
 	"firebox": {
 		"slots": 36,
-		"width": 6
+		"width": 9
 	},
 	"passenger": {
 		"slots": 3,
@@ -31,5 +31,8 @@
 	"couplers": {
 		"front_offset": 0,
 		"rear_offset": -0.3
+	},
+	"sounds": {
+		"whistle": "sounds/steam/big_boy/whistle.ogg"
 	}
 }

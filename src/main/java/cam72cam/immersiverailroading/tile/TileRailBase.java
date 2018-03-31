@@ -87,6 +87,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 	}
 	public void setAugment(Augment augment) {
 		this.augment = augment;
+		setAugmentFilter(null);
 		this.markDirty();
 	}
 	public boolean setAugmentFilter(String definitionID) {
@@ -645,7 +646,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 				newRedstone = stock != null ? (int)Math.floor(stock.getCurrentSpeed().metric()/10) : 0;
 				break;
 			case PASSENGERS:
-				newRedstone = stock != null ? Math.min(15, stock.getPassengers().size()) : 0;
+				newRedstone = stock != null ? Math.min(15, stock.getPassengers().size() + stock.staticPassengers.size()) : 0;
 				break;
 			case CARGO:
 				if (stock != null && stock instanceof Freight) {
