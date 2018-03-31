@@ -8,7 +8,6 @@ import cam72cam.immersiverailroading.Config.ConfigDamage;
 import cam72cam.immersiverailroading.library.Augment;
 import cam72cam.immersiverailroading.physics.MovementSimulator;
 import cam72cam.immersiverailroading.physics.TickPos;
-import cam72cam.immersiverailroading.tile.TileRail;
 import cam72cam.immersiverailroading.tile.TileRailBase;
 import cam72cam.immersiverailroading.util.BlockUtil;
 import cam72cam.immersiverailroading.util.BufferUtil;
@@ -481,52 +480,26 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
 	public int getSpeedRetarderSlowdown(TickPos latest) {
 		int over = 0;
-		double y = -1;
+		int max = 0;
 		for (Vec3d pos : this.getDefinition().getBlocksInBounds(gauge)) {
-			if (y == -1) {
-				y = pos.y;
-			}
-			if (pos.y != y) {
-				break;
+			if (pos.y != 0) {
+				continue;
 			}
 			pos = VecUtil.rotateYaw(pos, this.rotationYaw);
 			pos = pos.add(latest.position);
 			BlockPos bp = new BlockPos(pos);
-			bp = bp.down();
 			IBlockState state = world.getBlockState(bp);
 			if (state.getBlock() != Blocks.AIR) {
 				if (BlockUtil.isIRRail(world, bp)) {
 					TileRailBase te = TileRailBase.get(world, bp);
 					if (te != null && te.getAugment() == Augment.SPEED_RETARDER) {
-						TileRail parent = te.getParentTile();
-						if (parent != null) {
-							int max = 0;
-							BlockPos tmpPos = bp;
-							while(true) {
-								tmpPos = tmpPos.offset(parent.getFacing());
-								TileRailBase tmp = TileRailBase.get(world, tmpPos);
-								if (tmp != null && tmp.getAugment() == Augment.SPEED_RETARDER) {
-									max = Math.max(max, RedstoneUtil.getPower(world, tmpPos));
-								} else {
-									break;
-								}
-							}
-							while(true) {
-								tmpPos = tmpPos.offset(parent.getFacing().getOpposite());
-								TileRailBase tmp = TileRailBase.get(world, tmpPos);
-								if (tmp != null && tmp.getAugment() == Augment.SPEED_RETARDER) {
-									max = Math.max(max, RedstoneUtil.getPower(world, tmpPos));
-								} else {
-									break;
-								}
-							}
-							over += max;
-						}
+						max = Math.max(max, RedstoneUtil.getPower(world, bp));
+						over += 1;
 					}
 				}
 			}
 		}
-		return over;
+		return over * max;
 	}
 
 	public float getTickSkew() {
