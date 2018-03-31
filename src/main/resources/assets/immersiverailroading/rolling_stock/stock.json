@@ -1,45 +1,38 @@
 {
 	"locomotives": [
-		"firefly",
-		"iron_duke",
-		"cooke_mogul",
-		"k36",
 		"a1_peppercorn",
 		"big_boy",
 		"k4_pacific",
 		"e6_atlantic",
 		"a5_switcher",
-		"j1a_texas",
-		"t1",
-		"ps4_class",
 		"class_38",
 		"rodgers_460",
 		"skookum",
 		"br01",
-		"gp-7",
 		"ge_b40_8",
 		"ge_b40_8w",
 		"ge_c44_9cw",
 		"ge_40_ton_boxcab",
 		"alco_rs1",
 		"emd_sw1500",
-		"emd_sd40-2"
+		"emd_sd40-2",
+		"cooke_mogul",
+		"k36",
+		"firefly",
+		"iron_duke"
 	],
 	"tender": [
-		"cooke_tender",
-		"k36_tender",
 		"a1_peppercorn_tender",
 		"big_boy_tender",
 		"k4_tender",
 		"e6_tender",
 		"a5_tender",
-		"coast_to_coast",
-		"t1_tender",
-		"ps4_tender_big",
 		"class_38_tender",
 		"rodgers_460_tender",
 		"skookum_tender",
-		"br01_tender"
+		"br01_tender",
+		"cooke_tender",
+		"k36_tender"
 	],
 	"hand_car": [
 		"hand_car_1"
@@ -50,10 +43,8 @@
 		"p70coach1"
 	],
 	"freight": [
-		"boxcar_us",
 		"boxcar_x26",
 		"usra_boxcar_classrr40",
-		"flatcar_us",
 		"70t_hopper_slsf",
 		"attx_flatcar_1",
 		"dw_gondola",
@@ -70,7 +61,6 @@
 		"waycar"
 	],
 	"tank": [
-		"tank_us",
 		"tank_us2",
 		"kamx_t",
 		"slag_car_1"

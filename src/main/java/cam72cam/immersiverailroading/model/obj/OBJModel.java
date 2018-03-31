@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.util.RelativeResource;
 import net.minecraft.util.ResourceLocation;
@@ -22,22 +20,18 @@ public class OBJModel {
 	public List<String> materialPaths = new ArrayList<String>();
 	// LinkedHashMap is ordered
 	public Map<String, List<Face>> groups = new LinkedHashMap<String, List<Face>>();
-	public List<Vec3d> vertices = new ArrayList<Vec3d>();
-	public List<Vec3d> vertexNormals = new ArrayList<Vec3d>();
-	public List<Vec2f> vertexTextures = new ArrayList<Vec2f>();
+	public Vec3d[] vertices;
+	public Vec3d[] vertexNormals;
+	public Vec2f[] vertexTextures;
 
 	public Map<String, Material> materials = new HashMap<String, Material>();
 	public float darken;
-	public final String checksum;
 	
 	public OBJModel(ResourceLocation modelLoc, float darken) throws Exception {
 		this(modelLoc, darken, 1);
 	}
 
 	public OBJModel(ResourceLocation modelLoc, float darken, double scale) throws Exception {
-		
-		this.checksum = DigestUtils.md5Hex(ImmersiveRailroading.proxy.getResourceStream(modelLoc));
-		
 		InputStream input = ImmersiveRailroading.proxy.getResourceStream(modelLoc);
 		Scanner reader = new Scanner(input);
 		this.darken = darken;
@@ -47,6 +41,10 @@ public class OBJModel {
 		groups.put(currentGroupName, currentGroup);
 		List<String> materialPaths = new ArrayList<String>();
 		String currentMaterial = null;
+		
+		List<Vec3d> vertices = new ArrayList<Vec3d>();
+		List<Vec3d> vertexNormals = new ArrayList<Vec3d>();
+		List<Vec2f> vertexTextures = new ArrayList<Vec2f>();
 
 		while (reader.hasNextLine()) {
 			String line = reader.nextLine();
@@ -98,6 +96,10 @@ public class OBJModel {
 			}
 		}
 		reader.close(); // closes input
+		
+		this.vertices = vertices.toArray(new Vec3d[vertices.size()]);
+		this.vertexNormals = vertexNormals.toArray(new Vec3d[vertexNormals.size()]);
+		this.vertexTextures = vertexTextures.toArray(new Vec2f[vertexTextures.size()]);
 
 		if (materialPaths.size() == 0) {
 			return;
@@ -205,7 +207,7 @@ public class OBJModel {
 				List<Face> faces = groups.get(group);
 				for (Face face : faces) {
 					for (int[] point : face.points) {
-						Vec3d v = vertices.get(point[0]);
+						Vec3d v = vertices[point[0]];
 						if (min == null) {
 							min = new Vec3d(v.xCoord, v.yCoord, v.zCoord);
 						} else {
@@ -238,7 +240,7 @@ public class OBJModel {
 				List<Face> faces = groups.get(group);
 				for (Face face : faces) {
 					for (int[] point : face.points) {
-						Vec3d v = vertices.get(point[0]);
+						Vec3d v = vertices[point[0]];
 						if (max == null) {
 							max = new Vec3d(v.xCoord, v.yCoord, v.zCoord);
 						} else {

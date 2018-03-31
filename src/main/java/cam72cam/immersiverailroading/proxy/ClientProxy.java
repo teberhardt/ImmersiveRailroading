@@ -1,5 +1,6 @@
 package cam72cam.immersiverailroading.proxy;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,7 +22,6 @@ import cam72cam.immersiverailroading.blocks.BlockRailBase;
 import cam72cam.immersiverailroading.entity.CarFreight;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.FreightTank;
-import cam72cam.immersiverailroading.entity.Locomotive;
 import cam72cam.immersiverailroading.entity.EntityRidableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.EntitySmokeParticle;
@@ -49,6 +49,8 @@ import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;
 import cam72cam.immersiverailroading.net.KeyPressPacket;
 import cam72cam.immersiverailroading.net.MousePressPacket;
+import cam72cam.immersiverailroading.registry.DefinitionManager;
+import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.render.item.PlateItemModel;
 import cam72cam.immersiverailroading.render.item.RailAugmentItemModel;
 import cam72cam.immersiverailroading.render.item.RailCastItemRender;
@@ -65,6 +67,7 @@ import cam72cam.immersiverailroading.render.entity.MagicEntity;
 import cam72cam.immersiverailroading.render.entity.ParticleRender;
 import cam72cam.immersiverailroading.render.entity.RenderOverride;
 import cam72cam.immersiverailroading.render.entity.StockEntityRender;
+import cam72cam.immersiverailroading.render.entity.StockModel;
 import cam72cam.immersiverailroading.render.rail.RailRenderUtil;
 import cam72cam.immersiverailroading.render.tile.TileMultiblockRender;
 import cam72cam.immersiverailroading.render.tile.TileRailPreviewRender;
@@ -78,12 +81,18 @@ import cam72cam.immersiverailroading.util.GLBoolTracker;
 import cam72cam.immersiverailroading.util.RailInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.GuiDisconnected;
+import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.gui.GuiMultiplayer;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.SimpleReloadableResourceManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
@@ -93,6 +102,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.client.event.ModelBakeEvent;
@@ -101,10 +111,12 @@ import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.event.sound.SoundLoadEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.world.WorldEvent.Load;
 import net.minecraftforge.event.world.WorldEvent.Unload;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -132,9 +144,10 @@ public class ClientProxy extends CommonProxy {
 	private static MagicEntity magical;
 	public static RenderCacheTimeLimiter renderCacheLimiter = new RenderCacheTimeLimiter();
 
+	private static String missingResources;
+
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int entityIDorPosX, int posY, int posZ) {
-		System.out.println(GuiTypes.values()[ID]);
 		TileMultiblock te;
 		switch (GuiTypes.values()[ID]) {
 		case FREIGHT:
@@ -195,14 +208,14 @@ public class ClientProxy extends CommonProxy {
 	public void init(FMLInitializationEvent event) {
 		super.init(event);
 		
-		keys.put(KeyTypes.THROTTLE_UP, new KeyBinding("immersiverailroading:keys.increase_throttle", Keyboard.KEY_NUMPAD8, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.THROTTLE_ZERO, new KeyBinding("immersiverailroading:keys.zero_throttle", Keyboard.KEY_NUMPAD5, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.THROTTLE_DOWN, new KeyBinding("immersiverailroading:keys.decrease_throttle", Keyboard.KEY_NUMPAD2, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.AIR_BRAKE_UP, new KeyBinding("immersiverailroading:keys.increase_brake", Keyboard.KEY_NUMPAD7, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.AIR_BRAKE_ZERO, new KeyBinding("immersiverailroading:keys.zero_brake", Keyboard.KEY_NUMPAD4, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.AIR_BRAKE_DOWN, new KeyBinding("immersiverailroading:keys.decrease_brake", Keyboard.KEY_NUMPAD1, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.HORN, new KeyBinding("immersiverailroading:keys.horn", Keyboard.KEY_NUMPADENTER, "key.categories." + ImmersiveRailroading.MODID));
-		keys.put(KeyTypes.DEAD_MANS_SWITCH, new KeyBinding("immersiverailroading:keys.dead_mans_switch", Keyboard.KEY_NUMPADEQUALS, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.THROTTLE_UP, new KeyBinding("ir_keys.increase_throttle", Keyboard.KEY_NUMPAD8, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.THROTTLE_ZERO, new KeyBinding("ir_keys.zero_throttle", Keyboard.KEY_NUMPAD5, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.THROTTLE_DOWN, new KeyBinding("ir_keys.decrease_throttle", Keyboard.KEY_NUMPAD2, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.AIR_BRAKE_UP, new KeyBinding("ir_keys.increase_brake", Keyboard.KEY_NUMPAD7, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.AIR_BRAKE_ZERO, new KeyBinding("ir_keys.zero_brake", Keyboard.KEY_NUMPAD4, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.AIR_BRAKE_DOWN, new KeyBinding("ir_keys.decrease_brake", Keyboard.KEY_NUMPAD1, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.HORN, new KeyBinding("ir_keys.horn", Keyboard.KEY_NUMPADENTER, "key.categories." + ImmersiveRailroading.MODID));
+		keys.put(KeyTypes.DEAD_MANS_SWITCH, new KeyBinding("ir_keys.dead_mans_switch", Keyboard.KEY_NUMPADEQUALS, "key.categories." + ImmersiveRailroading.MODID));
 		
 		ClientRegistry.registerKeyBinding(keys.get(KeyTypes.THROTTLE_UP));
 		ClientRegistry.registerKeyBinding(keys.get(KeyTypes.THROTTLE_DOWN));
@@ -292,6 +305,68 @@ public class ClientProxy extends CommonProxy {
 		
 		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_MANUAL, 0,
 				new ModelResourceLocation("minecraft:written_book", ""));
+	}
+	
+	public static final class StockIcon extends TextureAtlasSprite
+    {
+        private EntityRollingStockDefinition def;
+
+		public StockIcon(EntityRollingStockDefinition def)
+        {
+            super(new ResourceLocation(ImmersiveRailroading.MODID, def.defID).toString());
+            this.def = def;
+            this.width = this.height = 64;
+        }
+
+        @Override
+        public boolean hasCustomLoader(IResourceManager manager, ResourceLocation location)
+        {
+            return true;
+        }
+
+        @Override
+        public boolean load(IResourceManager manager, ResourceLocation location)
+        {
+            BufferedImage image = new BufferedImage(this.getIconWidth(), this.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+            
+            String[][] map = def.getIcon(this.getIconWidth());
+
+            StockModel renderer = StockRenderCache.getRender(def.defID);
+    		for (int x = 0; x < this.getIconWidth(); x++) {
+    			for (int y = 0; y < this.getIconHeight(); y++) {
+    				if (map[x][y] != null && map[x][y] != "") {
+    					int color = renderer.texture.samp(map[x][y]);
+    					image.setRGB(x, this.getIconWidth() - (y + 1), color);
+    				} else {
+    					image.setRGB(x, this.getIconWidth() - (y + 1), 0);
+    				}
+    			}
+    		}
+            
+            int[][] pixels = new int[Minecraft.getMinecraft().gameSettings.mipmapLevels + 1][];
+            pixels[0] = new int[image.getWidth() * image.getHeight()];
+            image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels[0], 0, image.getWidth());
+            this.clearFramesTextureData();
+            this.framesTextureData.add(pixels);
+            /*
+            try {
+    			ImageIO.write(image, "PNG", new File("/home/gilligan/foo" + Math.random() + ".png"));
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}*/
+            
+            return false;
+        }
+    }
+	
+	@SubscribeEvent
+	public static void onTextureStich(TextureStitchEvent.Pre event) {
+		if (ConfigGraphics.enableIconCache) {
+			for (String defID : DefinitionManager.getDefinitionNames()) {
+				EntityRollingStockDefinition def = DefinitionManager.getDefinition(defID);
+				event.getMap().setTextureEntry(new StockIcon(def));
+			}
+		}
 	}
 
 	@SubscribeEvent
@@ -391,11 +466,21 @@ public class ClientProxy extends CommonProxy {
 	}
 	
 	@SubscribeEvent
-	public static void onOverlayEvent(RenderGameOverlayEvent.Text event) {
-		if (Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-			Entity riding = Minecraft.getMinecraft().thePlayer.getRidingEntity();
-			if (riding instanceof Locomotive) {
-				//event.getLeft().addAll(((Locomotive)riding).getDebugInfo());
+	public static void onEntityJoin(EntityJoinWorldEvent event) {
+		if (Minecraft.getMinecraft().isSingleplayer()) {
+			return;
+		}
+		
+		if(event.getEntity() instanceof EntityRollingStock) {
+			EntityRollingStock stock = (EntityRollingStock)event.getEntity();
+			String defID = stock.getDefinitionID();
+			EntityRollingStockDefinition def = DefinitionManager.getDefinition(defID);
+			if (def == null) {
+				String error = String.format("Missing definition %s, do you have all of the required resource packs?", defID);
+				ImmersiveRailroading.error(error);
+				event.setCanceled(true);
+				
+				missingResources = error;
 			}
 		}
 	}
@@ -526,13 +611,13 @@ public class ClientProxy extends CommonProxy {
 		if (manager == null) {
 			manager = new IRSoundManager(event.getManager());
 		} else {
-			manager.handleReload();
+			manager.handleReload(false);
 		}
 	}
 	
 	@SubscribeEvent
 	public static void onWorldLoad(Load event) {
-		manager.handleReload();
+		manager.handleReload(true);
 		
 		if (sndCache == null) {
 			sndCache = new ArrayList<ISound>();
@@ -597,6 +682,13 @@ public class ClientProxy extends CommonProxy {
 		if (event.phase != Phase.START) {
 			return;
 		}
+		
+		if (missingResources != null) {
+			Minecraft.getMinecraft().getConnection().getNetworkManager().closeChannel(new TextComponentString(missingResources));
+			Minecraft.getMinecraft().loadWorld((WorldClient)null);
+			Minecraft.getMinecraft().displayGuiScreen(new GuiDisconnected(new GuiMultiplayer(new GuiMainMenu()), "disconnect.lost", new TextComponentString(missingResources)));
+			missingResources = null;
+		}
 				
 		EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
 		World world = null;
@@ -606,12 +698,14 @@ public class ClientProxy extends CommonProxy {
 		
 
 		if (world == null && manager != null && manager.hasSounds()) {
-			System.out.println("Unloading IR sound system");
+			ImmersiveRailroading.warn("Unloading IR sound system");
 			manager.stop();
 			sndCache = null;
 		}
 		
 		if (world != null) {
+			StockRenderCache.tryPrime();
+			
 			if (magical == null) {
 				magical = new MagicEntity(world);
 				world.spawnEntityInWorld(magical);
@@ -636,9 +730,6 @@ public class ClientProxy extends CommonProxy {
 			}
 		}
 		
-		if (tickCount % 40 == 39 ) {
-			StockRenderCache.doImageCache();
-		}
 		tickCount++;
 		manager.tick();
 	}

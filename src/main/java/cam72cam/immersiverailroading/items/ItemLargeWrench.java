@@ -55,7 +55,6 @@ public class ItemLargeWrench extends ItemTool {
 		} else {
 			for (String key : MultiblockRegistry.keys()) {
 				if (MultiblockRegistry.get(key).tryCreate(world, pos)) {
-					System.out.print("DONE");
 					return EnumActionResult.SUCCESS;
 				}
 			}
