@@ -14,14 +14,14 @@
 		"weight_kg": 71803
 	},
 	"firebox": {
-		"slots": 18,
-		"width": 6
+		"slots": 10,
+		"width": 5
 	},
 	"passenger": {
 		"slots": 2,
-		"center_x": -3.6,
+		"center_x": -4,
 		"center_y": 2.17,
-		"length": 1.27,
+		"length": 1.1,
 		"width": 2.98
 	},
 	"trucks": {

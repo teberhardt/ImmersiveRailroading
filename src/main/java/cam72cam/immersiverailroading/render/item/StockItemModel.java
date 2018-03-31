@@ -2,17 +2,23 @@ package cam72cam.immersiverailroading.render.item;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+
 import cam72cam.immersiverailroading.ConfigGraphics;
+import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
 import cam72cam.immersiverailroading.render.OBJRender;
 import cam72cam.immersiverailroading.render.StockRenderCache;
 import cam72cam.immersiverailroading.util.GLBoolTracker;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -20,16 +26,21 @@ import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.client.model.ItemLayerModel;
 
 @SuppressWarnings("deprecation")
 public class StockItemModel implements IBakedModel {
 	private OBJRender model;
 	private double scale;
 	private String defID;
+	private ImmutableList<BakedQuad> iconQuads;
 
 	public StockItemModel() {
 	}
@@ -41,10 +52,12 @@ public class StockItemModel implements IBakedModel {
 		if (model == null) {
 			stack.setCount(0);
 		}
+		iconQuads = null;
 	}
 	
 	@Override
 	public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
+		
 		/*
 		 * I am an evil wizard!
 		 * 
@@ -57,24 +70,14 @@ public class StockItemModel implements IBakedModel {
 		 * before actually setting up the correct GL context.
 		 */
 		
-		if (this.defID != null && ConfigGraphics.enableIconCache) {
-			boolean hasIcon = StockRenderCache.renderIcon(defID);
-			if (!hasIcon) {
-				GLBoolTracker tex = new GLBoolTracker(GL11.GL_TEXTURE_2D, model.hasTexture());
-				GLBoolTracker cull = new GLBoolTracker(GL11.GL_CULL_FACE, false);
-				
-				GL11.glPushMatrix();
-				double scale = 0.2 * Math.sqrt(this.scale);
-				GL11.glScaled(scale, scale, scale);
-				model.bindTexture();
-				model.draw();
-				model.restoreTexture();
-				GL11.glPopMatrix();
-				
-				tex.restore();
-				cull.restore();
+		
+		if (ConfigGraphics.enableIconCache) {
+			if (iconQuads != null) {
+				return iconQuads.asList();
 			}
-		} else if (model != null) {
+		}
+		
+		if (model != null) {
 			GLBoolTracker tex = new GLBoolTracker(GL11.GL_TEXTURE_2D, model.hasTexture());
 			GLBoolTracker cull = new GLBoolTracker(GL11.GL_CULL_FACE, false);
 			
@@ -134,6 +137,20 @@ public class StockItemModel implements IBakedModel {
 	@Override
 	public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
 		Pair<? extends IBakedModel, Matrix4f> defaultVal = ForgeHooksClient.handlePerspective(this, cameraTransformType);
+		
+		if (ConfigGraphics.enableIconCache && this.defID != null) {
+			if (iconQuads == null) {
+				TextureMap map = Minecraft.getMinecraft().getTextureMapBlocks();
+				TextureAtlasSprite sprite = map.getAtlasSprite(new ResourceLocation(ImmersiveRailroading.MODID, defID).toString());
+				if (!sprite.equals(map.getMissingSprite())) {					
+					iconQuads = ItemLayerModel.getQuadsForSprite(-1, sprite, DefaultVertexFormats.ITEM, Optional.empty());
+				}
+			}
+			if (iconQuads != null) {
+				return defaultVal;
+			}
+		}
+		
 		switch (cameraTransformType) {
 		case THIRD_PERSON_LEFT_HAND:
 		case THIRD_PERSON_RIGHT_HAND:
@@ -161,6 +178,19 @@ public class StockItemModel implements IBakedModel {
 	*/
 	@Override
 	public ItemCameraTransforms getItemCameraTransforms() {
+		if (ConfigGraphics.enableIconCache && this.defID != null) {
+			if (iconQuads == null) {
+				TextureMap map = Minecraft.getMinecraft().getTextureMapBlocks();
+				TextureAtlasSprite sprite = map.getAtlasSprite(new ResourceLocation(ImmersiveRailroading.MODID, defID).toString());
+				if (!sprite.equals(map.getMissingSprite())) {
+					iconQuads = ItemLayerModel.getQuadsForSprite(-1, sprite, DefaultVertexFormats.ITEM, Optional.absent());
+				}
+			}
+			if (iconQuads != null) {
+				return ItemCameraTransforms.DEFAULT;
+			}
+		}
+		
 		return new ItemCameraTransforms(ItemCameraTransforms.DEFAULT) {
 			public ItemTransformVec3f getTransform(ItemCameraTransforms.TransformType type) {
 				switch (type) {

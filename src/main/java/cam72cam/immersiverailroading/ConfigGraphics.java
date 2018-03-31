@@ -14,14 +14,14 @@ public class ConfigGraphics {
 	@Comment("Enable Particles")
 	public static boolean particlesEnabled = true;
 
-	@Comment("Enable priming of item render cache.  Disable this if you keep crashing right before the loading screen")
+	@Comment("Enable priming of item render cache.  Disable this if you keep crashing in the world loading screen")
 	public static boolean enableItemRenderPriming = true;
 
 	@Comment({ "Override GPU Max texture settings !DEV USE ONLY! (-1 == disable)" })
 	public static int overrideGPUTexSize = -1;
 
 	@RequiresMcRestart
-	@Comment("Use Icon Cache (experimental)")
+	@Comment("Generate static icons.  Drastically reduces render overhead for IR items")
 	public static boolean enableIconCache = false;
 
 	@Comment("If you are having render problems in game, try setting this to false")
