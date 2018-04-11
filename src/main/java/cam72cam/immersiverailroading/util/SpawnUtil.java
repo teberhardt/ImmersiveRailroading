@@ -64,7 +64,7 @@ public class SpawnUtil {
 				stack.stackSize = (stack.stackSize-1);
 				player.setHeldItem(hand, stack);
 			}
-			return EnumActionResult.PASS;
+			return EnumActionResult.SUCCESS;
 		}
 		return EnumActionResult.FAIL;
 	}

@@ -3,10 +3,10 @@ package cam72cam.immersiverailroading.gui;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import cam72cam.immersiverailroading.util.BurnUtil;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -130,7 +130,53 @@ public abstract class ContainerBase extends Container implements ISyncableSlots 
             }
         }
     }
+
+
+	@Override
+	public final boolean canInteractWith(EntityPlayer playerIn) {
+		return true;
+	}
 	
+	public abstract int numSlots();
+	
+	@Override
+	@Nullable
+    public ItemStack transferStackInSlot(EntityPlayer playerIn, int index)
+    {
+        ItemStack itemstack = null;
+        Slot slot = (Slot)this.inventorySlots.get(index);
+
+        if (slot != null && slot.getHasStack())
+        {
+            ItemStack itemstack1 = slot.getStack();
+            itemstack = itemstack1.copy();
+
+            if (index < this.numSlots())
+            {
+                if (!this.mergeItemStack(itemstack1, this.numSlots(), this.inventorySlots.size(), true))
+                {
+                    return null;
+                }
+            }
+            else if (!this.mergeItemStack(itemstack1, 0, this.numSlots(), false))
+            {
+                return null;
+            }
+
+            if (itemstack1.stackSize == 0)
+            {
+                slot.putStack((ItemStack)null);
+            }
+            else
+            {
+                slot.onSlotChanged();
+            }
+        }
+
+        return itemstack;
+    }
+	
+	/*
 	@Override 
 	public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, EntityPlayer player) {
 		try {
@@ -139,7 +185,7 @@ public abstract class ContainerBase extends Container implements ISyncableSlots 
 			// This is a crappy hack
 			return null; 
 		}
-	}
+	}*/
 	
 	public static class FilteredSlot extends SlotItemHandler {
 		private Function<ItemStack, Boolean> fn;

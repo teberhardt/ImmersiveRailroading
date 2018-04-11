@@ -16,12 +16,14 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.ArrayList;
 import java.util.List;
 
+import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.SwitchState;
 import cam72cam.immersiverailroading.library.TrackDirection;
 import cam72cam.immersiverailroading.library.TrackItems;
 import cam72cam.immersiverailroading.track.TrackBase;
+import cam72cam.immersiverailroading.track.TrackRail;
 import cam72cam.immersiverailroading.util.RailInfo;
 
 public class TileRail extends TileRailBase {
@@ -279,13 +281,26 @@ public class TileRail extends TileRailBase {
 	}
 
 	public double percentFloating() {
-		RailInfo buildInfo = new RailInfo(getPos(), getWorld(), getFacing().getOpposite(), getType(), getDirection(), getLength(), getRotationQuarter(), getTurnQuarters(), getGauge(), getPlacementPosition(), getRailBed(), null, null);
+		RailInfo buildInfo = this.getRailRenderInfo().clone();
+		if (info == null) {
+			return 0;
+		}
 		
-		List<TrackBase> tracks = buildInfo.getBuilder(pos).getTracksForRender();
+		List<TrackBase> tracks = buildInfo.getBuilder().getTracksForRender();
 		double floating = 0;
 		
+		BlockPos offset = null;
 		for (TrackBase track : tracks) {
-			if (!worldObj.isSideSolid(track.getPos().down(), EnumFacing.UP, false)) {
+			if (track instanceof TrackRail) {
+				offset = this.getPos().subtract(new BlockPos(track.getPos().getX(), 0, track.getPos().getZ()));
+				break;
+			}
+		}
+		
+		for (TrackBase track : tracks) {
+			BlockPos tpos = track.getPos().down().add(offset);
+			boolean isOnRealBlock = worldObj.isSideSolid(tpos, EnumFacing.UP, false) || !Config.ConfigDamage.requireSolidBlocks && !worldObj.isAirBlock(tpos);
+			if (!isOnRealBlock) {
 				floating += 1.0 / tracks.size();
 			}
 		}
