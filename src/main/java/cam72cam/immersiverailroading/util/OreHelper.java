@@ -42,6 +42,8 @@ public class OreHelper {
 				}
 			}
 			
+			ores = NonNullList.create();
+			
 			ores.add(fallback);
 			
 			return ores;
