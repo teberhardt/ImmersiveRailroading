@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import cam72cam.immersiverailroading.Config.ConfigDebug;
 import cam72cam.immersiverailroading.proxy.ChunkManager;
 import cam72cam.immersiverailroading.proxy.CommonProxy;
+import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -17,6 +18,8 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+
+import cam72cam.immersiverailroading.util.DataSerializerUtil;
 
 @Mod(modid = ImmersiveRailroading.MODID, name="ImmersiveRailroading", version = ImmersiveRailroading.VERSION, acceptedMinecraftVersions = "[1.11,1.12)", dependencies = "required-after:trackapi@[1.1,);after:immersiveengineering")
 public class ImmersiveRailroading
@@ -39,6 +42,8 @@ public class ImmersiveRailroading
     public void preInit(FMLPreInitializationEvent event) throws IOException {
         logger = event.getModLog();
         instance = this;
+
+    	DataSerializers.registerSerializer(DataSerializerUtil.COMPOUND_TAG);
         
         World.MAX_ENTITY_RADIUS = 32;
         

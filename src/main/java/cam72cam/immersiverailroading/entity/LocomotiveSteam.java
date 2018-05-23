@@ -106,14 +106,14 @@ public class LocomotiveSteam extends Locomotive {
 	}
 	
 	public float getBoilerTemperature() {
-		return this.dataManager.get(BOILER_TEMPERATURE);
+		return this.dataManager.get(BOILER_TEMPERATURE).floatValue();
 	}
 	private void setBoilerTemperature(float temp) {
 		this.dataManager.set(BOILER_TEMPERATURE, temp);
 	}
 	
 	public float getBoilerPressure() {
-		return this.dataManager.get(BOILER_PRESSURE);
+		return this.dataManager.get(BOILER_PRESSURE).floatValue();
 	}
 	private void setBoilerPressure(float temp) {
 		this.dataManager.set(BOILER_PRESSURE, temp);

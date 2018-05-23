@@ -2,6 +2,7 @@ package cam72cam.immersiverailroading.entity;
 
 
 import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;
@@ -207,7 +208,7 @@ public abstract class Locomotive extends FreightTank {
 	 */
 	
 	public float getThrottle() {
-		return dataManager.get(THROTTLE);
+		return dataManager.get(THROTTLE).floatValue();
 	}
 	public void setThrottle(float newThrottle) {
 		if (this.getThrottle() != newThrottle) {
@@ -221,7 +222,7 @@ public abstract class Locomotive extends FreightTank {
 	}
 	
 	public float getAirBrake() {
-		return dataManager.get(AIR_BRAKE);
+		return dataManager.get(AIR_BRAKE).floatValue();
 	}
 	public void setAirBrake(float newAirBrake) {
 		if (this.getAirBrake() != newAirBrake) {

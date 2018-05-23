@@ -25,8 +25,4 @@ public class DataSerializerUtil {
             return new DataParameter<NBTTagCompound>(id, this);
         }
     };
-    
-    static {
-    	DataSerializers.registerSerializer(COMPOUND_TAG);
-    }
 }
