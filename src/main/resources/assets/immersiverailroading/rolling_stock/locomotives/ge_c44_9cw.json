@@ -9,7 +9,7 @@
 		"fuel_capacity_l": 17400,
 		"horsepower": 4400,
 		"tractive_effort_lbf": 142000,
-		"max_speed_kmh": 150,
+		"max_speed_kmh": 112,
 		"weight_kg": 181436
 	},
 	"passenger": {
@@ -26,5 +26,9 @@
 	"couplers": {
 		"front_offset": -0.08,
 		"rear_offset": -0.08
+	},
+	"sounds": {
+		"horn": "sounds/diesel/c44_9w/horn.ogg",
+		"idle": "sounds/diesel/c44_9w/notch6.ogg"
 	}
 }

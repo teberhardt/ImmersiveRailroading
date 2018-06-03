@@ -20,6 +20,7 @@ import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.net.MRSSyncPacket;
+import cam72cam.immersiverailroading.net.SoundPacket;
 import cam72cam.immersiverailroading.physics.PhysicsAccummulator;
 import cam72cam.immersiverailroading.physics.TickPos;
 import cam72cam.immersiverailroading.proxy.ChunkManager;
@@ -156,7 +157,14 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 				}
 			} else {
 				if (this.isCoupled(coupler) && this.isCouplerEngaged(coupler)) {
-					player.sendMessage(ChatText.COUPLER_STATUS_COUPLED.getMessage(coupler, this.getCoupled(coupler).getDefinition().name()));
+					EntityCoupleableRollingStock coupled = this.getCoupled(coupler);
+					player.sendMessage(ChatText.COUPLER_STATUS_COUPLED.getMessage(
+							coupler,
+							coupled.getDefinition().name(),
+							coupled.getPosition().getX(),
+							coupled.getPosition().getY(),
+							coupled.getPosition().getZ()
+					));
 				} else {
 					if (this.isCouplerEngaged(coupler)) {
 						player.sendMessage(ChatText.COUPLER_STATUS_DECOUPLED_ENGAGED.getMessage(coupler));
@@ -240,6 +248,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 				CouplerType otherCoupler = potential.getRight();
 				this.setCoupledUUID(coupler, stock.getPersistentID());
 				stock.setCoupledUUID(otherCoupler, this.getPersistentID());
+				this.sendToObserving(new SoundPacket("immersiverailroading:sounds/default/coupling.ogg", this.getCouplerPosition(coupler), this.getVelocity(), 1, 1, 200, gauge));
 			}
 		}
 	}
@@ -525,6 +534,9 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 	}
 	
 	public boolean isCouplerEngaged(CouplerType coupler) {
+		if (coupler == null) {
+			return false;
+		}
 		switch (coupler) {
 		case FRONT:
 			return frontCouplerEngaged;
