@@ -28,6 +28,7 @@ public class ClientSound implements ISound {
 	private float currentVolume = 1;
 	private float baseSoundMultiplier;
 	private Gauge gauge;
+	private boolean disposable = false;
 
 	public ClientSound(Supplier<SoundSystem> soundSystem, ResourceLocation oggLocation, URL resource, float baseSoundMultiplier, boolean repeats, float attenuationDistance, Gauge gauge) {
 		this.sndSystem = soundSystem;
@@ -155,5 +156,15 @@ public class ClientSound implements ISound {
 	public void reload() {
 		// Force re-create sound
 		id = null;
+	}
+
+	@Override
+	public void disposable() {
+		disposable = true;
+	}
+
+	@Override
+	public boolean isDisposable() {
+		return disposable;
 	}
 }

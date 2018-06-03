@@ -105,14 +105,14 @@ public class LocomotiveSteam extends Locomotive {
 	}
 	
 	public float getBoilerTemperature() {
-		return this.dataManager.get(BOILER_TEMPERATURE);
+		return this.dataManager.get(BOILER_TEMPERATURE).floatValue();
 	}
 	private void setBoilerTemperature(float temp) {
 		this.dataManager.set(BOILER_TEMPERATURE, temp);
 	}
 	
 	public float getBoilerPressure() {
-		return this.dataManager.get(BOILER_PRESSURE);
+		return this.dataManager.get(BOILER_PRESSURE).floatValue();
 	}
 	private void setBoilerPressure(float temp) {
 		this.dataManager.set(BOILER_PRESSURE, temp);
@@ -275,7 +275,7 @@ public class LocomotiveSteam extends Locomotive {
 						int lifespan = (int) (200 * (1 + Math.abs(this.getThrottle())) * smokeMod * gauge.scale());
 						//lifespan *= size;
 						
-						float verticalSpeed = (0.5f + Math.abs(this.getThrottle())) * (float)gauge.scale();
+						float verticalSpeed = 0.5f;//(0.5f + Math.abs(this.getThrottle())) * (float)gauge.scale();
 						
 						double size = smoke.width() * (0.8 + smokeMod);
 						if (phase != 0 && Math.abs(this.getThrottle()) > 0.01 && Math.abs(this.getCurrentSpeed().metric()) / gauge.scale() < 30) {
@@ -294,6 +294,30 @@ public class LocomotiveSteam extends Locomotive {
 				}
 			}
 			
+			List<RenderComponent> whistles = this.getDefinition().getComponents(RenderComponentType.WHISTLE, gauge);
+			if (	whistles != null &&
+					(this.getDataManager().get(HORN) != 0 || whistle != null && whistle.isPlaying()) && 
+					(this.getBoilerPressure() > 0 || !Config.isFuelRequired(gauge))
+				) {
+				for (RenderComponent whistle : whistles) {
+					Vec3d particlePos = this.getPositionVector().add(VecUtil.rotateYaw(whistle.center(), this.rotationYaw + 180)).addVector(0, 0.35 * gauge.scale(), 0);
+					particlePos = particlePos.subtract(fakeMotion);
+					
+					float darken = 0;
+					float thickness = 1;
+					double smokeMod = Math.min(1, Math.max(0.2, Math.abs(this.getCurrentSpeed().minecraft())*2));
+					int lifespan = (int) (40 * (1 + smokeMod * gauge.scale()));
+					float verticalSpeed = 0.8f;
+					double size = 0.3 * (0.8 + smokeMod);
+					
+					particlePos = particlePos.subtract(fakeMotion);
+					
+					EntitySmokeParticle sp = new EntitySmokeParticle(worldObj, lifespan, darken, thickness, size);
+					sp.setPosition(particlePos.xCoord, particlePos.yCoord, particlePos.zCoord);
+					sp.setVelocity(fakeMotion.xCoord, fakeMotion.yCoord + verticalSpeed, fakeMotion.zCoord);
+					worldObj.spawnEntityInWorld(sp);
+				}
+			}
 			List<RenderComponent> pistons = this.getDefinition().getComponents(RenderComponentType.PISTON_ROD_SIDE, gauge);
 			double csm = Math.abs(this.getCurrentSpeed().metric()) / gauge.scale();
 			if (pistons != null && (this.getBoilerPressure() > 0 || !Config.isFuelRequired(gauge))) {

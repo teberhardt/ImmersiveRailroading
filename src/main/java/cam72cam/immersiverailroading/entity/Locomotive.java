@@ -207,7 +207,7 @@ public abstract class Locomotive extends FreightTank {
 	 */
 	
 	public float getThrottle() {
-		return dataManager.get(THROTTLE);
+		return dataManager.get(THROTTLE).floatValue();
 	}
 	public void setThrottle(float newThrottle) {
 		if (this.getThrottle() != newThrottle) {
@@ -221,7 +221,7 @@ public abstract class Locomotive extends FreightTank {
 	}
 	
 	public float getAirBrake() {
-		return dataManager.get(AIR_BRAKE);
+		return dataManager.get(AIR_BRAKE).floatValue();
 	}
 	public void setAirBrake(float newAirBrake) {
 		if (this.getAirBrake() != newAirBrake) {

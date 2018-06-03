@@ -1,5 +1,6 @@
 package cam72cam.immersiverailroading.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.block.Block;
@@ -42,7 +43,7 @@ public class OreHelper {
 				}
 			}
 			
-			ores = NonNullList.create();
+			ores = new ArrayList<ItemStack>();
 			
 			ores.add(fallback);
 			
