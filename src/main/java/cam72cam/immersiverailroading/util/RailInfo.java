@@ -19,6 +19,7 @@ import cam72cam.immersiverailroading.track.BuilderSlope;
 import cam72cam.immersiverailroading.track.BuilderStraight;
 import cam72cam.immersiverailroading.track.BuilderSwitch;
 import cam72cam.immersiverailroading.track.BuilderTurn;
+import cam72cam.immersiverailroading.track.BuilderTurnTable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -42,9 +43,10 @@ public class RailInfo {
 
 	// Used for tile rendering only
 	public SwitchState switchState = SwitchState.NONE;
+	public double tablePos = 0;
 	
 	
-	public RailInfo(BlockPos position, World world, EnumFacing facing, TrackItems type, TrackDirection direction, int length, int quarter, int quarters, Gauge gauge, Vec3d placementPosition, ItemStack railBed, ItemStack railBedFill, SwitchState switchState) {
+	public RailInfo(BlockPos position, World world, EnumFacing facing, TrackItems type, TrackDirection direction, int length, int quarter, int quarters, Gauge gauge, Vec3d placementPosition, ItemStack railBed, ItemStack railBedFill, SwitchState switchState, double tablePos) {
 		this.position = position;
 		this.world = world;
 		this.facing = facing;
@@ -58,6 +60,7 @@ public class RailInfo {
 		this.railBed = railBed;
 		this.railBedFill = railBedFill;
 		this.switchState = switchState;
+		this.tablePos = tablePos;
 	}
 	
 	public RailInfo(ItemStack stack, World worldIn, float yawHead, BlockPos pos, float hitX, float hitY, float hitZ) {
@@ -70,23 +73,40 @@ public class RailInfo {
 		railBedFill = ItemTrackBlueprint.getBedFill(stack);
 		world = worldIn;
 		TrackPositionType posType = ItemTrackBlueprint.getPosType(stack);
+		direction = ItemTrackBlueprint.getDirection(stack);
 		
 		yawHead = yawHead % 360 + 360;
-		direction = (yawHead % 90 < 45) ? TrackDirection.RIGHT : TrackDirection.LEFT;
+		if (direction == TrackDirection.NONE) {
+			direction = (yawHead % 90 < 45) ? TrackDirection.LEFT : TrackDirection.RIGHT;
+		}
 		//quarter = MathHelper.floor((yawHead % 90f) /(90)*4);
 		float yawPartial = (yawHead+3600) % 90f;
-		if (direction == TrackDirection.LEFT) {
+		if (direction == TrackDirection.RIGHT) {
 			yawPartial = 90-yawPartial;
 		}
-		if (yawPartial < 15) {
+		if (yawPartial < 90.0/8*1) {
 			quarter = 0;
-		} else if (yawPartial < 30) {
+		} else if (yawPartial < 90.0/8*3) {
 			quarter = 1;
-		} else {
+		} else if (yawPartial < 90.0/8*5) {
 			quarter = 2;
+		} else if (yawPartial < 90.0/8*7){
+			quarter = 3;
+		} else {
+			quarter = 0;
+			if (direction == TrackDirection.RIGHT) {
+				yawHead -= 90;
+			} else {
+				yawHead += 90;
+			}
 		}
 		
-		facing = EnumFacing.fromAngle(yawHead);
+		//facing = EnumFacing.fromAngle(yawHead);
+		if (direction == TrackDirection.RIGHT) {
+			facing = EnumFacing.fromAngle(yawHead + 45);
+		} else {
+			facing = EnumFacing.fromAngle(yawHead - 45);
+		}
 
 		
 		switch(posType) {
@@ -151,7 +171,7 @@ public class RailInfo {
 	
 	@Override
 	public RailInfo clone() {
-		RailInfo c = new RailInfo(position, world, facing, type, direction, length, quarter, quarters, gauge, placementPosition, railBed, railBedFill, switchState);
+		RailInfo c = new RailInfo(position, world, facing, type, direction, length, quarter, quarters, gauge, placementPosition, railBed, railBedFill, switchState, tablePos);
 		return c;
 	}
 	
@@ -167,9 +187,10 @@ public class RailInfo {
 			return new BuilderTurn(this, pos);
 		case SWITCH:
 			return new BuilderSwitch(this, pos);
-		default:
-			return null;
+		case TURNTABLE:
+			return new BuilderTurnTable(this, pos);
 		}
+		return null;
 	}
 	
 	private BuilderBase builder;

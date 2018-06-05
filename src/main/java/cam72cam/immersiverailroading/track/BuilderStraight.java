@@ -26,7 +26,7 @@ public class BuilderStraight extends BuilderBase {
 	public BuilderStraight(RailInfo info, BlockPos pos, boolean endOfTrack) {
 		super(info, pos);
 		
-		if (info.direction == TrackDirection.LEFT) {
+		if (info.direction == TrackDirection.RIGHT) {
 			info.quarter = -info.quarter; 
 		}
 		
@@ -40,7 +40,7 @@ public class BuilderStraight extends BuilderBase {
 		for (float dist = 0; dist < actualLength; dist += 0.25) {
 			Vec3d gagPos = VecUtil.fromYaw(dist, angle);
 			for (double q = -gauge.value(); q <= gauge.value(); q+=0.1) {
-				Vec3d nextUp = VecUtil.fromYaw(q, 90);
+				Vec3d nextUp = VecUtil.fromYaw(q, 90 + angle);
 				int posX = (int)(gagPos.xCoord+nextUp.xCoord);
 				int posZ = (int)(gagPos.zCoord+nextUp.zCoord);
 				positions.add(Pair.of(posX, posZ));
@@ -49,7 +49,7 @@ public class BuilderStraight extends BuilderBase {
 				}
 			}
 			if (endOfTrack) {
-				if (Math.ceil(dist) == Math.ceil(actualLength)) {
+				if (Math.ceil(dist) == Math.ceil(actualLength-1)) {
 					mainX = (int) gagPos.xCoord;
 					mainZ = (int) gagPos.zCoord;
 				}
@@ -87,11 +87,13 @@ public class BuilderStraight extends BuilderBase {
 	public List<VecYawPitch> getRenderData() {
 		List<VecYawPitch> data = new ArrayList<VecYawPitch>();
 		
-		Vec3d pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, 0), angle-90);
+		Vec3d pos = VecUtil.rotateYaw(new Vec3d(0, 0, info.length/2.0-0.5), angle-90);
 		data.add(new VecYawPitch(pos.xCoord, pos.yCoord, pos.zCoord, -angle, 0, info.length, "RAIL_RIGHT", "RAIL_LEFT"));
 		
-		for (double i = 0; i < info.length-gauge.scale()/2; i+=gauge.scale()) {
-			pos = VecUtil.rotateYaw(new Vec3d(-0.5, 0, i), angle-90);
+		double trackOffset = (1-info.gauge.scale())/4;
+		
+		for (double i = -trackOffset; i < info.length - trackOffset; i+=gauge.scale()) {
+			pos = VecUtil.rotateYaw(new Vec3d(0, 0, i-0.25), angle-90);
 			data.add(new VecYawPitch(pos.xCoord, pos.yCoord, pos.zCoord, -angle, "RAIL_BASE"));
 		}
 		return data;
