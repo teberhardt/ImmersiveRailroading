@@ -29,6 +29,8 @@ public abstract class TrackBase {
 
 	private BlockPos parent;
 
+	public boolean solidNotRequired;
+
 	public TrackBase(BuilderBase builder, int rel_x, int rel_y, int rel_z, Block block, EnumFacing rel_rotation) {
 		this.builder = builder;
 		this.rel_x = rel_x;
@@ -41,8 +43,9 @@ public abstract class TrackBase {
 	public boolean canPlaceTrack() {
 		PosRot pos = getPos();
 		IBlockState down = builder.world.getBlockState(pos.down());
-		boolean downOK = (down.isSideSolid(builder.world, pos.down(), EnumFacing.UP) || !Config.ConfigDamage.requireSolidBlocks && !builder.world.isAirBlock(pos.down())) || 
-				(BlockUtil.canBeReplaced(builder.world, pos.down(), false) && builder.info.railBedFill.getItem() != Items.AIR);
+		boolean downOK = (down.isTopSolid() || !Config.ConfigDamage.requireSolidBlocks && !builder.world.isAirBlock(pos.down())) || 
+				(BlockUtil.canBeReplaced(builder.world, pos.down(), false) && builder.info.railBedFill.getItem() != Items.AIR) ||
+				solidNotRequired || BlockUtil.isIRRail(builder.world, pos);
 		return BlockUtil.canBeReplaced(builder.world, pos, flexible || builder.overrideFlexible) && downOK;
 	}
 

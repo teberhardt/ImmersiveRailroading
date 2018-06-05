@@ -2,7 +2,6 @@ package cam72cam.immersiverailroading.entity;
 
 
 import cam72cam.immersiverailroading.Config;
-import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.library.KeyTypes;

@@ -18,13 +18,16 @@ import java.util.List;
 
 import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
+import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.SwitchState;
 import cam72cam.immersiverailroading.library.TrackDirection;
 import cam72cam.immersiverailroading.library.TrackItems;
+import cam72cam.immersiverailroading.track.BuilderTurn;
 import cam72cam.immersiverailroading.track.TrackBase;
 import cam72cam.immersiverailroading.track.TrackRail;
 import cam72cam.immersiverailroading.util.RailInfo;
+import cam72cam.immersiverailroading.util.VecUtil;
 
 public class TileRail extends TileRailBase {
 	public static TileRail get(IBlockAccess world, BlockPos pos) {
@@ -41,6 +44,7 @@ public class TileRail extends TileRailBase {
 	private Vec3d center;
 	
 	private SwitchState switchState = SwitchState.NONE;
+	private double tablePos = 0;
 	
 	private int length;
 	private int rotationQuarter;
@@ -106,19 +110,14 @@ public class TileRail extends TileRailBase {
 
 	public Vec3d getCenter() {
 		if (center == null) {
-			return null;
+			Vec3d off = BuilderTurn.followCurve(this.getRailRenderInfo(), 1, null);
+			off = VecUtil.rotateYaw(off, this.facing.getHorizontalAngle() + 90);
+			center = new Vec3d(-off.x, 0, -off.z).add(this.getPlacementPosition());
 		}
-		return center.addVector(pos.getX(), pos.getY(), pos.getZ());
+		return center;
 	}
 	public double getRadius() {
 		return length;
-	}
-	public void setCenter(Vec3d center) {
-		if (center != null) {
-			this.center = center.subtract(pos.getX(), pos.getY(), pos.getZ());
-		} else {
-			this.center = center;
-		}
 	}
 
 	public TrackDirection getDirection() {
@@ -164,6 +163,18 @@ public class TileRail extends TileRailBase {
 		this.turnQuarters = quarters;
 	}
 	
+	public double getTablePos() {
+		return tablePos;
+	}
+	public void nextTablePos(boolean back) {
+		tablePos = (tablePos + 1.0/length * (back ? 1 : -1)) % 8;
+		this.markDirty();
+		
+		List<EntityCoupleableRollingStock> ents = world.getEntitiesWithinAABB(EntityCoupleableRollingStock.class, new AxisAlignedBB(-length, 0, -length, length, 5, length).offset(this.getPos()));
+		for(EntityCoupleableRollingStock stock : ents) {
+			stock.triggerResimulate();
+		}
+	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
@@ -209,9 +220,9 @@ public class TileRail extends TileRailBase {
 		}
 		
 		railBed = new ItemStack(nbt.getCompoundTag("railBed"));
-		center = getNBTVec3d(nbt, "center");
 		placementPosition = getNBTVec3d(nbt, "placementPosition");
 		gauge = Gauge.from(nbt.getDouble("gauge"));
+		tablePos = nbt.getDouble("tablePos");
 	}
 
 	@Override
@@ -242,9 +253,10 @@ public class TileRail extends TileRailBase {
 		}
 		
 		nbt.setTag("railBed", railBed.serializeNBT());
-		setNBTVec3d(nbt, "center", center);
 		setNBTVec3d(nbt, "placementPosition", placementPosition);
 		nbt.setDouble("gauge", gauge.value());
+		
+		nbt.setDouble("tablePos", tablePos);
 		
 		return super.writeToNBT(nbt);
 	}
@@ -255,10 +267,11 @@ public class TileRail extends TileRailBase {
 			return null;
 		}
 		if (info == null) {
-			info = new RailInfo(getPos(), getWorld(), getFacing().getOpposite(), getType(), getDirection(), getLength(), getRotationQuarter(), getTurnQuarters(), getGauge(), getPlacementPosition(), getRailBed(), ItemStack.EMPTY, null);
+			info = new RailInfo(getPos(), getWorld(), getFacing().getOpposite(), getType(), getDirection(), getLength(), getRotationQuarter(), getTurnQuarters(), getGauge(), getPlacementPosition(), getRailBed(), ItemStack.EMPTY, null, 0);
 		}
 		// Changes moment to moment
 		info.switchState = switchState;
+		info.tablePos = tablePos;
 		
 		return info;
 	}

@@ -2,8 +2,6 @@ package cam72cam.immersiverailroading.blocks;
 
 import javax.annotation.Nonnull;
 
-import cam72cam.immersiverailroading.Config.ConfigBalance;
-import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.ItemTabs;
@@ -93,8 +91,8 @@ public abstract class BlockRailBase extends Block {
 			}
 			
 			breakParentIfExists(te);
+			world.markTileEntityForRemoval(te);
 		}
-		super.breakBlock(world, pos, state);
 	}
 	
 	public static void breakParentIfExists(TileRailBase te) {
@@ -199,27 +197,8 @@ public abstract class BlockRailBase extends Block {
 		if (tileEntity.getWorld().isRemote) {
 			return;
 		}
-		boolean isOriginAir = tileEntity.getParentTile() == null || tileEntity.getParentTile().getParentTile() == null;
-		boolean isOnRealBlock = world.isSideSolid(pos.down(), EnumFacing.UP, false) || !Config.ConfigDamage.requireSolidBlocks && !world.isAirBlock(pos.down());
 		
-		if (isOriginAir) {
-			if (tryBreakRail(world, pos)) { 
-				tileEntity.getWorld().destroyBlock(pos, true);
-			}
-			return;
-		}
-		
-		if (!isOnRealBlock) {
-			double floating = tileEntity.getParentTile().percentFloating();
-			if (floating > ConfigBalance.trackFloatingPercent) {
-				if (tryBreakRail(world, pos)) {
-					tileEntity.getWorld().destroyBlock(pos, true);
-				}
-				return;
-			}
-		}
-		
-		
+		tileEntity.blockUpdate = true;
 		
 		IBlockState up = world.getBlockState(pos.up());
 		if (up.getBlock() == Blocks.SNOW_LAYER) {
