@@ -15,7 +15,7 @@ public class ItemGauge {
 	
 	public static Gauge get(ItemStack stack) {
 		if (stack == null) {
-			return Gauge.STANDARD;
+			return Gauge.from(Gauge.STANDARD);
 		}
 		if (stack.getTagCompound() != null && stack.getTagCompound().hasKey("gauge")){
 			return Gauge.from(stack.getTagCompound().getDouble("gauge"));
@@ -25,6 +25,6 @@ public class ItemGauge {
 		if (def != null) {
 			return def.recommended_gauge;
 		}
-		return Gauge.STANDARD;
+		return Gauge.from(Gauge.STANDARD);
 	}
 }

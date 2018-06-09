@@ -92,7 +92,7 @@ public class Config {
 		
 		@Comment("Villager payout items")
 		public static String[] villagerPayoutItems = new String[] {
-			Items.EMERALD.getRegistryName().toString(),
+			Items.EMERALD.getRegistryName().toString()
 		};
 		
 		public static List<Item> getVillagerPayout() {
@@ -135,7 +135,7 @@ public class Config {
 	}
 
 	public static boolean isFuelRequired(Gauge gauge) {
-		return !(!ConfigBalance.FuelRequired || (!ConfigBalance.ModelFuelRequired && gauge.equals(Gauge.MODEL)));
+		return !(!ConfigBalance.FuelRequired || (!ConfigBalance.ModelFuelRequired && gauge.isModel()));
 	}
 
 }
