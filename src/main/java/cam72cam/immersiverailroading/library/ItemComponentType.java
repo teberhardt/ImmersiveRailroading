@@ -30,6 +30,7 @@ public enum ItemComponentType {
 	BELL(AssemblyStep.SHELL, CraftingType.PLATE_SMALL, RenderComponentType.BELL),
 	WHISTLE(AssemblyStep.SHELL, CraftingType.PLATE_SMALL, RenderComponentType.WHISTLE),
 	HORN(AssemblyStep.SHELL, CraftingType.PLATE_SMALL, RenderComponentType.HORN),
+	WINDOW(AssemblyStep.SHELL, CraftingType.GLASS, RenderComponentType.WINDOW),
 	
 	// DIESEL
 	FUEL_TANK(AssemblyStep.SHELL, CraftingType.PLATE_MEDIUM, RenderComponentType.FUEL_TANK),

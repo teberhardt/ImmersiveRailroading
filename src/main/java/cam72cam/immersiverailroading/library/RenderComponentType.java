@@ -18,6 +18,7 @@ public enum RenderComponentType {
 	BELL("BELL"),
 	WHISTLE("WHISTLE"),
 	HORN("HORN"),
+	WINDOW("WINDOW"),
 	
 	// DIESEL
 	FUEL_TANK("FUEL_TANK"),
