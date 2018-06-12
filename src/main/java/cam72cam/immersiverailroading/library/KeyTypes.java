@@ -14,5 +14,6 @@ public enum KeyTypes {
 	PLAYER_BACKWARD,
 	PLAYER_LEFT,
 	PLAYER_RIGHT,
+	REVERSE_DIRECTION,
 	;
 }

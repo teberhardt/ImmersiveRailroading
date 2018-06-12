@@ -16,6 +16,10 @@ import cam72cam.immersiverailroading.util.BurnUtil;
 import cam72cam.immersiverailroading.util.FluidQuantity;
 import cam72cam.immersiverailroading.util.VecUtil;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.*;
@@ -26,6 +30,9 @@ public class LocomotiveDiesel extends Locomotive {
 	private ISound idle;
 	private float soundThrottle;
 	private float internalBurn = 0;
+	private static final float throttleNotch = 0.04f;
+	
+	private static DataParameter<Boolean> REVERSE = EntityDataManager.createKey(LocomotiveDiesel.class, DataSerializers.BOOLEAN);
 
 	public LocomotiveDiesel(World world) {
 		this(world, null);
@@ -33,6 +40,27 @@ public class LocomotiveDiesel extends Locomotive {
 
 	public LocomotiveDiesel(World world, String defID) {
 		super(world, defID);
+		this.getDataManager().register(REVERSE, false);
+	}
+	
+	public void setReverse(boolean value) {
+		this.getDataManager().set(REVERSE, value);
+	}
+	
+	public boolean getReverse() {
+		return this.getDataManager().get(REVERSE);
+	}
+	
+	@Override
+	protected void writeEntityToNBT(NBTTagCompound nbttagcompound) {
+		super.writeEntityToNBT(nbttagcompound);
+		nbttagcompound.setBoolean("reverse", getReverse());
+	}
+	
+	@Override
+	protected void readEntityFromNBT(NBTTagCompound nbttagcompound) {
+		super.readEntityFromNBT(nbttagcompound);
+		setReverse(nbttagcompound.getBoolean("reverse"));
 	}
 
 	@Override
@@ -51,8 +79,35 @@ public class LocomotiveDiesel extends Locomotive {
 	 */
 	@Override
 	public void handleKeyPress(Entity source, KeyTypes key) {
-		super.handleKeyPress(source, key);
-		
+		switch (key) {
+			case REVERSE_DIRECTION:
+				if (getReverse()) {
+					setReverse(false);
+				} else {
+					setReverse(true);
+				}
+				break;
+			case THROTTLE_UP:
+				if (getThrottle() < 1) {
+					if (!getReverse()) {
+						setThrottle(getThrottle() + throttleNotch);
+					} else {
+						setThrottle(getThrottle() - throttleNotch);
+					}
+				}
+				break;
+			case THROTTLE_DOWN:
+				if (getThrottle() > -1) {
+					if (!getReverse()) {
+						setThrottle(getThrottle() - throttleNotch);
+					} else {
+						setThrottle(getThrottle() + throttleNotch);
+					}
+				}
+				break;
+			default:
+				super.handleKeyPress(source, key);
+		}
 		this.mapTrain(this, true, false, this::setThrottleMap);
 	}
 	
