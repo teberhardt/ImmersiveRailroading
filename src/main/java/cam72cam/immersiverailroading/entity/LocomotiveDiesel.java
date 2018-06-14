@@ -31,8 +31,11 @@ public class LocomotiveDiesel extends Locomotive {
 	private float soundThrottle;
 	private float internalBurn = 0;
 	private static final float throttleNotch = 0.04f;
+	private int tick = 0;
+	private boolean canReverse = true;
 	
-	private static DataParameter<Boolean> REVERSE = EntityDataManager.createKey(LocomotiveDiesel.class, DataSerializers.BOOLEAN);
+	private static DataParameter<Integer> REVERSE = EntityDataManager.createKey(LocomotiveDiesel.class, DataSerializers.VARINT);
+	private static DataParameter<Float> FAKE_THROTTLE = EntityDataManager.createKey(LocomotiveDiesel.class, DataSerializers.FLOAT);
 
 	public LocomotiveDiesel(World world) {
 		this(world, null);
@@ -40,27 +43,38 @@ public class LocomotiveDiesel extends Locomotive {
 
 	public LocomotiveDiesel(World world, String defID) {
 		super(world, defID);
-		this.getDataManager().register(REVERSE, false);
+		this.getDataManager().register(REVERSE, 1);
+		this.getDataManager().register(FAKE_THROTTLE, 0f);
 	}
 	
-	public void setReverse(boolean value) {
+	public void setReverse(Integer value) {
 		this.getDataManager().set(REVERSE, value);
 	}
 	
-	public boolean getReverse() {
+	public Integer getReverse() {
 		return this.getDataManager().get(REVERSE);
+	}
+	
+	public void setFakeThrottle(Float value) {
+		this.getDataManager().set(FAKE_THROTTLE, value);
+	}
+	
+	public Float getFakeThrottle() {
+		return this.getDataManager().get(FAKE_THROTTLE);
 	}
 	
 	@Override
 	protected void writeEntityToNBT(NBTTagCompound nbttagcompound) {
 		super.writeEntityToNBT(nbttagcompound);
-		nbttagcompound.setBoolean("reverse", getReverse());
+		nbttagcompound.setInteger("reverse", getReverse());
+		nbttagcompound.setFloat("fake_throttle", getFakeThrottle());
 	}
 	
 	@Override
 	protected void readEntityFromNBT(NBTTagCompound nbttagcompound) {
 		super.readEntityFromNBT(nbttagcompound);
-		setReverse(nbttagcompound.getBoolean("reverse"));
+		setReverse(nbttagcompound.getInteger("reverse"));
+		setFakeThrottle(nbttagcompound.getFloat("fake_throttle"));
 	}
 
 	@Override
@@ -81,28 +95,31 @@ public class LocomotiveDiesel extends Locomotive {
 	public void handleKeyPress(Entity source, KeyTypes key) {
 		switch (key) {
 			case REVERSE_DIRECTION:
-				if (getReverse()) {
-					setReverse(false);
-				} else {
-					setReverse(true);
+				if (canReverse) {
+					if (getReverse() == 1) {
+						setReverse(-1);
+						canReverse = false;
+					} else {
+						setReverse(1);
+						canReverse = false;
+					}
+					setThrottle(getFakeThrottle() * getReverse());
 				}
 				break;
 			case THROTTLE_UP:
-				if (getThrottle() < 1) {
-					if (!getReverse()) {
-						setThrottle(getThrottle() + throttleNotch);
-					} else {
-						setThrottle(getThrottle() - throttleNotch);
-					}
+				if (getFakeThrottle() < 1) {
+					setFakeThrottle(getFakeThrottle() + throttleNotch);
+					setThrottle(getFakeThrottle() * getReverse());
 				}
 				break;
+			case THROTTLE_ZERO:
+				setFakeThrottle(0f);
+				setThrottle(0f);
+				break;
 			case THROTTLE_DOWN:
-				if (getThrottle() > -1) {
-					if (!getReverse()) {
-						setThrottle(getThrottle() - throttleNotch);
-					} else {
-						setThrottle(getThrottle() + throttleNotch);
-					}
+				if (getFakeThrottle() > -1) {
+					setFakeThrottle(getFakeThrottle() - throttleNotch);
+					setThrottle(getFakeThrottle() * getReverse());
 				}
 				break;
 			default:
@@ -221,6 +238,13 @@ public class LocomotiveDiesel extends Locomotive {
 			consumption *= gauge.scale();
 			
 			internalBurn -= consumption;
+		}
+		
+		if (!canReverse && tick < 20) {
+			tick++;
+		} else if (tick >= 20) {
+			tick = 0;
+			canReverse = true;
 		}
 	}
 	

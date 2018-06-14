@@ -77,4 +77,17 @@ public class LocomotiveOverlay extends Gui {
 		GL11.glPopMatrix();
 		currPosX += scalarWidth + scalarSpacer;
 	}
+	
+	public void drawReverse() {
+		drawRect(currPosX, currPosY + 40, currPosX + 40, currPosY + 50, 0xFF4d4d4d);
+		GL11.glPushMatrix();
+		{
+			GL11.glTranslated(currPosX + 20, currPosY + 42, 0);
+			double scale = 0.75;
+			GL11.glScaled(scale, scale, scale);
+			drawCenteredString(mc.fontRenderer, "Reverse", 0, 0, 0xFFFFFF);
+		}
+		GL11.glPopMatrix();
+		currPosX += 40;
+	}
 }
