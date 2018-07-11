@@ -23,6 +23,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import scala.reflect.internal.Trees.This;
 
 public class BlockRailPreview extends Block {
 	public static final String NAME = "block_rail_preview";
@@ -34,12 +35,20 @@ public class BlockRailPreview extends Block {
 	}
 
 	public static boolean tryBreakPreview(World world, BlockPos pos, EntityPlayer entityPlayer) {
+		System.out.println("1");
 		if (entityPlayer.isSneaking()) {
+			System.out.println("2");
 			TileRailPreview tr = TileRailPreview.get(world, pos);
 			if (tr != null) {
-				world.setBlockToAir(pos);
-				tr.getRailRenderInfo().build(entityPlayer, pos);
-				return true;
+				System.out.println("3");
+				System.out.println(tr.getRailRenderInfo().build(entityPlayer, pos));
+				if (tr.getRailRenderInfo().build(entityPlayer, pos)) {
+					System.out.println("5");
+					return true;
+				} else {
+					System.out.println("6");
+					return false;
+				}
 			}
 		}
 		return false;
