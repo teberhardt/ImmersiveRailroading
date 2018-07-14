@@ -1,4 +1,7 @@
 package cam72cam.immersiverailroading.entity;
+import java.util.ArrayList;
+import java.util.List;
+
 import cam72cam.immersiverailroading.Config.ConfigBalance;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.GuiTypes;
@@ -148,6 +151,20 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 	
 	public int getPercentCargoFull() {
 		return this.getDataManager().get(PERCENT_FULL);
+	}
+	
+	public int getItemCount() {
+		return this.getDataManager().get(CARGO_ITEMS);
+	}
+	
+	public List<ItemStack> getItems() {
+		List<ItemStack> items = new ArrayList<ItemStack>();
+		if (this.getInventorySize() != 0) {
+			for () {
+				items.add())
+			}
+		}
+		return items;
 	}
 
 	@Override

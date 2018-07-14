@@ -241,6 +241,47 @@ public class AugmentDriver implements DriverBlock {
 			return null;
 		}
 		
+		@Callback(doc = "function():table -- returns an info about the items inside the current wagon and its consist")
+		public Object[] itemCount(Context context, Arguments arguments) {
+			TileRailBase te = TileRailBase.get(world, pos);
+			EntityRollingStock stock = te.getStockNearBy(EntityRollingStock.class, null);
+			Freight freight = null;
+			if (stock instanceof Freight) {
+				freight = (Freight) stock;
+			}
+			Map<String, Object> items = new HashMap<String, Object>();
+			if (stock != null) {
+				if (freight.getInventorySize() != 0) {
+					for (ItemStack item : freight.getPer)
+					items.put("current_item_count", itemCount);
+				}
+			} else {
+				items.put("current_items", null);
+			}
+			return new Object[] { items };
+		}
+		
+		@Callback(doc = "function():table -- returns an info about the items inside the current wagon and its consist")
+		public Object[] currentItemInfo(Context context, Arguments arguments) {
+			TileRailBase te = TileRailBase.get(world, pos);
+			EntityRollingStock stock = te.getStockNearBy(EntityRollingStock.class, null);
+			Freight freight = null;
+			if (stock instanceof Freight) {
+				freight = (Freight) stock;
+			}
+			Map<String, Object> items = new HashMap<String, Object>();
+			if (stock != null) {
+				if (freight.getInventorySize() != 0) {
+					int itemCount = 0;
+					for
+					items.put("current_item_count", itemCount);
+				}
+			} else {
+				items.put("current_items", null);
+			}
+			return new Object[] { items };
+		}
+		
 		@Callback(doc = "function():table -- gets the stock's tag")
 		public Object[] getTag(Context context, Arguments arguments) {
 			TileRailBase te = TileRailBase.get(world, pos);
