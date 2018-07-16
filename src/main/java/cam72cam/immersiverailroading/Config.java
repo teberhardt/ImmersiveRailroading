@@ -1,7 +1,9 @@
 package cam72cam.immersiverailroading;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cam72cam.immersiverailroading.library.Gauge;
 import net.minecraft.init.Items;
@@ -39,6 +41,7 @@ public class Config {
 	public static ConfigBalance balance;
 
 	public static class ConfigBalance {
+		
 		@Comment("Models require fuel")
 		public static boolean ModelFuelRequired = true;
 
@@ -78,8 +81,11 @@ public class Config {
 		@Comment("Steam Fuel Efficiency")
 		public static int locoSteamFuelEfficiency = 100;
 
-		@Comment("How fast the locomotive should heat up.  1 is real world (slow), 72 is scaled to minecraft time")
+		@Comment("How fast the steam locomotive should heat up.  1 is real world (slow), 72 is scaled to minecraft time")
 		public static int locoHeatTimeScale = 72;
+		
+		@Comment("How fast the diesel locomotive should heat up. 1 is real world (slow), 72 is scaled to minecraft time")
+		public static int dieselLocoHeatTimeScale = 72;
 
 		@Comment("How much water the locomotive should use")
 		public static float locoWaterUsage = 10;
@@ -94,6 +100,41 @@ public class Config {
 		public static String[] villagerPayoutItems = new String[] {
 			Items.EMERALD.getRegistryName().toString()
 		};
+		
+		@Comment("Fuels for diesel Locomotives")
+		public static Map<String, Integer> dieselFuels = new HashMap<String, Integer>();
+		static {
+			dieselFuels.clear();
+			// BC
+			dieselFuels.put("oil", 100);
+			dieselFuels.put("oil_heavy", 70);
+			dieselFuels.put("oil_dense", 110);
+			dieselFuels.put("oil_distilled", 50);
+			dieselFuels.put("fuel_dense", 110);
+			dieselFuels.put("fuel_mixed_heavy", 130);
+			dieselFuels.put("fuel_light", 150);
+			dieselFuels.put("fuel_mixed_light", 100);
+			// IE/IP
+			dieselFuels.put("diesel", 200);
+			dieselFuels.put("biodiesel", 170);
+			dieselFuels.put("biofuel", 170);
+			dieselFuels.put("ethanol", 170);
+			dieselFuels.put("gasoline", 100);
+			
+			// Other
+			dieselFuels.put("olive_oil", 40);
+		};
+		
+		@Comment("Water Substitutes")
+		public static String[] waterTypes = new String[] {
+			"water",
+			"dist_water",
+			"hot_spring_water",
+			"purified_water"
+		};
+
+		@Comment("Allow diesel locomotive engine overheating")
+		public static boolean canDieselEnginesOverheat = true;
 		
 		public static List<Item> getVillagerPayout() {
 			List<Item> items = new ArrayList<Item>();
@@ -110,6 +151,9 @@ public class Config {
 	public static ConfigDebug debug;
 
 	public static class ConfigDebug {
+		
+		@Comment({ "Speed up IR stock server tick stepping to compensate for tps lag" })
+		public static boolean serverTickCompensation = true;
 
 		@Comment({ "Range between couplers to try coupling" })
 		public static double couplerRange = 0.3;
@@ -131,6 +175,9 @@ public class Config {
 
 		@Comment({"Time between open computers poll ticks for augments"})
 		public static int ocPollDelayTicks = 1;
+		
+		@Comment({"DEV ONLY: How much to artifically lag the server (per world)"})
+		public static int lagServer = 0;
 
 	}
 

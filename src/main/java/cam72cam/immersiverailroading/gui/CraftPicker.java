@@ -11,6 +11,7 @@ import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.library.CraftingType;
 import cam72cam.immersiverailroading.library.ItemComponentType;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
+import cam72cam.immersiverailroading.util.OreHelper;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
@@ -72,6 +73,8 @@ public class CraftPicker extends GuiScreen {
 		if (craftType == CraftingType.CASTING) {
         	stock.add(new ItemStack(IRItems.ITEM_CAST_RAIL, 1));
 	        IRItems.ITEM_AUGMENT.getSubItems(null, ItemTabs.MAIN_TAB, stock);
+			stock.add(OreHelper.IR_STEEL_INGOT.getOres().get(0));
+			stock.add(OreHelper.IR_STEEL_BLOCK.getOres().get(0));
 		}
 		
 		itemSelector = new ItemPickerGUI(NonNullList.create(), this::onItemExit);

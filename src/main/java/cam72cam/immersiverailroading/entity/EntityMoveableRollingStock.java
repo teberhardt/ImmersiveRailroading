@@ -4,10 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cam72cam.immersiverailroading.Config;
+import cam72cam.immersiverailroading.ConfigSound;
+import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.Config.ConfigDamage;
+import cam72cam.immersiverailroading.Config.ConfigDebug;
 import cam72cam.immersiverailroading.library.Augment;
 import cam72cam.immersiverailroading.physics.MovementSimulator;
 import cam72cam.immersiverailroading.physics.TickPos;
+import cam72cam.immersiverailroading.proxy.CommonProxy;
+import cam72cam.immersiverailroading.sound.ISound;
 import cam72cam.immersiverailroading.tile.TileRailBase;
 import cam72cam.immersiverailroading.util.BlockUtil;
 import cam72cam.immersiverailroading.util.BufferUtil;
@@ -42,6 +47,10 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	private AxisAlignedBB boundingBox;
 	private double[][] heightMapCache;
 	private double tickSkew = 1;
+
+	private float sndRand;
+
+	private ISound wheel_sound;
 
 	public EntityMoveableRollingStock(World world, String defID) {
 		super(world, defID);
@@ -256,7 +265,42 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	public void onUpdate() {
 		super.onUpdate();
 		
-		this.tickPosID += world.isRemote ? this.getTickSkew() : 1;
+
+		if (!world.isRemote) {
+			if (ConfigDebug.serverTickCompensation) {
+				this.tickSkew = 20 / CommonProxy.getServerTPS(getEntityWorld(), 1);
+			} else {
+				this.tickSkew = 1;
+			}
+		}
+		
+		if (world.isRemote) {
+			if (ConfigSound.soundEnabled) {
+				if (this.wheel_sound == null) {
+					wheel_sound = ImmersiveRailroading.proxy.newSound(this.getDefinition().wheel_sound, true, 40, gauge);
+					this.sndRand = (float)Math.random()/10;
+				}
+				
+				if (Math.abs(this.getCurrentSpeed().metric()) > 5) {
+					if (!wheel_sound.isPlaying()) {
+						wheel_sound.play(this.getPositionVector());
+					}
+					float adjust = (float) Math.abs(this.getCurrentSpeed().metric()) / 300;
+					wheel_sound.setPitch(adjust + 0.7f + this.sndRand);
+					wheel_sound.setVolume(adjust);
+					
+					wheel_sound.setPosition(getPositionVector());
+					wheel_sound.setVelocity(getVelocity());
+					wheel_sound.update();
+				} else {
+					if (wheel_sound.isPlaying()) {
+						wheel_sound.stop();;
+					}
+				}
+			}
+		}
+		
+		this.tickPosID += this.getTickSkew();
 		
 		// Apply position tick
 		TickPos currentPos = getCurrentTickPosAndPrune();
@@ -303,81 +347,87 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	    	this.clearPositionCache();
 	    }
 
-		List<Entity> entitiesWithin = world.getEntitiesWithinAABB(Entity.class, this.getCollisionBoundingBox().offset(0, -0.5, 0));
-		for (Entity entity : entitiesWithin) {
-			if (entity instanceof EntityMoveableRollingStock) {
-				// rolling stock collisions handled by looking at the front and
-				// rear coupler offsets
-				continue;
-			} 
-
-			if (entity.getRidingEntity() instanceof EntityMoveableRollingStock) {
-				// Don't apply bb to passengers
-				continue;
-			}
-
-			if (! (entity instanceof EntityLivingBase)) {
-				continue;
-			}
-			
-			if (entity instanceof EntityPlayer) {
-				if (entity.ticksExisted < 20 * 5) {
-					// Give the player a chance to get out of the way
+	    if (this.getCurrentSpeed().metric() > 1) {
+			List<Entity> entitiesWithin = world.getEntitiesWithinAABB(Entity.class, this.getCollisionBoundingBox().offset(0, -0.5, 0));
+			for (Entity entity : entitiesWithin) {
+				if (entity instanceof EntityMoveableRollingStock) {
+					// rolling stock collisions handled by looking at the front and
+					// rear coupler offsets
+					continue;
+				} 
+	
+				if (entity.getRidingEntity() instanceof EntityMoveableRollingStock) {
+					// Don't apply bb to passengers
 					continue;
 				}
-			}
+	
+				if (! (entity instanceof EntityLivingBase)) {
+					continue;
+				}
+				
+				if (entity instanceof EntityPlayer) {
+					if (entity.ticksExisted < 20 * 5) {
+						// Give the player a chance to get out of the way
+						continue;
+					}
+				}
+	
+				
+				// Chunk.getEntitiesOfTypeWithinAABB() does a reverse aabb intersect
+				// We need to do a forward lookup
+				if (!this.getCollisionBoundingBox().intersects(entity.getEntityBoundingBox())) {
+					// miss
+					continue;
+				}
+	
+				// Move entity
 
-			
-			// Chunk.getEntitiesOfTypeWithinAABB() does a reverse aabb intersect
-			// We need to do a forward lookup
-			if (!this.getCollisionBoundingBox().intersects(entity.getEntityBoundingBox())) {
-				// miss
-				continue;
+				entity.motionX = this.motionX * 2;
+				entity.motionY = 0;
+				entity.motionZ = this.motionZ * 2;
+				// Force update
+				entity.onUpdate();
+	
+				double speedDamage = this.getCurrentSpeed().metric() / ConfigDamage.entitySpeedDamage;
+				if (speedDamage > 1) {
+					entity.attackEntityFrom((new DamageSource("immersiverailroading:hitByTrain")).setDamageBypassesArmor(), (float) speedDamage);
+				}
 			}
+	
+			// Riding on top of cars
+			AxisAlignedBB bb = this.getCollisionBoundingBox();
+			bb = bb.offset(0, gauge.scale()*2, 0);
+			List<Entity> entitiesAbove = world.getEntitiesWithinAABB(Entity.class, bb);
+			for (Entity entity : entitiesAbove) {
+				if (entity instanceof EntityMoveableRollingStock) {
+					continue;
+				}
+				if (entity.getRidingEntity() instanceof EntityMoveableRollingStock) {
+					continue;
+				}
+				
+				if (! (entity instanceof EntityLivingBase)) {
+					continue;
+				}
+	
+				// Chunk.getEntitiesOfTypeWithinAABB() does a reverse aabb intersect
+				// We need to do a forward lookup
+				if (!bb.intersects(entity.getEntityBoundingBox())) {
+					// miss
+					continue;
+				}
+				
+				//Vec3d pos = entity.getPositionVector();
+				//pos = pos.addVector(this.motionX, this.motionY, this.motionZ);
+				//entity.setPosition(pos.x, pos.y, pos.z);
 
-			// Move entity
-			
-			entity.motionX = this.motionX * 2;
-			entity.motionY = 0;
-			entity.motionZ = this.motionZ * 2;
-			// Force update
-			entity.onUpdate();
-
-			double speedDamage = this.getCurrentSpeed().metric() / ConfigDamage.entitySpeedDamage;
-			if (speedDamage > 1) {
-				entity.attackEntityFrom((new DamageSource("immersiverailroading:hitByTrain")).setDamageBypassesArmor(), (float) speedDamage);
+				entity.motionX = this.motionX;
+				entity.motionY = entity.motionY + this.motionY;
+				entity.motionZ = this.motionZ;
 			}
-		}
-
-		// Riding on top of cars
-		AxisAlignedBB bb = this.getCollisionBoundingBox();
-		bb = bb.offset(0, gauge.scale()*2, 0);
-		List<Entity> entitiesAbove = world.getEntitiesWithinAABB(Entity.class, bb);
-		for (Entity entity : entitiesAbove) {
-			if (entity instanceof EntityMoveableRollingStock) {
-				continue;
-			}
-			if (entity.getRidingEntity() instanceof EntityMoveableRollingStock) {
-				continue;
-			}
-			
-			if (! (entity instanceof EntityLivingBase)) {
-				continue;
-			}
-
-			// Chunk.getEntitiesOfTypeWithinAABB() does a reverse aabb intersect
-			// We need to do a forward lookup
-			if (!bb.intersects(entity.getEntityBoundingBox())) {
-				// miss
-				continue;
-			}
-			
-			Vec3d pos = entity.getPositionVector();
-			pos = pos.addVector(this.motionX, this.motionY, this.motionZ);
-			entity.setPosition(pos.x, pos.y, pos.z);
-		}
+	    }
 		if (!world.isRemote && this.ticksExisted % 5 == 0 && ConfigDamage.TrainsBreakBlocks && Math.abs(this.getCurrentSpeed().metric()) > 0.5) {
-			bb = this.getCollisionBoundingBox().grow(-0.25 * gauge.scale(), 0, -0.25 * gauge.scale());
+			AxisAlignedBB bb = this.getCollisionBoundingBox().grow(-0.25 * gauge.scale(), 0, -0.25 * gauge.scale());
 			
 			for (Vec3d pos : this.getDefinition().getBlocksInBounds(gauge)) {
 				pos = VecUtil.rotateYaw(pos, this.rotationYaw);
@@ -516,5 +566,13 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
 	public Vec3d getVelocity() {
 		return new Vec3d(this.motionX, this.motionY, this.motionZ);
+	}
+	
+	@Override
+	public void setDead() {
+		super.setDead();
+		if (this.wheel_sound != null) {
+			wheel_sound.stop();
+		}
 	}
 }
