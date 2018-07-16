@@ -613,11 +613,9 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 				}
 				return;
 			}
-
-			boolean isOnRealBlock = worldObj.isSideSolid(pos.down(), EnumFacing.UP, false) || !Config.ConfigDamage.requireSolidBlocks && !worldObj.isAirBlock(pos.down()) || BlockUtil.isIRRail(getWorld(), pos.down());
 			
-			if (!isOnRealBlock) {
-				double floating = getParentTile().percentFloating();
+			if (this instanceof TileRail) {
+				double floating = ((TileRail)this).percentFloating();
 				if (floating > ConfigBalance.trackFloatingPercent) {
 					if (BlockRailBase.tryBreakRail(worldObj, pos)) {
 						getWorld().destroyBlock(pos, true);
@@ -720,7 +718,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 						loco.setAirBrake(power/15f);
 						break;
 					case HORN:
-						loco.setHorn(5);
+						loco.setHorn(40, null);
 						break;
 					case COMPUTER:
 						//NOP
