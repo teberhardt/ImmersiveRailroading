@@ -605,8 +605,13 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 			// Double check every 5 seconds that the master is not gone
 			// Wont fire on first due to incr above
 			blockUpdate = false;
+			
 
-			if (this.getParentTile() == null || this.getParentTile().getParentTile() == null) {
+			if (this.getParent() == null || !world.isBlockLoaded(this.getParent())) {
+				return;
+			}
+
+			if (this.getParentTile() == null) {
 				// Fire update event
 				if (BlockRailBase.tryBreakRail(world, pos)) {
 					getWorld().destroyBlock(pos, true);
