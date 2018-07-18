@@ -26,6 +26,7 @@ import cam72cam.immersiverailroading.library.TrackItems;
 import cam72cam.immersiverailroading.track.BuilderTurn;
 import cam72cam.immersiverailroading.track.TrackBase;
 import cam72cam.immersiverailroading.track.TrackRail;
+import cam72cam.immersiverailroading.util.BlockUtil;
 import cam72cam.immersiverailroading.util.RailInfo;
 import cam72cam.immersiverailroading.util.VecUtil;
 
@@ -319,7 +320,9 @@ public class TileRail extends TileRailBase {
 			if (!worldObj.isBlockLoaded(tpos)) {
 				return 0;
 			}
-			boolean isOnRealBlock = worldObj.isSideSolid(tpos, EnumFacing.UP, false) || !Config.ConfigDamage.requireSolidBlocks && !worldObj.isAirBlock(tpos);
+			boolean isOnRealBlock = worldObj.isSideSolid(tpos, EnumFacing.UP, false) ||
+					!Config.ConfigDamage.requireSolidBlocks && !worldObj.isAirBlock(tpos) ||
+					BlockUtil.isIRRail(worldObj, tpos);
 			if (!isOnRealBlock) {
 				floating += 1.0 / trackCheckCache.size();
 			}
