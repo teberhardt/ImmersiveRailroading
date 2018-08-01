@@ -144,11 +144,25 @@ public class ClientProxy extends CommonProxy {
 	private static Map<KeyTypes, KeyBinding> keys = new HashMap<KeyTypes, KeyBinding>();
 
 	private static IRSoundManager manager;
-
+	
 	private static MagicEntity magical;
 	public static RenderCacheTimeLimiter renderCacheLimiter = new RenderCacheTimeLimiter();
 
 	private static String missingResources;
+	private static float dampeningAmount = 1.0f;
+	
+	public static float getDampeningAmount() {
+		return dampeningAmount;
+	}
+	
+	public static void dampenSound() {
+		EntityPlayerSP player = Minecraft.getMinecraft().player;
+		dampeningAmount = 1.0f;
+		if (player != null && player.isRiding() && player.getRidingEntity() instanceof EntityRidableRollingStock) {
+			EntityRidableRollingStock ridableStock = (EntityRidableRollingStock) player.getRidingEntity();
+			dampeningAmount = ridableStock.getDefinition().dampeningAmount;
+		}
+	}
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int entityIDorPosX, int posY, int posZ) {
@@ -405,21 +419,21 @@ public class ClientProxy extends CommonProxy {
 		for (KeyTypes key : keys.keySet()) {
 			KeyBinding binding = keys.get(key);
 			if (binding.isKeyDown()) {
-				ImmersiveRailroading.net.sendToServer(new KeyPressPacket(key, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId()));
+				ImmersiveRailroading.net.sendToServer(new KeyPressPacket(key, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId(), player.isSprinting()));
 			}
 		}
 		
 		if (player.movementInput.leftKeyDown) {
-			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_LEFT, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId()));
+			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_LEFT, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId(), player.isSprinting()));
 		}
 		if (player.movementInput.rightKeyDown) {
-			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_RIGHT, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId()));
+			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_RIGHT, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId(), player.isSprinting()));
 		}
 		if (player.movementInput.forwardKeyDown) {
-			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_FORWARD, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId()));
+			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_FORWARD, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId(), player.isSprinting()));
 		}
 		if (player.movementInput.backKeyDown) {
-			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_BACKWARD, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId()));
+			ImmersiveRailroading.net.sendToServer(new KeyPressPacket(KeyTypes.PLAYER_BACKWARD, riding.getEntityWorld().provider.getDimension(), player.getEntityId(), riding.getEntityId(), player.isSprinting()));
 		}
 	}
 	
@@ -659,7 +673,6 @@ public class ClientProxy extends CommonProxy {
 			}
 			
 			ISound snd = sndCache.get(sndCacheId);
-			// TODO Doppler update
 			EntityMoveableRollingStock stock = ((EntityMoveableRollingStock)event.getEntity());
 			float adjust = (float) Math.abs(stock.getCurrentSpeed().metric()) / 300;
 			snd.setPitch((float) ((adjust + 0.7)/stock.gauge.scale()));
@@ -683,6 +696,8 @@ public class ClientProxy extends CommonProxy {
 			return;
 		}
 		
+		dampenSound();
+		
 		if (missingResources != null) {
 			Minecraft.getMinecraft().getConnection().getNetworkManager().closeChannel(new TextComponentString(missingResources));
 			Minecraft.getMinecraft().loadWorld((WorldClient)null);
@@ -695,6 +710,7 @@ public class ClientProxy extends CommonProxy {
 		if (player != null) {
 			world = player.world;
 		}
+		
 		
 		if (world == null && manager != null && manager.hasSounds()) {
 			ImmersiveRailroading.warn("Unloading IR sound system");

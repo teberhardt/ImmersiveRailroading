@@ -194,6 +194,8 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 		
 		if (this.getCurrentSpeed().minecraft() != 0 || ConfigDebug.keepStockLoaded) {
 			ChunkManager.flagEntityPos(this.world, this.getPosition());
+			ChunkManager.flagEntityPos(this.world, new BlockPos(this.guessCouplerPosition(CouplerType.FRONT)));
+			ChunkManager.flagEntityPos(this.world, new BlockPos(this.guessCouplerPosition(CouplerType.BACK)));
 			if (this.lastKnownFront != null) {
 				ChunkManager.flagEntityPos(this.world, this.lastKnownFront);
 			}
@@ -253,6 +255,10 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 		}
 	}
 	
+	private Vec3d guessCouplerPosition(CouplerType coupler) {
+		return this.getPositionVector().add(VecUtil.fromYaw(this.getDefinition().getLength(gauge)/2 * (coupler == CouplerType.FRONT ? 1 : -1), this.rotationYaw));
+	}
+
 	public void tickPosRemainingCheck() {
 		if (this.getRemainingPositions() < 10 || resimulate) {
 			TickPos lastPos = this.getCurrentTickPosAndPrune();
@@ -262,6 +268,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 			}
 			
 			// Only simulate on locomotives if we can help it.
+			/*
 			if (!(this instanceof Locomotive)) {
 				for (EntityCoupleableRollingStock stock : this.getTrain()) {
 					if (stock instanceof Locomotive) {
@@ -270,11 +277,13 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 					}
 				}
 			}
+			*/
 			
 			if (resimulate && this.ticksExisted % 5 != 0) {
 				// Resimulate every 5 ticks, this will cut down on packet storms
 				return;
 			}
+			/*
 			
 			boolean isStuck = false;
 			for (EntityBuildableRollingStock stock : this.getTrain()) {
@@ -301,7 +310,7 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 					ChunkManager.flagEntityPos(this.world, new BlockPos(pos.position));
 				}
 				positions.add(pos);
-			}
+			}*/
 			
 			simulateCoupledRollingStock();
 		}
@@ -312,48 +321,58 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 	 * Movement Handlers
 	 * 
 	 */
-	
-	public Speed getMovement(Speed speed) {
-		
-		// ABS
-		//speed = Speed.fromMinecraft(Math.abs(speed.minecraft()));
-		
-		PhysicsAccummulator acc = new PhysicsAccummulator(speed);
-		this.mapTrain(this, true, true, acc::accumulate);
+
+	private Speed getMovement(TickPos currentPos, boolean followStock) {
+		PhysicsAccummulator acc = new PhysicsAccummulator(currentPos);
+		this.mapTrain(this, true, followStock, acc::accumulate);
 		return acc.getVelocity();
 	}
 
-	private Speed getMovement(TickPos currentPos, boolean followStock) {
-		PhysicsAccummulator acc = new PhysicsAccummulator(currentPos.speed);
-		this.mapTrain(this, true, followStock, acc::accumulate);
+	private Speed getMovement(TickPos currentPos, Collection<DirectionalStock> train) {
+		PhysicsAccummulator acc = new PhysicsAccummulator(currentPos);
+		for (DirectionalStock stock : train) {
+			acc.accumulate(stock.stock, stock.direction);
+		}
 		return acc.getVelocity();
 	}
 	
 
 	public void simulateCoupledRollingStock() {
+		TickPos lastPos = this.getCurrentTickPosAndPrune();
+		this.positions = new ArrayList<TickPos>();
+		positions.add(lastPos);
+		
+		
+		
 		Collection<DirectionalStock> train = this.getDirectionalTrain(true);
-		for (int tickOffset = 1; tickOffset < this.positions.size(); tickOffset++) {
-			boolean onTrack = true;
+
+		Speed simSpeed = this.getCurrentSpeed();
+		boolean isStuck = false;
+		for (DirectionalStock stock : train) {
+			if (!stock.stock.areWheelsBuilt()) {
+				isStuck = true;
+			}
+		}
+		
+		
+		for (int tickOffset = 1; tickOffset < 30; tickOffset++) {
+			simSpeed = this.getMovement(this.positions.get(tickOffset-1), train);
+			if (isStuck) {
+				simSpeed = Speed.ZERO;
+			}
+			TickPos pos = this.moveRollingStock(simSpeed.minecraft(), lastPos.tickID + tickOffset - 1);
+			positions.add(pos);
 			
 			for (DirectionalStock stock : train) {
 				if (stock.stock.getUniqueID().equals(this.getUniqueID())) {
 					//Skip self
 					continue;
 				}
-				onTrack &= stock.stock.simulateMove(stock.prev, tickOffset);
-			}
-			
-			if (!onTrack) {
-				for (int i = tickOffset; i < this.positions.size(); i ++) {
-					this.positions.get(i).position = this.positions.get(tickOffset).position;
-					this.positions.get(i).speed = Speed.ZERO;
-				}
-				for (EntityCoupleableRollingStock entity : this.getTrain(true)) {
-					entity.positions.get(entity.positions.size()-1).speed = Speed.ZERO;
-				}
-				break;
+				isStuck &= !stock.stock.simulateMove(stock.prev, tickOffset);
 			}
 		}
+		
+		
 		for (DirectionalStock entity : train) {
 			entity.stock.sendToObserving(new MRSSyncPacket(entity.stock, entity.stock.positions));
 			entity.stock.resimulate = false;
@@ -460,11 +479,15 @@ public abstract class EntityCoupleableRollingStock extends EntityMoveableRolling
 		switch (coupler) {
 		case FRONT:
 			coupledFront = id;
-			lastKnownFront = null;
+			if (id == null) {
+				lastKnownFront = null;
+			}
 			break;
 		case BACK:
 			coupledBack = id;
-			lastKnownRear = null;
+			if (id == null) {
+				lastKnownRear = null;
+			}
 			break;
 		}
 		
