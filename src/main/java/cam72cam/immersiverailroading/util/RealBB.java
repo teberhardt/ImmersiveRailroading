@@ -76,13 +76,28 @@ public class RealBB extends AxisAlignedBB {
 	public RealBB clone() {
 		return new RealBB(front, rear, width, height, yaw, centerX, centerY, centerZ, heightMap);
 	}
+	public RealBB cloneRaw() {
+		RealBB clone = new RealBB(new double[] {
+				super.minX, super.minY, super.minZ, super.maxX, super.maxY, super.maxZ
+		});
+		clone.front = front;
+		clone.rear = rear;
+		clone.width = width;
+		clone.height = height;
+		clone.yaw = yaw;
+		clone.centerX = centerX;
+		clone.centerY = centerY;
+		clone.centerZ = centerZ;
+		clone.heightMap = heightMap;
+		return clone;
+	}
 	@Override
 	public AxisAlignedBB setMaxY(double y2) {
-		return this.clone();
+		return this.cloneRaw();
 	}
 	@Override
 	public AxisAlignedBB expand(double x, double y, double z) {
-		RealBB expanded = this.clone();
+		RealBB expanded = this.cloneRaw();
 		
 		if (x > 0) {
 			expanded.front += x;
@@ -102,7 +117,7 @@ public class RealBB extends AxisAlignedBB {
 	}
 	@Override
 	public AxisAlignedBB union(AxisAlignedBB other) {
-		return this.clone();
+		return this.cloneRaw();
 	}
 	
 	@Override
@@ -115,7 +130,7 @@ public class RealBB extends AxisAlignedBB {
 	}
 	@Override
 	public AxisAlignedBB offset(double x, double y, double z) {
-		RealBB offsetted = this.clone();
+		RealBB offsetted = this.cloneRaw();
 		offsetted.centerX += x;
 		offsetted.centerY += y;
 		offsetted.centerZ += z;
@@ -245,7 +260,7 @@ public class RealBB extends AxisAlignedBB {
 	}
 
 	public AxisAlignedBB withHeightMap(double[][] heightMap) {
-		RealBB bb = this.clone();
+		RealBB bb = this.cloneRaw();
 		bb.heightMap = heightMap;
 		return bb;
 	}

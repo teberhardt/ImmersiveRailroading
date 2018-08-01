@@ -19,10 +19,10 @@ public class PhysicsAccummulator {
 	public double massToMoveKg = 0;
 	public double brakeAdhesionNewtons = 0;
 	public int count = 0;
-	Speed speed;
+	private TickPos pos;
 	
-	public PhysicsAccummulator(Speed speed) {
-		this.speed = speed;
+	public PhysicsAccummulator(TickPos pos) {
+		this.pos = pos;
 	}
 
 	public void accumulate(EntityRollingStock stock, Boolean direction) {
@@ -35,22 +35,19 @@ public class PhysicsAccummulator {
 		}
 		
 		EntityMoveableRollingStock movable = ((EntityMoveableRollingStock)stock);
-
-		// THIS ONLY WORKS FOR CURRENT USES AND CAN BREAK
-		TickPos latest = movable.positions.get(movable.positions.size()-1);
 		
 		// SHOULD THIS HAVE DIRECTION MULT?
 		double stockMassLb = 2.20462 * stock.getWeight();
 		rollingResistanceNewtons += 0.0015 * stockMassLb * 4.44822f;
 		
 		// SHOULD THIS HAVE DIRECTION MULT?
-		double grade = -Math.tan(Math.toRadians(latest.rotationPitch % 90)) * Config.ConfigBalance.slopeMultiplier;
+		double grade = -Math.tan(Math.toRadians(pos.rotationPitch % 90)) * Config.ConfigBalance.slopeMultiplier;
 		// lbs * 1%gradeResistance * grade multiplier
 		gradeForceNewtons += (stockMassLb / 100) * (grade * 100)  * 4.44822f;
 		
 		if (stock instanceof Locomotive) {
 			Locomotive loco = (Locomotive) stock;
-			tractiveEffortNewtons += loco.getTractiveEffortNewtons(speed) * (direction ? 1 : -1);
+			tractiveEffortNewtons += loco.getTractiveEffortNewtons(pos.speed) * (direction ? 1 : -1);
 			airBrake += Math.min(1, Math.pow(loco.getAirBrake() * loco.getDefinition().getBrakePower(), 2)) * loco.slipCoefficient();
 			brakeAdhesionNewtons += loco.getDefinition().getStartingTractionNewtons(stock.gauge); 
 		} else {
@@ -59,7 +56,7 @@ public class PhysicsAccummulator {
 			brakeAdhesionNewtons += stock.getWeight() * 0.25 * 0.25 * 4.44822f;
 		}
 		
-		int slowdown = movable.getSpeedRetarderSlowdown(latest);
+		int slowdown = movable.getSpeedRetarderSlowdown(pos);
 		rollingResistanceNewtons += slowdown * stockMassLb / 300;
 	}
 	
@@ -72,7 +69,7 @@ public class PhysicsAccummulator {
 		double gradeAccell = gradeForceNewtons / massToMoveKg;
 		double brakeAccell = airBrakeNewtons / massToMoveKg;
 		
-		double currentMCVelocity = speed.minecraft();
+		double currentMCVelocity = pos.speed.minecraft();
 		double deltaAccellTractiveMCVelocity = Speed.fromMetric(tractiveAccell).minecraft();
 		
 		

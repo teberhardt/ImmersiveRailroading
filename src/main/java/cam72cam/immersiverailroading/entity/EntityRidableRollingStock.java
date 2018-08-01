@@ -113,6 +113,7 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 		} else {
 			if (!this.worldObj.isRemote) {
 				passengerPositions.put(player.getPersistentID(), new Vec3d(0, 0, 0));
+				sendToObserving(new PassengerPositionsPacket(this));
 				player.startRiding(this);
 			}
 
@@ -142,7 +143,7 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	private final double pressDist = 0.05;
 	public List<StaticPassenger> staticPassengers = new ArrayList<StaticPassenger>();
 	
-	public void handleKeyPress(Entity source, KeyTypes key) {
+	public void handleKeyPress(Entity source, KeyTypes key, boolean sprinting) {
 		Vec3d movement = null;
 		switch (key) {
 		case PLAYER_FORWARD:
@@ -162,6 +163,10 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 			return;
 		}
 		if (source.getRidingEntity() == this) {
+			if (sprinting) {
+				movement = movement.scale(3);
+			}
+			
 			movement = VecUtil.rotateYaw(movement, source.getRotationYawHead());
 			movement = VecUtil.rotateYaw(movement, 180-this.rotationYaw);
 			
@@ -229,12 +234,16 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	@Override
 	public void removePassenger(Entity passenger) {
 		super.removePassenger(passenger);
+		
 		if (passengerPositions.containsKey(passenger.getPersistentID()) ) {
 			Vec3d ppos = passengerPositions.get(passenger.getPersistentID());
 			Vec3d delta = dismountPos(ppos);
-			
-			passengerPositions.remove(passenger.getPersistentID());
 			passenger.setPositionAndUpdate(delta.xCoord, passenger.posY, delta.zCoord);
+			
+			if (!worldObj.isRemote) {
+				passengerPositions.remove(passenger.getPersistentID());
+				sendToObserving(new PassengerPositionsPacket(this));
+			}
 		}
 	}
 	
@@ -330,9 +339,9 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 		off = off.addVector(0, -off.yCoord, 0);
 		
 		passengerPositions.put(sp.uuid, off);
+		sendToObserving(new PassengerPositionsPacket(this));
 		entityliving.setDead();
 		
-		sendToObserving(new PassengerPositionsPacket(this));
 	}
 	
 	public EntityLiving removeStaticPasssenger(Vec3d pos, boolean isVillager) {
