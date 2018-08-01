@@ -355,7 +355,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	    }
 
 	    if (this.getCurrentSpeed().metric() > 1) {
-			List<Entity> entitiesWithin = worldObj.getEntitiesWithinAABB(EntityLiving.class, this.getCollisionBoundingBox().offset(0, -0.5, 0));
+			List<Entity> entitiesWithin = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, this.getCollisionBoundingBox().offset(0, -0.5, 0));
 			for (Entity entity : entitiesWithin) {
 				if (entity instanceof EntityMoveableRollingStock) {
 					// rolling stock collisions handled by looking at the front and
@@ -365,10 +365,6 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 	
 				if (entity.getRidingEntity() instanceof EntityMoveableRollingStock) {
 					// Don't apply bb to passengers
-					continue;
-				}
-	
-				if (! (entity instanceof EntityLivingBase)) {
 					continue;
 				}
 				
@@ -404,16 +400,12 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 			// Riding on top of cars
 			AxisAlignedBB bb = this.getCollisionBoundingBox();
 			bb = bb.offset(0, gauge.scale()*2, 0);
-			List<Entity> entitiesAbove = worldObj.getEntitiesWithinAABB(EntityLiving.class, bb);
+			List<Entity> entitiesAbove = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, bb);
 			for (Entity entity : entitiesAbove) {
 				if (entity instanceof EntityMoveableRollingStock) {
 					continue;
 				}
 				if (entity.getRidingEntity() instanceof EntityMoveableRollingStock) {
-					continue;
-				}
-				
-				if (! (entity instanceof EntityLivingBase)) {
 					continue;
 				}
 	
