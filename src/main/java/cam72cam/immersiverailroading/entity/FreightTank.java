@@ -28,6 +28,7 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 public abstract class FreightTank extends Freight {
 	private static final DataParameter<Integer> FLUID_AMOUNT = EntityDataManager.createKey(FreightTank.class, DataSerializers.VARINT);
 	private static final DataParameter<String> FLUID_TYPE = EntityDataManager.createKey(FreightTank.class, DataSerializers.STRING);
+	
 	protected final FluidTank theTank = new FluidTank(null, 0) {
 		@Override
 		public boolean canFillFluidType(FluidStack fluid) {

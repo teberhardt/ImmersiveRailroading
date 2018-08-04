@@ -35,19 +35,43 @@ public class TenderContainerGui extends ContainerGuiBase {
     	currY = drawSlotBlock(i, currY, horizSlots, inventoryRows, horizSlots * inventoryRows);
     	
     	drawTankBlock(i + paddingLeft, currY - inventoryRows * slotSize, horizSlots, inventoryRows, stock.getLiquid(), stock.getLiquidAmount() / (float)stock.getTankCapacity().MilliBuckets());
+    	
     	int quantX = i + paddingLeft + horizSlots * slotSize/2;
     	int quantY = currY - inventoryRows * slotSize + inventoryRows * slotSize/2;
+    	
+    	int quantOilX = 0;
+    	int quantOilY = 0;
     	
     	drawSlot(i + paddingLeft+5, currY - inventoryRows * slotSize + 4);
     	drawSlotOverlay(template, i + paddingLeft+5, currY - inventoryRows * slotSize + 4);
     	drawSlot(i + paddingLeft + slotSize * horizSlots - slotSize-5, currY - inventoryRows * slotSize + 4);
-
-    	currY = drawSlotBlock(i, currY, horizSlots, inventoryRows, stock.getInventorySize() - 2);
     	
+    	if (stock.canHoldOil()) {
+    		currY = drawSlotBlock(i, currY, horizSlots, inventoryRows, horizSlots * inventoryRows);
+    		
+    		drawTankBlock(i + paddingLeft, currY - inventoryRows * slotSize, horizSlots, inventoryRows, stock.getOilType(), stock.getOilAmount() / (float)stock.getOilTankCapacity().MilliBuckets());
+    		
+    		quantOilX = i + paddingLeft + horizSlots * slotSize/2;
+        	quantOilY = currY - inventoryRows * slotSize + inventoryRows * slotSize/2;
+        	
+        	drawSlot(i + paddingLeft+5, currY - inventoryRows * slotSize + 4);
+        	drawSlotOverlay(template, i + paddingLeft+5, currY - inventoryRows * slotSize + 4);
+        	drawSlot(i + paddingLeft + slotSize * horizSlots - slotSize-5, currY - inventoryRows * slotSize + 4);
+    	}
+    	
+    	if (!stock.canHoldOil()) {
+    		currY = drawSlotBlock(i, currY, horizSlots, inventoryRows, stock.getInventorySize() - 2);
+    	}
+    		
     	currY = drawPlayerInventoryConnector(i, currY, width, horizSlots);
     	currY = drawPlayerInventory((width - playerXSize) / 2, currY);
     	
     	String quantityStr = String.format("%s/%s", stock.getLiquidAmount(), stock.getTankCapacity().MilliBuckets());
 		this.drawCenteredString(this.fontRenderer, quantityStr, quantX, quantY, 14737632);
+		
+		if (stock.canHoldOil()) {
+			String oilQuantityStr = String.format("%s/%s", stock.getOilAmount(), stock.getOilTankCapacity().MilliBuckets());
+			this.drawCenteredString(this.fontRenderer, oilQuantityStr, quantOilX, quantOilY, 14737632);
+		}
     }
 }

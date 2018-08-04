@@ -8,12 +8,14 @@ import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.Tender;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiText;
+import cam72cam.immersiverailroading.util.FluidQuantity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 public class TenderDefinition extends CarTankDefinition {
 	private int numSlots;
 	private int width;
+	private FluidQuantity oilTankCapacity;
 
 	public TenderDefinition(String defID, JsonObject data) throws Exception {
 		super(defID, data);
@@ -24,8 +26,14 @@ public class TenderDefinition extends CarTankDefinition {
 		super.parseJson(data);
 		
 		JsonObject tender = data.get("tender").getAsJsonObject();
-		this.numSlots = (int)Math.ceil(tender.get("slots").getAsInt() * internal_inv_scale);
-		this.width = (int)Math.ceil(tender.get("width").getAsInt() * internal_inv_scale);
+		
+		if (data.has("oil_capacity_l")) {
+			this.oilTankCapacity = FluidQuantity.FromLiters((int) Math.ceil(tender.get("oil_capacity_l").getAsInt() * internal_inv_scale));
+		} else {
+			this.numSlots = (int)Math.ceil(tender.get("slots").getAsInt() * internal_inv_scale);
+			this.width = (int)Math.ceil(tender.get("width").getAsInt() * internal_inv_scale);
+			oilTankCapacity = FluidQuantity.ZERO;
+		}
 	}
 	
 	@Override
@@ -46,5 +54,8 @@ public class TenderDefinition extends CarTankDefinition {
 
 	public int getInventoryWidth(Gauge gauge) {
 		return MathHelper.ceil(width * gauge.scale());
+	}
+	public FluidQuantity getOilTankCapacity(Gauge gauge) {
+		return this.oilTankCapacity.scale(gauge.scale()).min(FluidQuantity.FromBuckets(1)).roundBuckets();
 	}
 }
