@@ -121,12 +121,6 @@ public abstract class Freight extends EntityCoupleableRollingStock {
 			}
 		}
 		
-		if (player.getRidingEntity() instanceof LocomotiveSteam && player.getHeldItemMainhand().getItem() == Items.FLINT_AND_STEEL) {
-			LocomotiveSteam loco = (LocomotiveSteam) player.getRidingEntity();
-			loco.setLit(!loco.isLit());
-			player.getHeldItemMainhand().damageItem(1, player);
-		}
-		
 		// I don't believe the positions are used
 		if (guiType() != null) {
 			player.openGui(ImmersiveRailroading.instance, guiType().ordinal(), world, this.getEntityId(), 0, 0);
