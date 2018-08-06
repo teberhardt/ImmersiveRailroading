@@ -24,6 +24,7 @@ public class LocomotiveSteamDefinition extends LocomotiveDefinition {
 	private ValveGearType valveGear;
 	private int numSlots;
 	private int width;
+	private boolean isOilFueled;
 	
 	public Quilling quill;
 	public ResourceLocation whistle;
@@ -50,6 +51,11 @@ public class LocomotiveSteamDefinition extends LocomotiveDefinition {
 		JsonObject firebox = data.get("firebox").getAsJsonObject();
 		this.numSlots = (int) Math.ceil(firebox.get("slots").getAsInt() * internal_inv_scale);
 		this.width = (int) Math.ceil(firebox.get("width").getAsInt() * internal_inv_scale);
+
+		this.isOilFueled = false;
+		if (properties.has("is_oil_fueled")) {
+			this.isOilFueled = properties.get("is_oil_fueled").getAsBoolean();
+		}
 		
 		JsonObject sounds = data.has("sounds") ? data.get("sounds").getAsJsonObject() : null;
 		
@@ -206,6 +212,10 @@ public class LocomotiveSteamDefinition extends LocomotiveDefinition {
 	
 	public int getInventorySize(Gauge gauge) {
 		return MathHelper.ceil(numSlots * gauge.scale());
+	}
+	
+	public boolean isOilFueled () {
+		return this.isOilFueled;
 	}
 
 	public int getInventoryWidth(Gauge gauge) {

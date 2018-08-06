@@ -41,6 +41,8 @@ public class LocomotiveSteam extends Locomotive {
 
 	private static DataParameter<Boolean> PRESSURE_VALVE = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.BOOLEAN);
 	
+	private static DataParameter<Boolean> IS_LIT = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.BOOLEAN);
+	
 	// Map<Slot, TicksToBurn>
 	private static DataParameter<NBTTagCompound> BURN_TIME = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.COMPOUND_TAG);
 	private static DataParameter<NBTTagCompound> BURN_MAX = EntityDataManager.createKey(LocomotiveSteam.class, DataSerializers.COMPOUND_TAG);
@@ -56,6 +58,7 @@ public class LocomotiveSteam extends Locomotive {
 		this.getDataManager().register(BOILER_PRESSURE, 0f);
 		this.getDataManager().register(BOILER_TEMPERATURE, ambientTemperature());
 		this.getDataManager().register(PRESSURE_VALVE, false);
+		this.getDataManager().register(IS_LIT, false);
 		this.getDataManager().register(BURN_TIME, new NBTTagCompound());
 		this.getDataManager().register(BURN_MAX, new NBTTagCompound());
 		
@@ -76,6 +79,7 @@ public class LocomotiveSteam extends Locomotive {
 		super.writeEntityToNBT(nbttagcompound);
 		nbttagcompound.setFloat("boiler_temperature", getBoilerTemperature());
 		nbttagcompound.setFloat("boiler_psi", getBoilerPressure());
+		nbttagcompound.setBoolean("is_lit", isLit());
 		nbttagcompound.setTag("burn_time", dataManager.get(BURN_TIME));
 		nbttagcompound.setTag("burn_max", dataManager.get(BURN_MAX));
 	}
@@ -85,6 +89,7 @@ public class LocomotiveSteam extends Locomotive {
 		super.readEntityFromNBT(nbttagcompound);
 		setBoilerTemperature(nbttagcompound.getFloat("boiler_temperature"));
 		setBoilerPressure(nbttagcompound.getFloat("boiler_psi"));
+		setLit(nbttagcompound.getBoolean("is_lit"));
 		dataManager.set(BURN_TIME, (NBTTagCompound) nbttagcompound.getTag("burn_time"));
 		dataManager.set(BURN_MAX, (NBTTagCompound) nbttagcompound.getTag("burn_max"));
 		
@@ -121,6 +126,13 @@ public class LocomotiveSteam extends Locomotive {
 	}
 	private void setBoilerPressure(float temp) {
 		this.dataManager.set(BOILER_PRESSURE, temp);
+	}
+	
+	public boolean isLit () {
+		return this.getDataManager().get(IS_LIT);
+	}
+	public void setLit (boolean value) {
+		this.getDataManager().set(IS_LIT, value);
 	}
 	
 	private NBTTagCompound mapToNBT(Map<Integer, Integer> map) {
@@ -557,24 +569,31 @@ public class LocomotiveSteam extends Locomotive {
 			return;
 		}
 		
-		if (this.getCoupled(CouplerType.BACK) instanceof Tender) {
-			Tender tender = (Tender) getCoupled(CouplerType.BACK);
+		EntityRollingStock stockAtBack = this.getCoupled(CouplerType.BACK);
+		
+		if (stockAtBack instanceof Tender) {
+			Tender tender = (Tender) stockAtBack;
 
 			// Only drain 10mb at a time from the tender
 			int desiredDrain = 10;
 			if (getTankCapacity().MilliBuckets() - getServerLiquidAmount() >= 10) {
 				FluidUtil.tryFluidTransfer(this.theTank, tender.theTank, desiredDrain, true);
 			}
-			
 			if (this.ticksExisted % 20 == 0) {
-				// Top off stacks
-				for (int slot = 0; slot < this.cargoItems.getSlots()-2; slot ++) {
-					if (BurnUtil.getBurnTime(this.cargoItems.getStackInSlot(slot)) != 0) {
-						for (int tenderSlot = 0; tenderSlot < tender.cargoItems.getSlots(); tenderSlot ++) {
-							if (this.cargoItems.getStackInSlot(slot).isItemEqual(tender.cargoItems.getStackInSlot(tenderSlot))) {
-								if (this.cargoItems.getStackInSlot(slot).getMaxStackSize() > this.cargoItems.getStackInSlot(slot).getCount()) {
-									ItemStack extracted = tender.cargoItems.extractItem(tenderSlot, 1, false);
-									this.cargoItems.insertItem(slot, extracted, false);
+				if (tender.getDefinition().getOilTankCapacity(gauge) != FluidQuantity.ZERO && this.getDefinition().isOilFueled()) {
+					if (isLit() && tender.getOilAmount() > 0) {
+						tender.oilTank.drain(1, true);
+					}
+				} else {
+					// Top off stacks
+					for (int slot = 0; slot < this.cargoItems.getSlots()-2; slot ++) {
+						if (BurnUtil.getBurnTime(this.cargoItems.getStackInSlot(slot)) != 0) {
+							for (int tenderSlot = 0; tenderSlot < tender.cargoItems.getSlots(); tenderSlot ++) {
+								if (this.cargoItems.getStackInSlot(slot).isItemEqual(tender.cargoItems.getStackInSlot(tenderSlot))) {
+									if (this.cargoItems.getStackInSlot(slot).getMaxStackSize() > this.cargoItems.getStackInSlot(slot).getCount()) {
+										ItemStack extracted = tender.cargoItems.extractItem(tenderSlot, 1, false);
+										this.cargoItems.insertItem(slot, extracted, false);
+									}
 								}
 							}
 						}
