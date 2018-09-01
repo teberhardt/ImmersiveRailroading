@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.RenderComponentType;
+import cam72cam.immersiverailroading.registry.EntityBufferDefinition;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import net.minecraft.util.math.Vec3d;
 
@@ -86,7 +87,7 @@ public class RenderComponent {
 		this.scale = scale;
 		this.wooden = wooden;
 	}
-
+	
 	public Vec3d min() {
 		return def.getModel().minOfGroup(modelIDs).scale(scale);
 	}

@@ -73,8 +73,11 @@ public enum RenderComponentType {
 	PRESSURE_VALVE_X("PRESSURE_VALVE_#ID#", false),
 	DIESEL_EXHAUST_X("EXHAUST_#ID#", false),
 	
-	// Cargo
+	// CARGO
 	CARGO_FILL_X("CARGO_FILL_#ID#"),
+	
+	//TRACK BUFFER
+	TRACK_BUFFER("BUFFER"),
 	
 	// REST
 	REMAINING(""),
