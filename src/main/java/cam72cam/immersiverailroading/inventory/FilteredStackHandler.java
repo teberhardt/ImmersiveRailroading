@@ -3,7 +3,6 @@ package cam72cam.immersiverailroading.inventory;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
@@ -16,7 +15,7 @@ public class FilteredStackHandler extends ItemStackHandler {
     	super(i);
 	}
     
-    public boolean checkSlot(int slot, @Nonnull ItemStack stack) {
+    public boolean checkSlot(int slot, ItemStack stack) {
     	if (stack == null || stack.stackSize == 0) {
     		return true;
     	}
@@ -30,14 +29,14 @@ public class FilteredStackHandler extends ItemStackHandler {
     }
 
 	@Override
-    public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+    public void setStackInSlot(int slot, ItemStack stack) {
     	if (checkSlot(slot, stack)) {
-    		super.setStackInSlot(slot, stack.copy());
+    		super.setStackInSlot(slot, stack == null ? null : stack.copy());
     	}
     }
     
     @Override
-    public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-    	return checkSlot(slot, stack) ? super.insertItem(slot, stack.copy(), simulate) : stack;
+    public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+    	return checkSlot(slot, stack) ? super.insertItem(slot, stack == null ? null : stack.copy(), simulate) : stack;
     }
 }
