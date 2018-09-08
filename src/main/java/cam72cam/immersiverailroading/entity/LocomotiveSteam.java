@@ -32,6 +32,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.*;
 
@@ -228,22 +229,22 @@ public class LocomotiveSteam extends Locomotive {
 			
 			if (ConfigSound.soundEnabled) {
 				if (this.sndCache.size() == 0) {
-					this.whistle = ImmersiveRailroading.proxy.newSound(this.getDefinition().whistle, false, 150, gauge);
+					this.whistle = ImmersiveRailroading.proxy.newSound(this.getDefinition().whistle, false, 150, this.soundGauge());
 					whistle.setPitch(1);
 					
 					if (this.getDefinition().quill != null) {
 						for (Chime chime : this.getDefinition().quill.chimes) {
-							this.chimes.add(ImmersiveRailroading.proxy.newSound(chime.sample, true, 150, gauge));
+							this.chimes.add(ImmersiveRailroading.proxy.newSound(chime.sample, true, 150, this.soundGauge()));
 						}
 					}
 	
 					for (int i = 0; i < 32; i ++) {
-						sndCache.add(ImmersiveRailroading.proxy.newSound(this.getDefinition().chuff, false, 80, gauge));
+						sndCache.add(ImmersiveRailroading.proxy.newSound(this.getDefinition().chuff, false, 80, this.soundGauge()));
 					}
 					
-					this.idle = ImmersiveRailroading.proxy.newSound(this.getDefinition().idle, true, 40, gauge);
+					this.idle = ImmersiveRailroading.proxy.newSound(this.getDefinition().idle, true, 40, this.soundGauge());
 					idle.setVolume(0.1f);
-					this.pressure = ImmersiveRailroading.proxy.newSound(this.getDefinition().pressure, true, 40, gauge);
+					this.pressure = ImmersiveRailroading.proxy.newSound(this.getDefinition().pressure, true, 40, this.soundGauge());
 					pressure.setVolume(0.3f);
 				}
 				
@@ -723,9 +724,18 @@ public class LocomotiveSteam extends Locomotive {
 			// 10% over max pressure OR
 			// Half max pressure and high boiler temperature
 			//EXPLODE
+			
 			if (Config.ConfigDamage.explosionsEnabled) {
-				for (int i = 0; i < 5; i++) {
-					worldObj.createExplosion(this, this.posX, this.posY, this.posZ, boilerPressure/8, true);
+				if (Config.ConfigDamage.explosionEnvDamageEnabled) {
+					for (int i = 0; i < 5; i++) {
+						worldObj.createExplosion(this, this.posX, this.posY, this.posZ, boilerPressure/8, true);
+					}
+				} else {
+					for (int i = 0; i < 5; i++) {
+						Explosion explosion = new Explosion(this.worldObj, this, this.posX, this.posY, this.posZ, boilerPressure/5, false, false);
+						explosion.doExplosionA();
+						explosion.doExplosionB(true);
+					}
 				}
 			}
 			worldObj.removeEntity(this);

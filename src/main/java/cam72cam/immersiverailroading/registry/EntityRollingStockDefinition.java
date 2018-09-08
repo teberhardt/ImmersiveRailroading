@@ -57,6 +57,7 @@ public abstract class EntityRollingStockDefinition {
 	private float couplerOffsetRear;
 	
 	public float dampeningAmount;
+	private boolean scalePitch;
 	public  double frontBounds;
 	public  double rearBounds;
 	private double heightBounds;
@@ -94,6 +95,10 @@ public abstract class EntityRollingStockDefinition {
 		addComponentIfExists(RenderComponent.parse(RenderComponentType.REMAINING, this, parseComponents()), true);
 		
 		initHeightMap();
+	}
+	
+	public boolean shouldScalePitch() {
+		return scalePitch;
 	}
 
 	public void parseJson(JsonObject data) throws Exception  {
@@ -134,6 +139,11 @@ public abstract class EntityRollingStockDefinition {
 			if (data.get("sound_dampening_percentage").getAsFloat() >= 0.0f && data.get("sound_dampening_percentage").getAsFloat() <= 1.0f) {
 				dampeningAmount = data.get("sound_dampening_percentage").getAsFloat();
 			}
+		}
+		
+		scalePitch = true;
+		if (data.has("scale_pitch")) {
+			scalePitch = data.get("scale_pitch").getAsBoolean();
 		}
 		
 		if (data.has("couplers")) {
@@ -223,6 +233,9 @@ public abstract class EntityRollingStockDefinition {
 		
 		addComponentIfExists(RenderComponent.parse(RenderComponentType.FRAME, this, groups), true);
 		addComponentIfExists(RenderComponent.parse(RenderComponentType.SHELL, this, groups), true);
+		for (int i = 100; i >= 1; i--) {
+			addComponentIfExists(RenderComponent.parseID(RenderComponentType.CARGO_FILL_X, this, groups, i), false);
+		}
 		
 		return groups;
 	}
@@ -361,6 +374,7 @@ public abstract class EntityRollingStockDefinition {
 							vert = vert.addVector(this.frontBounds, 0, this.widthBounds/2);
 							if (first) {
 								path.moveTo(vert.xCoord * ratio, vert.zCoord * ratio);
+								first = false;
 							} else {
 								path.lineTo(vert.xCoord * ratio, vert.zCoord * ratio);
 							}
