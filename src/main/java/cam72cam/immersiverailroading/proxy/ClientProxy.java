@@ -163,7 +163,7 @@ public class ClientProxy extends CommonProxy {
 			dampeningAmount = ridableStock.getDefinition().dampeningAmount;
 		}
 	}
-
+	
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int entityIDorPosX, int posY, int posZ) {
 		TileMultiblock te;
@@ -212,7 +212,7 @@ public class ClientProxy extends CommonProxy {
 	public void preInit(FMLPreInitializationEvent event) throws IOException {
 		super.preInit(event);
 		if (ConfigSound.overrideSoundChannels) {
-			SoundSystemConfig.setNumberNormalChannels(2000);
+			SoundSystemConfig.setNumberNormalChannels(Math.max(SoundSystemConfig.getNumberNormalChannels(), 300));
 		}
 		
 		if (Loader.isModLoaded("igwmod")) {
@@ -675,7 +675,11 @@ public class ClientProxy extends CommonProxy {
 			ISound snd = sndCache.get(sndCacheId);
 			EntityMoveableRollingStock stock = ((EntityMoveableRollingStock)event.getEntity());
 			float adjust = (float) Math.abs(stock.getCurrentSpeed().metric()) / 300;
-			snd.setPitch((float) ((adjust + 0.7)/stock.gauge.scale()));
+			if(stock.getDefinition().shouldScalePitch()) {
+				snd.setPitch((float) ((adjust + 0.7)/stock.gauge.scale()));
+			} else {
+				snd.setPitch((float) ((adjust + 0.7)));
+			}
 			snd.setVolume(0.01f + adjust);
 			snd.play(event.getEntity().getPositionVector());
 	    	sndCacheId++;

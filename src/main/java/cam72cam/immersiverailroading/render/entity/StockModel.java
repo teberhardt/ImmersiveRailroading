@@ -15,9 +15,11 @@ import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.model.MultiRenderComponent;
 import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
+import cam72cam.immersiverailroading.entity.Freight;
 import cam72cam.immersiverailroading.entity.LocomotiveDiesel;
 import cam72cam.immersiverailroading.entity.LocomotiveSteam;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
+import cam72cam.immersiverailroading.registry.FreightDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
 import cam72cam.immersiverailroading.render.OBJRender;
 import cam72cam.immersiverailroading.util.GLBoolTracker;
@@ -97,9 +99,34 @@ public class StockModel extends OBJRender {
 			draw();
 		}
 		
+		drawCargo(stock);
+		
 		this.restoreTexture();
 		
 		tex.restore();
+	}
+	
+	public void drawCargo(EntityRollingStock stock) {
+		if (stock instanceof Freight) {
+			Freight freight = (Freight) stock;
+			FreightDefinition def = freight.getDefinition();
+			int fill = freight.getPercentCargoFull();
+			
+			List<RenderComponent> cargoLoads = def.getComponents(RenderComponentType.CARGO_FILL_X, stock.gauge);
+			if (cargoLoads != null) {
+				//this sorts through all the cargoLoad objects
+				for (RenderComponent cargoLoad : cargoLoads) {
+					if (cargoLoad.id <= fill || (cargoLoad.id == 1)) {
+						drawComponent(cargoLoad);
+						
+						//if the stock should only render the current cargo load only it will stop at the highest matching number
+						if (def.shouldShowCurrentLoadOnly()) {
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private void drawStandardStock(EntityMoveableRollingStock stock) {
@@ -109,6 +136,7 @@ public class StockModel extends OBJRender {
 		
 		drawComponent(def.getComponent(RenderComponentType.FRAME, stock.gauge));
 		drawComponent(def.getComponent(RenderComponentType.SHELL, stock.gauge));
+		
 		drawFrameWheels(stock);
 
 		if (def.getComponent(RenderComponentType.BOGEY_POS, "FRONT", stock.gauge) != null) {
