@@ -216,6 +216,9 @@ public abstract class EntityRollingStockDefinition {
 		addComponentIfExists(RenderComponent.parse(RenderComponentType.FRAME, this, groups), true);
 		addComponentIfExists(RenderComponent.parse(RenderComponentType.SHELL, this, groups), true);
 		
+		for (int i = 0; i < 50; i++) {
+			addComponentIfExists(RenderComponent.parseID(RenderComponentType.LAMP_X, this, groups, i), false);
+		}
 		return groups;
 	}
 	

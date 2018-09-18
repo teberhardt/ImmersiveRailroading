@@ -2,40 +2,58 @@ package cam72cam.immersiverailroading.render.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.lwjgl.opengl.GL11;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.entity.EntityBuildableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock.PosRot;
-import cam72cam.immersiverailroading.library.Gauge;
-import cam72cam.immersiverailroading.library.ItemComponentType;
-import cam72cam.immersiverailroading.library.RenderComponentType;
-import cam72cam.immersiverailroading.model.RenderComponent;
-import cam72cam.immersiverailroading.model.MultiRenderComponent;
-import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.LocomotiveDiesel;
 import cam72cam.immersiverailroading.entity.LocomotiveSteam;
+import cam72cam.immersiverailroading.library.Gauge;
+import cam72cam.immersiverailroading.library.ItemComponentType;
+import cam72cam.immersiverailroading.library.RenderComponentType;
+import cam72cam.immersiverailroading.model.MultiRenderComponent;
+import cam72cam.immersiverailroading.model.RenderComponent;
+import cam72cam.immersiverailroading.model.obj.Face;
+import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
 import cam72cam.immersiverailroading.render.OBJRender;
 import cam72cam.immersiverailroading.util.GLBoolTracker;
 import cam72cam.immersiverailroading.util.VecUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.GlStateManager.DestFactor;
+import net.minecraft.client.renderer.GlStateManager.SourceFactor;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
 public class StockModel extends OBJRender {
 	private static final int MALLET_ANGLE_REAR = -45;
+	private OBJRender lightRender;
 
 	public StockModel(OBJModel objModel) {
 		super(objModel);
+		try {
+			lightRender = new OBJRender(new OBJModel(new ResourceLocation("immersiverailroading:models/misc/light_cone.obj"), 0f));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private boolean isBuilt;
 	private List<RenderComponentType> availComponents;
+	
+	public static final int MAX_LIGHT_X = 0xF000F0;
+    public static final int MAX_LIGHT_Y = 0xF000F0;
 
 	private double distanceTraveled;
 	private void initComponents(EntityBuildableRollingStock stock) {
@@ -99,7 +117,81 @@ public class StockModel extends OBJRender {
 		
 		this.restoreTexture();
 		
+		drawLights(stock);
+		
 		tex.restore();
+	}
+	
+	private void drawLights(EntityRollingStock stock) {
+		EntityRollingStockDefinition def = stock.getDefinition();
+		Tessellator tesselator = Tessellator.getInstance();
+		BufferBuilder buffer = tesselator.getBuffer();
+		GLBoolTracker cull = new GLBoolTracker(GL11.GL_CULL_FACE, true);
+		
+		float r = 0.949f;
+		float g = 0.937f;
+		float b = 0.709f;
+		float a = 0.3f;
+		
+		List<RenderComponent> comps = def.getComponents(RenderComponentType.LAMP_X, stock.gauge);
+		/*List<Face> faces = new ArrayList<Face>();
+		
+		for (String name : this.model.groups.keySet()) {
+			if (name.contains("LAMP_1")) {
+				List<Face> groups = this.model.groups.get(name);
+				faces.add(groups.get(0));
+			}
+		}
+		
+		if (faces != null) {*/
+			GlStateManager.pushMatrix();
+			
+			GlStateManager.disableLighting();
+			GlStateManager.enableBlend();
+			GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
+	        int func = GL11.glGetInteger(GL11.GL_ALPHA_TEST_FUNC);
+	        float ref = GL11.glGetFloat(GL11.GL_ALPHA_TEST_REF);
+	        GlStateManager.alphaFunc(GL11.GL_ALWAYS, 0);
+		    GlStateManager.disableTexture2D();
+		    
+		    /*for (Face face : faces) {
+	    		Vec3d vn = new Vec3d(0, 0, 0);
+	    		for (int[] point : face.points()) {
+	    			vn = point[2] != -1 ? model.vertexNormals(point[2]) : null;
+	    			if (vn != null) break;
+	    		}
+	    		vn.scale(5);
+	    		
+	    		//GlStateManager.color(r, g, b, a);
+	    		Vec3d facePos = model.vertices(face.points()[0][1]);
+	    		GlStateManager.translate(facePos.x, facePos.y, facePos.z);
+			    //GlStateManager.translate(-21.5, 2.75, 0);
+			    //GlStateManager.rotate(90, 0, 1, 0);
+			    lightRender.draw();
+	    		vn = new Vec3d(vn.x - 5.75, vn.y + 3.85 + 2, vn.z);
+	    		buffer.pos(vn.x, vn.y, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
+	    		buffer.pos(vn.x, vn.y + 0.2, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
+	    		buffer.pos(vn.x - 20, vn.y + 7 + 0.2, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
+	    		buffer.pos(vn.x - 20, vn.y - 7, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
+		    }*/
+		    
+		    GL11.glColor4f(r, g, b, a);
+		    
+		    for (RenderComponent comp : comps) {
+		    	Vec3d c = comp.center();
+		    	GlStateManager.translate(c.x + 0.5, c.y + 0.1, c.z);
+			    lightRender.draw();
+		    }
+			
+		    GlStateManager.enableTexture2D();
+	        GlStateManager.alphaFunc(func, ref);
+	        GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
+	        GlStateManager.disableBlend();
+	        GlStateManager.enableLighting();
+			GlStateManager.popMatrix();
+		//}
+		
+		cull.restore();
 	}
 
 	private void drawStandardStock(EntityMoveableRollingStock stock) {
