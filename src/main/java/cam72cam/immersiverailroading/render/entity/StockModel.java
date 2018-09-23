@@ -127,6 +127,9 @@ public class StockModel extends OBJRender {
 		Tessellator tesselator = Tessellator.getInstance();
 		BufferBuilder buffer = tesselator.getBuffer();
 		GLBoolTracker cull = new GLBoolTracker(GL11.GL_CULL_FACE, true);
+		GLBoolTracker color = new GLBoolTracker(GL11.GL_COLOR, true);
+		GLBoolTracker light = new GLBoolTracker(GL11.GL_LIGHTING, false);
+		GLBoolTracker tex = new GLBoolTracker(GL11.GL_TEXTURE_2D, false);
 		
 		float r = 0.949f;
 		float g = 0.937f;
@@ -144,15 +147,13 @@ public class StockModel extends OBJRender {
 		}
 		
 		if (faces != null) {*/
-			GlStateManager.pushMatrix();
+			GL11.glPushMatrix();
 			
-			GlStateManager.disableLighting();
 			GlStateManager.enableBlend();
 			GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
 	        int func = GL11.glGetInteger(GL11.GL_ALPHA_TEST_FUNC);
 	        float ref = GL11.glGetFloat(GL11.GL_ALPHA_TEST_REF);
 	        GlStateManager.alphaFunc(GL11.GL_ALWAYS, 0);
-		    GlStateManager.disableTexture2D();
 		    
 		    /*for (Face face : faces) {
 	    		Vec3d vn = new Vec3d(0, 0, 0);
@@ -160,38 +161,26 @@ public class StockModel extends OBJRender {
 	    			vn = point[2] != -1 ? model.vertexNormals(point[2]) : null;
 	    			if (vn != null) break;
 	    		}
-	    		vn.scale(5);
-	    		
-	    		//GlStateManager.color(r, g, b, a);
-	    		Vec3d facePos = model.vertices(face.points()[0][1]);
-	    		GlStateManager.translate(facePos.x, facePos.y, facePos.z);
-			    //GlStateManager.translate(-21.5, 2.75, 0);
-			    //GlStateManager.rotate(90, 0, 1, 0);
-			    lightRender.draw();
-	    		vn = new Vec3d(vn.x - 5.75, vn.y + 3.85 + 2, vn.z);
-	    		buffer.pos(vn.x, vn.y, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
-	    		buffer.pos(vn.x, vn.y + 0.2, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
-	    		buffer.pos(vn.x - 20, vn.y + 7 + 0.2, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
-	    		buffer.pos(vn.x - 20, vn.y - 7, vn.z).tex(0, 0).lightmap(MAX_LIGHT_X, MAX_LIGHT_Y).color(r, g, b, a).endVertex();
 		    }*/
 		    
 		    GL11.glColor4f(r, g, b, a);
 		    
 		    for (RenderComponent comp : comps) {
 		    	Vec3d c = comp.center();
-		    	GlStateManager.translate(c.x + 0.5, c.y + 0.1, c.z);
+		    	GL11.glTranslated(c.x + 0.5, c.y + 0.1, c.z);
 			    lightRender.draw();
 		    }
 			
-		    GlStateManager.enableTexture2D();
 	        GlStateManager.alphaFunc(func, ref);
 	        GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
 	        GlStateManager.disableBlend();
-	        GlStateManager.enableLighting();
-			GlStateManager.popMatrix();
+			GL11.glPopMatrix();
 		//}
 		
 		cull.restore();
+		light.restore();
+		tex.restore();
+		color.restore();
 	}
 
 	private void drawStandardStock(EntityMoveableRollingStock stock) {
