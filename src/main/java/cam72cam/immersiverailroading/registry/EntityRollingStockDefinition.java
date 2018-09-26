@@ -20,6 +20,7 @@ import cam72cam.immersiverailroading.library.RenderComponentType;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.entity.EntityBuildableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock.CouplerType;
+import cam72cam.immersiverailroading.model.BBModel;
 import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.model.obj.Face;
 import cam72cam.immersiverailroading.model.obj.Material;
@@ -50,6 +51,7 @@ public abstract class EntityRollingStockDefinition {
 	public final String defID;
 	private String name = "Unknown";
 	private OBJModel model;
+	private BBModel BBModel;
 	private Vec3d passengerCenter = new Vec3d(0, 0, 0);
 	private float bogeyFront;
 	private float bogeyRear;
@@ -122,6 +124,7 @@ public abstract class EntityRollingStockDefinition {
 			this.internal_inv_scale = Gauge.STANDARD / recommended_gauge.value();
 		}
 		model = new OBJModel(new ResourceLocation(data.get("model").getAsString()), darken, internal_model_scale);
+		BBModel = new BBModel(model);
 		JsonObject passenger = data.get("passenger").getAsJsonObject();
 		passengerCenter = new Vec3d(passenger.get("center_x").getAsDouble(), passenger.get("center_y").getAsDouble(), 0).scale(internal_model_scale);
 		passengerCompartmentLength = passenger.get("length").getAsDouble() * internal_model_scale;
