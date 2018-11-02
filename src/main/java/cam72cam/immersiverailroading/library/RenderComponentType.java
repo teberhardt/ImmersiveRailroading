@@ -34,12 +34,12 @@ public enum RenderComponentType {
 	
 	
 	//STEAM
-	FIREBOX("FIREBOX"),
-	SMOKEBOX("SMOKEBOX"),
+	FIREBOX("FIREBOX", true),
+	SMOKEBOX("SMOKEBOX", true),
 	STEAM_CHEST("STEAM_CHEST"),
 	STEAM_CHEST_FRONT("STEAM_CHEST_FRONT"),
 	STEAM_CHEST_REAR("STEAM_CHEST_REAR"),
-	BOILER_SEGMENT_X("BOILER_SEG[E]*MENT_#ID#"),
+	BOILER_SEGMENT_X("BOILER_SEG[E]*MENT_#ID#", true),
 	PIPING("PIPING"),
 	
 	
@@ -69,9 +69,9 @@ public enum RenderComponentType {
 	
 	
 	// PARTICLES
-	PARTICLE_CHIMNEY_X("CHIM[I]*NEY_#ID#", false),
-	PRESSURE_VALVE_X("PRESSURE_VALVE_#ID#", false),
-	DIESEL_EXHAUST_X("EXHAUST_#ID#", false),
+	PARTICLE_CHIMNEY_X("CHIM[I]*NEY_#ID#", false, false),
+	PRESSURE_VALVE_X("PRESSURE_VALVE_#ID#", false, false),
+	DIESEL_EXHAUST_X("EXHAUST_#ID#", false, false),
 	
 	// Cargo
 	CARGO_FILL_X("CARGO_FILL_#ID#"),
@@ -82,12 +82,19 @@ public enum RenderComponentType {
 	
 	public final String regex;
 	public final boolean collisionsEnabled;
+	public final boolean receiveRayCast;
 	
 	RenderComponentType(String regex) {
-		this(regex, true);
+		this(regex, true, false);
 	}
-	RenderComponentType(String regex, boolean collide) {
+	
+	RenderComponentType(String regex, boolean recieveRayCast) {
+		this(regex, true, recieveRayCast);
+	}
+	
+	RenderComponentType(String regex, boolean collide, boolean recieveRayCast) {
 		this.regex = ".*" + regex + ".*";
 		this.collisionsEnabled = collide;
+		this.receiveRayCast = recieveRayCast;
 	}
 }

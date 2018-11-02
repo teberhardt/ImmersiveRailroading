@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock.CouplerType;
+import cam72cam.immersiverailroading.interaction.RayCaster;
 import cam72cam.immersiverailroading.library.KeyTypes;
 import cam72cam.immersiverailroading.library.StockDeathType;
 import cam72cam.immersiverailroading.net.PassengerPositionsPacket;
@@ -31,6 +32,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 public abstract class EntityRidableRollingStock extends EntityBuildableRollingStock {
+	private RayCaster rayCast;
+	
 	public EntityRidableRollingStock(World world, String defID) {
 		super(world, defID);
 	}
@@ -101,13 +104,19 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 
 	@Override
 	public boolean processInitialInteract(EntityPlayer player, EnumHand hand) {
+		if (rayCast == null) {
+			this.rayCast = new RayCaster(getDefinition().getBBModel());
+		}
+		
 		if (super.processInitialInteract(player, hand)) {
 			return true;
 		}
 		
 		if (player.isSneaking()) {
+			System.out.println(rayCast.getHit(player.getPositionVector().addVector(0, player.getEyeHeight(), 0).subtract(this.getPositionVector()), player.getLookVec(), 0));
 			return false;
 		} else if (player.isRiding() && player.getRidingEntity().getPersistentID() == this.getPersistentID()) {
+			System.out.println(rayCast.getHit(passengerPositions.get(player.getPersistentID()).addVector(0, player.getEyeHeight(), 0), player.getLookVec(), 0));
 			return false;
 		} else {
 			if (!this.world.isRemote) {

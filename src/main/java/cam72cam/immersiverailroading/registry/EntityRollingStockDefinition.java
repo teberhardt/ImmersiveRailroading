@@ -568,6 +568,10 @@ public abstract class EntityRollingStockDefinition {
 	public OBJModel getModel() {
 		return model;
 	}
+	
+	public BBModel getBBModel () {
+		return BBModel;
+	}
 
 	/**
 	 * @return Stock Weight in Kg

@@ -28,13 +28,16 @@ public class RayCaster {
 		
 		for (String comp : bb.keySet()) {
 			Vec3d c = bbc.get(comp);
-			double distance = Math.sqrt(Math.pow(c.x - rayStart.x, 2) + Math.pow(c.y - rayStart.y, 2) + Math.pow(c.z - rayStart.z, 2));
+			double distance = c.distanceTo(rayStart);
+			System.out.println(rayDirection);
+			System.out.println(distance);
+			System.out.println(rayDirection.scale(distance));
 			Vec3d p = rayStart.add(rayDirection.scale(distance));
 			Vec3d min = bb.get(comp).getLeft();
 			Vec3d max = bb.get(comp).getRight();
+			System.out.println(String.format("%s %s %s", p, min, max));
 			if (distance <= maxDistance || maxDistance == 0) {
-				//p with stock position, min/max without
-				if (p.x >= min.x && p.y >= min.y && p.z >= min.z && p.x <= max.x && p.y <= max.y && p.z <= max.z) { //<- ray hit object
+				if (p.x > min.x && p.y > min.y && p.z > min.z && p.x < max.x && p.y < max.y && p.z < max.z) { //<- ray hit object
 					return comp;
 				}
 			}

@@ -1,23 +1,27 @@
 package cam72cam.immersiverailroading.render.entity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.entity.EntityBuildableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock.PosRot;
-import cam72cam.immersiverailroading.library.Gauge;
-import cam72cam.immersiverailroading.library.ItemComponentType;
-import cam72cam.immersiverailroading.library.RenderComponentType;
-import cam72cam.immersiverailroading.model.RenderComponent;
-import cam72cam.immersiverailroading.model.MultiRenderComponent;
-import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.Freight;
 import cam72cam.immersiverailroading.entity.LocomotiveDiesel;
 import cam72cam.immersiverailroading.entity.LocomotiveSteam;
+import cam72cam.immersiverailroading.library.Gauge;
+import cam72cam.immersiverailroading.library.ItemComponentType;
+import cam72cam.immersiverailroading.library.RenderComponentType;
+import cam72cam.immersiverailroading.model.MultiRenderComponent;
+import cam72cam.immersiverailroading.model.RenderComponent;
+import cam72cam.immersiverailroading.model.obj.OBJModel;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.registry.FreightDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
@@ -25,7 +29,10 @@ import cam72cam.immersiverailroading.render.OBJRender;
 import cam72cam.immersiverailroading.util.GLBoolTracker;
 import cam72cam.immersiverailroading.util.VecUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
@@ -98,6 +105,25 @@ public class StockModel extends OBJRender {
 		} else {
 			draw();
 		}
+		
+		BufferBuilder b = Tessellator.getInstance().getBuffer();
+		b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+		Map<String, Pair<Vec3d, Vec3d>> bb = stock.getDefinition().getBBModel().boundingBoxes;
+		for (Pair<Vec3d, Vec3d> p : bb.values()) {
+			Vec3d mi = p.getLeft();
+			Vec3d ma = p.getRight();
+			b.pos(mi.x, mi.y, mi.z).endVertex();
+			b.pos(mi.x, ma.y, mi.z).endVertex();
+			b.pos(ma.x, ma.y, mi.z).endVertex();
+			b.pos(ma.x, mi.y, mi.z).endVertex();
+			
+			b.pos(mi.x, mi.y, ma.z).endVertex();
+			b.pos(mi.x, ma.y, ma.z).endVertex();
+			b.pos(ma.x, ma.y, ma.z).endVertex();
+			b.pos(ma.x, mi.y, ma.z).endVertex();
+		}
+		
+		Tessellator.getInstance().draw();
 		
 		drawCargo(stock);
 		
