@@ -3,6 +3,7 @@ package cam72cam.immersiverailroading.gui.overlay;
 import org.lwjgl.opengl.GL11;
 
 import cam72cam.immersiverailroading.ConfigGraphics;
+import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.HandCar;
 import cam72cam.immersiverailroading.entity.Locomotive;
 import cam72cam.immersiverailroading.entity.LocomotiveDiesel;
@@ -15,13 +16,13 @@ import net.minecraft.util.ResourceLocation;
 public class LocomotiveOverlay extends Gui {
 	
 	protected Minecraft mc;
-	private int screenWidth;
-	private int screenHeight;
+	public int screenWidth;
+	public int screenHeight;
 	private int currPosX;
 	private int currPosY;
 	private int currSpeedPosX;
-	private int bgPosX;
-	private int bgPosY;
+	public int bgPosX;
+	public int bgPosY;
 	
 	private static final int gaugeWidth = 10;
 	private static final int gaugeHeight = 50;
@@ -96,7 +97,7 @@ public class LocomotiveOverlay extends Gui {
 		currPosX += scalarWidth + scalarSpacer;
 	}
 	
-	public void drawSpeedDisplay(Locomotive loco, int offset) {
+	public void drawSpeedDisplay(EntityMoveableRollingStock loco, int offset) {
 		double speed = Math.abs(loco.getCurrentSpeed().metric());
 		String text = "";
 		switch (ConfigGraphics.speedUnit) {

@@ -42,6 +42,7 @@ import cam72cam.immersiverailroading.gui.TenderContainer;
 import cam72cam.immersiverailroading.gui.TenderContainerGui;
 import cam72cam.immersiverailroading.gui.TrackGui;
 import cam72cam.immersiverailroading.gui.overlay.DieselLocomotiveOverlay;
+import cam72cam.immersiverailroading.gui.overlay.FreightCarOverlay;
 import cam72cam.immersiverailroading.gui.overlay.HandCarOverlay;
 import cam72cam.immersiverailroading.gui.overlay.SteamLocomotiveOverlay;
 import cam72cam.immersiverailroading.items.nbt.ItemMultiblockType;
@@ -550,6 +551,7 @@ public class ClientProxy extends CommonProxy {
 			new SteamLocomotiveOverlay().draw();
 			new DieselLocomotiveOverlay().draw();
 			new HandCarOverlay().draw();
+			new FreightCarOverlay().draw();
 		}
 	}
 	
