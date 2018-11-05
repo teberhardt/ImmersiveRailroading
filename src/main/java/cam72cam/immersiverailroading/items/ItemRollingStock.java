@@ -7,6 +7,7 @@ import cam72cam.immersiverailroading.ConfigGraphics;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
+import cam72cam.immersiverailroading.items.nbt.ItemTextureVariant;
 import cam72cam.immersiverailroading.library.GuiText;
 import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.library.Gauge;
@@ -50,23 +51,34 @@ public class ItemRollingStock extends BaseItemRollingStock {
     {
     	for (String defID : DefinitionManager.getDefinitionNames()) {
     		EntityRollingStockDefinition def = DefinitionManager.getDefinition(defID);
-    		if (def instanceof CarPassengerDefinition) {
-    			if (tab != ItemTabs.PASSENGER_TAB) {
-    				continue;
-    			}
-    		} else if (def instanceof LocomotiveDefinition) {
-    			if (tab != ItemTabs.LOCOMOTIVE_TAB) {
-    				continue;
-    			}
-    		} else {
-    			if (tab != ItemTabs.STOCK_TAB) {
-    				continue;
-    			}
+    		if (tab != CreativeTabs.SEARCH) {
+	    		if (def instanceof CarPassengerDefinition) {
+	    			if (tab != ItemTabs.PASSENGER_TAB) {
+	    				continue;
+	    			}
+	    		} else if (def instanceof LocomotiveDefinition) {
+	    			if (tab != ItemTabs.LOCOMOTIVE_TAB) {
+	    				continue;
+	    			}
+	    		} else {
+	    			if (tab != ItemTabs.STOCK_TAB) {
+	    				continue;
+	    			}
+	    		}
     		}
     		ItemStack stack = new ItemStack(this);
     		ItemDefinition.setID(stack, defID);
 			overrideStackDisplayName(stack);
-            items.add(stack);
+            /*if (def.textureNames.size() > 1) {
+            	for (String texture : def.textureNames.keySet()) {
+	            	ItemStack textured = stack.copy();
+	            	ItemTextureVariant.set(textured, texture);
+	            	items.add(textured);
+            	}
+            } else {
+                items.add(stack);
+            }*/
+			items.add(stack);
     	}
     }
 	
@@ -90,6 +102,10 @@ public class ItemRollingStock extends BaseItemRollingStock {
         	tooltip.addAll(def.getTooltip(gauge));
         }
         tooltip.add(GuiText.GAUGE_TOOLTIP.toString(gauge));
+        String texture = ItemTextureVariant.get(stack);
+        if (texture != null && def.textureNames.get(texture) != null) {
+	        tooltip.add(GuiText.TEXTURE_TOOLTIP.toString(def.textureNames.get(texture)));
+        }
     }
 	
 	@Override

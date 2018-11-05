@@ -1,6 +1,7 @@
 package cam72cam.immersiverailroading.render.entity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.lwjgl.opengl.GL11;
 
@@ -32,8 +33,8 @@ import net.minecraft.util.math.Vec3d;
 public class StockModel extends OBJRender {
 	private static final int MALLET_ANGLE_REAR = -45;
 
-	public StockModel(OBJModel objModel) {
-		super(objModel);
+	public StockModel(OBJModel objModel, Collection<String> textureNames) {
+		super(objModel, textureNames);
 	}
 
 	private boolean isBuilt;
@@ -87,7 +88,7 @@ public class StockModel extends OBJRender {
 			this.distanceTraveled = 0;
 		}
 
-		this.bindTexture();
+		this.bindTexture(stock.texture);
 		
 		if (stock instanceof LocomotiveSteam) {
 			drawSteamLocomotive((LocomotiveSteam) stock);
@@ -252,6 +253,16 @@ public class StockModel extends OBJRender {
 				drawWalschaerts(stock, "RIGHT", -90, wheel.height(), center.center(), wheel.center());
 			}
 			break;
+		case TRI_WALSCHAERTS:{
+			List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
+			drawDrivingWheels(stock, wheels);
+			RenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
+			RenderComponent wheel = wheels.get(wheels.size() / 2);
+			drawWalschaerts(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center());
+			drawWalschaerts(stock, "RIGHT", -240, wheel.height(), center.center(), wheel.center());
+			drawWalschaerts(stock, "CENTER", -120, wheel.height(), wheels.get(0).center(), wheels.get(0).center());
+			break;
+		}
 		case MALLET_WALSCHAERTS:
 			{
 				GL11.glPushMatrix();

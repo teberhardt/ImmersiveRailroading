@@ -323,6 +323,9 @@ public class ClientProxy extends CommonProxy {
 		
 		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_MANUAL, 0,
 				new ModelResourceLocation("minecraft:written_book", ""));
+		
+		ModelLoader.setCustomModelResourceLocation(IRItems.ITEM_PAINT_BRUSH, 0,
+				new ModelResourceLocation(IRItems.ITEM_PAINT_BRUSH.getRegistryName(), ""));
 	}
 	
 	public static final class StockIcon extends TextureAtlasSprite
@@ -353,7 +356,7 @@ public class ClientProxy extends CommonProxy {
     		for (int x = 0; x < this.getIconWidth(); x++) {
     			for (int y = 0; y < this.getIconHeight(); y++) {
     				if (map[x][y] != null && map[x][y] != "") {
-    					int color = renderer.texture.samp(map[x][y]);
+    					int color = renderer.textures.get(null).samp(map[x][y]);
     					image.setRGB(x, this.getIconWidth() - (y + 1), color);
     				} else {
     					image.setRGB(x, this.getIconWidth() - (y + 1), 0);
@@ -385,6 +388,11 @@ public class ClientProxy extends CommonProxy {
 				event.getMap().setTextureEntry(new StockIcon(def));
 			}
 		}
+	}
+	
+	@SubscribeEvent
+	public static void afterTextureStitch(TextureStitchEvent.Post event) {
+		StockRenderCache.tryPrime();
 	}
 
 	@SubscribeEvent
@@ -470,16 +478,16 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	@Override
-	public InputStream getResourceStream(ResourceLocation modelLoc) throws IOException {
-		return Minecraft.getMinecraft().getResourceManager().getResource(modelLoc).getInputStream();
-	}
-	
-	@Override
 	public List<InputStream> getResourceStreamAll(ResourceLocation modelLoc) throws IOException {
 		List<InputStream> res = new ArrayList<InputStream>();
-		for (IResource resource : Minecraft.getMinecraft().getResourceManager().getAllResources(modelLoc)) {
-			res.add(resource.getInputStream());
+		try {
+			for (IResource resource : Minecraft.getMinecraft().getResourceManager().getAllResources(modelLoc)) {
+				res.add(resource.getInputStream());
+			}
+		} catch (java.io.FileNotFoundException ex) {
+			// Ignore
 		}
+		res.addAll(getFileResourceStreams(modelLoc));
 		return res;
 	}
 	
@@ -576,9 +584,8 @@ public class ClientProxy extends CommonProxy {
 	                double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * event.getPartialTicks();
 	                double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * event.getPartialTicks();
 	                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * event.getPartialTicks();
-	                GL11.glTranslated(-d0, -d1, -d2);
 	                
-	                GL11.glTranslated(pos.getX(), pos.getY(), pos.getZ());
+	                GL11.glTranslated(pos.getX()-d0, pos.getY()-d1, pos.getZ()-d2);
 	                
 	                RailRenderUtil.render(info, true);
 
@@ -603,7 +610,7 @@ public class ClientProxy extends CommonProxy {
 	                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * event.getPartialTicks();
 	                GL11.glTranslated(-d0, -d1, -d2);
 	                
-	                GL11.glTranslated(pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5);
+	                GL11.glTranslated(pos.getX()-d0+0.5, pos.getY()-d1+0.5, pos.getZ()-d2+0.5);
 	                
 	                if (Math.random() < 0.1) {
 	                }
@@ -723,8 +730,6 @@ public class ClientProxy extends CommonProxy {
 		}
 		
 		if (world != null) {
-			StockRenderCache.tryPrime();
-			
 			if (magical == null) {
 				magical = new MagicEntity(world);
 				world.spawnEntity(magical);

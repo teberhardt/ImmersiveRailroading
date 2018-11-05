@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
+import net.minecraft.util.math.Vec3d;
 
 public class RailRenderUtil {
 	public static void render(RailInfo info, boolean renderOverlay) {
@@ -26,13 +27,13 @@ public class RailRenderUtil {
 			// Move to offset position
 			//GL11.glTranslated(-info.getBuilder().getRenderOffset().getX(), 0, -info.getBuilder().getRenderOffset().getZ());
 			GL11.glPushMatrix();
-
-			GL11.glTranslated(-info.position.getX(), -info.position.getY(), -info.position.getZ());
-			GL11.glTranslated(Math.floor(info.placementPosition.x), Math.floor(info.placementPosition.y), Math.floor(info.placementPosition.z));
+				
+			Vec3d renderPos = info.placementPosition.subtract(new Vec3d(info.position));
+			GL11.glTranslated(Math.floor(renderPos.x), Math.floor(renderPos.y), Math.floor(renderPos.z));
 		
 		
-			RailBaseRender.draw(info.clone());
-			RailBaseOverlayRender.draw(info.clone());
+			RailBaseRender.draw(info);
+			RailBaseOverlayRender.draw(info);
 			GL11.glPopMatrix();
 		}
 		
@@ -97,6 +98,9 @@ public class RailRenderUtil {
 
 	public static String renderID(RailInfo info) {
 		//TODO more attributes like railbed
-		return String.format("%s%s%s%s%s%s%s%s%s%s", info.facing, info.type, info.direction, info.length, info.quarter, info.quarters, info.switchState, info.railBed, info.gauge, info.tablePos);
+		if(info.renderIdCache == null) {
+			info.renderIdCache = String.format("%s%s%s%s%s%s%s%s%s%s%s", info.facing, info.type, info.direction, info.length, info.quarter, info.quarters, info.switchState, info.railBed, info.gauge, info.tablePos, info.gradeCrossing);
+		}
+		return info.renderIdCache;
 	}
 }
