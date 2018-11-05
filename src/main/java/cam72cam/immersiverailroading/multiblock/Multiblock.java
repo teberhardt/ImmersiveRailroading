@@ -16,7 +16,6 @@ import java.util.HashMap;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.Rotation;
@@ -31,7 +30,7 @@ public abstract class Multiblock {
 	private final String name;
 	protected final List<BlockPos> componentPositions;
 	
-	protected static final MultiblockComponent AIR = new MultiblockComponent(Blocks.AIR);
+	protected static final MultiblockComponent AIR = new MultiblockComponent();
 	protected static final MultiblockComponent STEEL() {
 		return new MultiblockComponent(OreHelper.IR_STEEL_BLOCK);
 	}

@@ -35,6 +35,7 @@ public class RailBaseRender {
 		if (info.railBed == null) {
 			return null;
 		}
+		info = info.clone();
 		IBlockState gravelState = BlockUtil.itemToBlockState(info.railBed);
 		
 		// Create render targets
@@ -49,11 +50,11 @@ public class RailBaseRender {
 			
 			// This is evil but really fast :D
 			for (TrackBase base : info.getBuilder().getTracksForRender()) {
-				String key = gravelState.toString() + base.getHeight() + ":"  + info.gauge.scale();
+				String key = gravelState.toString() + base.getBedHeight() + ":"  + info.gauge.scale();
 				IBakedModel model = scaled.get(key);
 				if (model == null) {
 					IBakedModel gravelModel = blockRenderer.getBlockModelShapes().getModelForState(gravelState);
-					model = new BakedScaledModel(gravelModel, base.getHeight() + 0.1f * (float)info.gauge.scale());
+					model = new BakedScaledModel(gravelModel, base.getBedHeight() + 0.1f * (float)info.gauge.scale());
 					scaled.put(key, model);
 				}
 				blockRenderer.getBlockModelRenderer().renderModel(info.world, model, gravelState, base.getPos(), worldRenderer, false);

@@ -105,6 +105,7 @@ public class LocomotiveSteamDefinition extends LocomotiveDefinition {
 		switch (this.valveGear) {
 		case STEPHENSON:
 		case WALSCHAERTS:
+		case TRI_WALSCHAERTS:
 		case HIDDEN:
 			for (int i = 0; i < 10; i++) {
 				addComponentIfExists(RenderComponent.parseID(RenderComponentType.WHEEL_DRIVER_X, this, groups, i), true);
@@ -145,6 +146,8 @@ public class LocomotiveSteamDefinition extends LocomotiveDefinition {
 		List<String> sides = new ArrayList<String>();
 		
 		switch (this.valveGear) {
+		case TRI_WALSCHAERTS:
+			sides.add("CENTER");
 		case STEPHENSON:
 		case WALSCHAERTS:
 			sides.add("RIGHT");

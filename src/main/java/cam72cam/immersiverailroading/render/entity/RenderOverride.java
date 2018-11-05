@@ -144,51 +144,50 @@ public class RenderOverride {
 
         ICamera camera = getCamera(partialTicks);
         Vec3d cameraPos = getCameraPos(partialTicks);
+
         
-        GL11.glPushMatrix();
-        {
-	        GL11.glTranslated(-cameraPos.xCoord, -cameraPos.yCoord, -cameraPos.zCoord);
-			GLBoolTracker blend = new GLBoolTracker(GL11.GL_BLEND, false);
-		
-	        OBJRender model = RailBuilderRender.getModel(Gauge.from(Gauge.STANDARD)); 
-	        model.bindTexture();
-	        List<TileEntity> entities = new ArrayList<TileEntity>(Minecraft.getMinecraft().thePlayer.getEntityWorld().loadedTileEntityList);
-	        for (TileEntity te : entities) {
-	        	if (te instanceof TileRail) {
-	        		if (!((TileRail) te).isLoaded()) {
+		GLBoolTracker blend = new GLBoolTracker(GL11.GL_BLEND, false);
+	
+        OBJRender model = RailBuilderRender.getModel(Gauge.from(Gauge.STANDARD)); 
+        model.bindTexture();
+        List<TileEntity> entities = new ArrayList<TileEntity>(Minecraft.getMinecraft().thePlayer.getEntityWorld().loadedTileEntityList);
+        for (TileEntity te : entities) {
+        	if (te instanceof TileRail) {
+        		if (!((TileRail) te).isLoaded()) {
+        			continue;
+        		}
+	        	if (camera.isBoundingBoxInFrustum(te.getRenderBoundingBox()) && isInRenderDistance(((TileRail) te).getPlacementPosition())) {
+	        		Vec3d relPos = new Vec3d(te.getPos()).subtract(cameraPos);
+	        		
+	        		RailInfo info = ((TileRail) te).getRailRenderInfo();
+	        		if (info == null) {
+	        			// Still loading...
 	        			continue;
 	        		}
-		        	if (camera.isBoundingBoxInFrustum(te.getRenderBoundingBox()) && isInRenderDistance(((TileRail) te).getPlacementPosition())) {
-		        		Vec3d relPos = new Vec3d(te.getPos());
-		        		
-		        		RailInfo info = ((TileRail) te).getRailRenderInfo();
-		        		if (info == null) {
-		        			// Still loading...
-		        			continue;
+	        		
+	        		GL11.glPushMatrix();
+	        		{
+	        	        int i = te.getWorld().getCombinedLight(te.getPos(), 0);
+	        	        int j = i % 65536;
+	        	        int k = i / 65536;
+	        	        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j, (float)k);
+	        			GL11.glTranslated(relPos.xCoord, relPos.yCoord, relPos.zCoord);	
+	        			boolean switched = info.type == TrackItems.SWITCH; 
+	        			if (switched ) {
+	        				info.type = TrackItems.STRAIGHT;
+	        			}
+		        		RailBuilderRender.renderRailBuilder(info);
+		        		if (switched) {
+		        			info.type = TrackItems.SWITCH;
 		        		}
-		        		
-		        		GL11.glPushMatrix();
-		        		{
-		        	        int i = te.getWorld().getCombinedLight(te.getPos(), 0);
-		        	        int j = i % 65536;
-		        	        int k = i / 65536;
-		        	        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j, (float)k);
-		        			info = info.clone();
-		        			GL11.glTranslated(relPos.xCoord, relPos.yCoord, relPos.zCoord);	
-		        			if (info.type == TrackItems.SWITCH) {
-		        				info.type = TrackItems.STRAIGHT;
-		        			}
-			        		RailBuilderRender.renderRailBuilder(info);
-		        		}
-		        		GL11.glPopMatrix();
-		        	}
-	        	}
-	        }
-	        model.restoreTexture();
-	        
-	        blend.restore();
+	        		}
+	        		GL11.glPopMatrix();
+	        	}	
+        	}
         }
-        GL11.glPopMatrix();
+        model.restoreTexture();
+        
+        blend.restore();
         Minecraft.getMinecraft().mcProfiler.endSection();;
 	}
 }

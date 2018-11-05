@@ -1,10 +1,16 @@
 package cam72cam.immersiverailroading.proxy;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import org.apache.commons.io.IOUtils;
 
 import cam72cam.immersiverailroading.Config.ConfigDebug;
 import cam72cam.immersiverailroading.IRBlocks;
@@ -44,9 +50,10 @@ import cam72cam.immersiverailroading.net.ItemRailUpdatePacket;
 import cam72cam.immersiverailroading.net.KeyPressPacket;
 import cam72cam.immersiverailroading.net.MRSSyncPacket;
 import cam72cam.immersiverailroading.net.MousePressPacket;
+import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
 import cam72cam.immersiverailroading.net.PassengerPositionsPacket;
 import cam72cam.immersiverailroading.net.SoundPacket;
-import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
+import cam72cam.immersiverailroading.net.PaintSyncPacket;
 import cam72cam.immersiverailroading.registry.DefinitionManager;
 import cam72cam.immersiverailroading.sound.ISound;
 import cam72cam.immersiverailroading.thirdparty.CompatLoader;
@@ -131,6 +138,7 @@ public abstract class CommonProxy implements IGuiHandler {
     	ImmersiveRailroading.net.registerMessage(BuildableStockSyncPacket.Handler.class, BuildableStockSyncPacket.class, 8, Side.CLIENT);
     	ImmersiveRailroading.net.registerMessage(MultiblockSelectCraftPacket.Handler.class, MultiblockSelectCraftPacket.class, 9, Side.SERVER);
     	ImmersiveRailroading.net.registerMessage(SoundPacket.Handler.class, SoundPacket.class, 10, Side.CLIENT);
+    	ImmersiveRailroading.net.registerMessage(PaintSyncPacket.Handler.class, PaintSyncPacket.class, 11, Side.CLIENT);
 
     	NetworkRegistry.INSTANCE.registerGuiHandler(ImmersiveRailroading.instance, this);
     	
@@ -141,26 +149,28 @@ public abstract class CommonProxy implements IGuiHandler {
     	MultiblockRegistry.register(RailRollerMultiblock.NAME, new RailRollerMultiblock());
     	MultiblockRegistry.register(BoilerRollerMultiblock.NAME, new BoilerRollerMultiblock());
     	MultiblockRegistry.register(CastingMultiblock.NAME, new CastingMultiblock());
+    	
+    	String ingotSteel = OreDictionary.doesOreNameExist("ingotSteel") ? "ingotSteel" : "ingotIron";
 
 
     	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_HOOK),
     		    "dd ",
     		    "d  ",
     		    "d  ",
-    		    'd', "ingotSteel"));
+    		    'd', ingotSteel));
 
     	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_MANUAL, 1),
     			"d d",
     		    "dbd",
     		    "d d",
-    		    'd', "ingotSteel",
+    		    'd', ingotSteel,
     		    'b', new ItemStack(Items.BOOK, 1)));
 
     	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_TRACK_BLUEPRINT, 1),
     			"d d",
     		    "dbd",
     		    "d d",
-    		    'd', "ingotSteel",
+    		    'd', ingotSteel,
     		    'b', new ItemStack(Items.PAPER, 1)));
 
 
@@ -168,7 +178,7 @@ public abstract class CommonProxy implements IGuiHandler {
     			" d ",
     		    "ddd",
     		    "d d",
-    		    'd', "ingotSteel"));
+    		    'd', ingotSteel));
     	GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(IRItems.ITEM_CONDUCTOR_WHISTLE),  
     			" gg",
     		    " gg",
@@ -194,7 +204,7 @@ public abstract class CommonProxy implements IGuiHandler {
     
     public abstract World getWorld(int dimension);
     
-    @SubscribeEvent
+	@SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event)
     {
 		event.getRegistry().register(IRBlocks.BLOCK_RAIL_GAG);
@@ -221,6 +231,7 @@ public abstract class CommonProxy implements IGuiHandler {
     	event.getRegistry().register(IRItems.ITEM_PLATE);
     	event.getRegistry().register(IRItems.ITEM_CAST_RAIL);
     	event.getRegistry().register(IRItems.ITEM_CONDUCTOR_WHISTLE);
+    	event.getRegistry().register(IRItems.ITEM_PAINT_BRUSH);
     }
     
     public static void registerEntities() {
@@ -278,8 +289,61 @@ public abstract class CommonProxy implements IGuiHandler {
 	
 	public abstract int getTicks();
 
-	public abstract InputStream getResourceStream(ResourceLocation modelLoc) throws IOException;
+
 	public abstract List<InputStream> getResourceStreamAll(ResourceLocation modelLoc) throws IOException;
+
+	public InputStream getResourceStream(ResourceLocation location) throws IOException {
+		InputStream chosen = null;
+		for (InputStream strm : getResourceStreamAll(location)) {
+			if (chosen == null) {
+				chosen = strm;
+			} else {
+				strm.close();
+			}
+		}
+		if (chosen == null) {
+			throw new java.io.FileNotFoundException(location.toString());
+		}
+		return chosen;
+	}
+
+    
+    protected String pathString(ResourceLocation location, boolean startingSlash) {
+    	return (startingSlash ? "/" : "") + "assets/" + location.getResourceDomain() + "/" + location.getResourcePath();
+    }
+    
+    protected List<InputStream> getFileResourceStreams(ResourceLocation location) throws IOException {
+    	List<InputStream> streams = new ArrayList<InputStream>();
+    	if (this.configDir == null) {
+    		return streams;
+    	}
+    	File folder = new File(this.configDir);
+    	if (folder.exists()) {
+    		if (folder.isDirectory()) {
+	    		File[] files = folder.listFiles(new FilenameFilter() {
+				    @Override
+				    public boolean accept(File dir, String name) {
+				        return name.endsWith(".zip");
+				    }
+				});
+	    		for (File file : files) {
+	    			ZipFile resourcePack = new ZipFile(file);
+	    			ZipEntry entry = resourcePack.getEntry(pathString(location, false));
+	    			if (entry != null) {
+	    				// Copy the input stream so we can close the resource pack
+	    				InputStream stream = resourcePack.getInputStream(entry);
+	    				streams.add(new ByteArrayInputStream(IOUtils.toByteArray(stream)));
+	    			}
+	    			resourcePack.close();
+	    		}
+    		} else {
+    			ImmersiveRailroading.error("Expecting " + this.configDir + " to be a directory");
+    		}
+    	} else {
+			folder.mkdirs();
+    	}
+		return streams;
+    }
 	
 	public ISound newSound(ResourceLocation oggLocation, boolean repeats, float attenuationDistance, Gauge gauge) {
 		return null;

@@ -239,10 +239,11 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 		if (passengerPositions.containsKey(passenger.getPersistentID()) ) {
 			Vec3d ppos = passengerPositions.get(passenger.getPersistentID());
 			Vec3d delta = dismountPos(ppos);
-
 			passenger.setPositionAndUpdate(delta.xCoord, passenger.posY, delta.zCoord);
 			if (!worldObj.isRemote) {
 				dismounts.put(passenger.getEntityId(), new Vec3d(delta.xCoord, passenger.posY, delta.zCoord));
+				passengerPositions.remove(passenger.getPersistentID());
+				sendToObserving(new PassengerPositionsPacket(this));
 			}
 		}
 	}
@@ -263,14 +264,14 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	}
 	
 	public Vec3d dismountPos(Vec3d ppos) {
+		Vec3d pos = this.getDefinition().getPassengerCenter(gauge);
+		pos = pos.add(ppos);
+		pos = VecUtil.rotateYaw(pos, this.rotationYaw);
+		pos = pos.add(this.getPositionVector());
+		
 		Vec3d delta = VecUtil.fromYaw(this.getDefinition().getPassengerCompartmentWidth(gauge)/2 + 1.3 * gauge.scale(), this.rotationYaw + (ppos.zCoord > 0 ? 90 : -90));
 		
-		ppos = ppos.add(this.getDefinition().getPassengerCenter(gauge));
-		Vec3d offppos = VecUtil.rotateYaw(ppos, this.rotationYaw);
-		
-		delta = delta.addVector(offppos.xCoord, offppos.yCoord, 0);
-		delta = delta.add(this.getPositionVector());
-		return new Vec3d(delta.xCoord, this.posY, delta.zCoord);
+		return delta.add(pos);
 	}
 
 	public void handlePassengerPositions(Map<UUID, Vec3d> passengerPositions) {

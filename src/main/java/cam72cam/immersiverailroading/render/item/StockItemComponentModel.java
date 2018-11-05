@@ -52,7 +52,7 @@ public class StockItemComponentModel implements IBakedModel {
 		EntityRollingStockDefinition def = DefinitionManager.getDefinition(defID);
 		
 		if (def == null) {
-			ImmersiveRailroading.error("Item missing definition!");
+			ImmersiveRailroading.error("Item %s missing definition!", stack);
 			stack.stackSize = (0);
 			return;
 		}
