@@ -94,7 +94,7 @@ public class ServerProxy extends CommonProxy {
 	@SubscribeEvent
 	public static void onPlayerJoin(PlayerLoggedInEvent event) {
 		EntityPlayer player = event.player;
-		World world = player.world;
+		World world = player.worldObj;
 		
 		if (logoffRide.containsKey(player.getUniqueID())) {
 			for (Entity ent: world.loadedEntityList) {

@@ -80,7 +80,7 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 		BufferUtil.writeFloat(buffer, frontYaw);
 		BufferUtil.writeFloat(buffer, rearYaw);
 		buffer.writeInt((int)tickPosID);
-		double tickTime = ConfigDebug.serverTickCompensation ? 20 : CommonProxy.getServerTPS(world, positions.size());
+		double tickTime = ConfigDebug.serverTickCompensation ? 20 : CommonProxy.getServerTPS(worldObj, positions.size());
 		buffer.writeDouble(tickTime/20);
 		
 		buffer.writeInt(positions.size());
