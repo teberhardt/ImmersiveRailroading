@@ -1,13 +1,12 @@
 package cam72cam.immersiverailroading.tile;
 
+import javax.annotation.Nonnull;
+
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.CraftingMachineMode;
 import cam72cam.immersiverailroading.multiblock.Multiblock.MultiblockInstance;
-import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
-
-import javax.annotation.Nonnull;
-
 import cam72cam.immersiverailroading.multiblock.MultiblockRegistry;
+import cam72cam.immersiverailroading.net.MultiblockSelectCraftPacket;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;

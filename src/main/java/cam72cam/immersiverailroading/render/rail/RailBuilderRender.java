@@ -1,6 +1,7 @@
 package cam72cam.immersiverailroading.render.rail;
 
 import java.util.ArrayList;
+
 import org.lwjgl.opengl.GL11;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;

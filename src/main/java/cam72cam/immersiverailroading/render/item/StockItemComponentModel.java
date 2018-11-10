@@ -2,6 +2,7 @@ package cam72cam.immersiverailroading.render.item;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nullable;
 import javax.vecmath.Matrix4f;
 
@@ -24,9 +25,9 @@ import cam72cam.immersiverailroading.util.GLBoolTracker;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.block.model.ItemOverride;
+import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;

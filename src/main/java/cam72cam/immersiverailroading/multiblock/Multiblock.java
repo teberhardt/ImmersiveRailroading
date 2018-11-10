@@ -1,5 +1,7 @@
 package cam72cam.immersiverailroading.multiblock;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,10 +11,6 @@ import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.tile.TileMultiblock;
 import cam72cam.immersiverailroading.util.BlockUtil;
 import cam72cam.immersiverailroading.util.OreHelper;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;

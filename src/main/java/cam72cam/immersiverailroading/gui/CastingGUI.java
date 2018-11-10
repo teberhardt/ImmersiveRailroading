@@ -1,6 +1,7 @@
 package cam72cam.immersiverailroading.gui;
 
 import java.io.IOException;
+
 import org.lwjgl.opengl.GL11;
 
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;

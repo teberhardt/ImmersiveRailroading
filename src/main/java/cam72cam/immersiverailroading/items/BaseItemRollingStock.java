@@ -2,9 +2,9 @@ package cam72cam.immersiverailroading.items;
 
 import java.util.List;
 
-import cam72cam.immersiverailroading.library.ItemComponentType;
 import cam72cam.immersiverailroading.items.nbt.ItemDefinition;
 import cam72cam.immersiverailroading.library.ChatText;
+import cam72cam.immersiverailroading.library.ItemComponentType;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.util.SpawnUtil;
 import net.minecraft.entity.player.EntityPlayer;

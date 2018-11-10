@@ -33,7 +33,8 @@ import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.*;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidUtil;
 
 public class LocomotiveSteam extends Locomotive {
 	// PSI

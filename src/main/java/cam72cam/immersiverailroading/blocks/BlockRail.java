@@ -1,5 +1,7 @@
 package cam72cam.immersiverailroading.blocks;
 
+import cam72cam.immersiverailroading.ImmersiveRailroading;
+import cam72cam.immersiverailroading.tile.TileRail;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -9,8 +11,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import cam72cam.immersiverailroading.ImmersiveRailroading;
-import cam72cam.immersiverailroading.tile.TileRail;
 
 public class BlockRail extends BlockRailBase {
 	public static final String NAME = "block_rail";

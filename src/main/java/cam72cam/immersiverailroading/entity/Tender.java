@@ -7,7 +7,7 @@ import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.registry.TenderDefinition;
 import cam72cam.immersiverailroading.util.LiquidUtil;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.*;
+import net.minecraftforge.fluids.Fluid;
 
 public class Tender extends CarTank {
 	

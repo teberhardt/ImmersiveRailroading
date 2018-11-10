@@ -2,6 +2,7 @@ package cam72cam.immersiverailroading.util;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import cam72cam.immersiverailroading.Config.ConfigBalance;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityFurnace;

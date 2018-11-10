@@ -3,6 +3,7 @@ package cam72cam.immersiverailroading.track;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import cam72cam.immersiverailroading.library.SwitchState;

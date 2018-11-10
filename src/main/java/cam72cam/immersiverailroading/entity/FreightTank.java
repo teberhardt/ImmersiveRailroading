@@ -12,7 +12,6 @@ import cam72cam.immersiverailroading.gui.ISyncableSlots;
 import cam72cam.immersiverailroading.inventory.SlotFilter;
 import cam72cam.immersiverailroading.library.GuiTypes;
 import cam72cam.immersiverailroading.util.FluidQuantity;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
@@ -21,9 +20,15 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fluids.*;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidActionResult;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 public abstract class FreightTank extends Freight {
 	private static final DataParameter<Integer> FLUID_AMOUNT = EntityDataManager.createKey(FreightTank.class, DataSerializers.VARINT);

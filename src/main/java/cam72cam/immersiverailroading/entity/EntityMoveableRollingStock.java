@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cam72cam.immersiverailroading.Config;
-import cam72cam.immersiverailroading.ConfigSound;
-import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.Config.ConfigDamage;
 import cam72cam.immersiverailroading.Config.ConfigDebug;
+import cam72cam.immersiverailroading.ConfigSound;
+import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.Augment;
 import cam72cam.immersiverailroading.physics.MovementSimulator;
 import cam72cam.immersiverailroading.physics.TickPos;

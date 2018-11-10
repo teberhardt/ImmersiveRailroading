@@ -1,6 +1,5 @@
 package cam72cam.immersiverailroading.entity;
 import cam72cam.immersiverailroading.Config.ConfigBalance;
-
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.inventory.FilteredStackHandler;
 import cam72cam.immersiverailroading.library.GuiTypes;

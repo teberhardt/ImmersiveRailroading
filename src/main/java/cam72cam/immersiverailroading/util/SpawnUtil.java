@@ -2,6 +2,9 @@ package cam72cam.immersiverailroading.util;
 
 import java.util.List;
 
+import cam72cam.immersiverailroading.Config.ConfigDebug;
+import cam72cam.immersiverailroading.entity.EntityBuildableRollingStock;
+import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock.CouplerType;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
@@ -11,9 +14,6 @@ import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.ItemComponentType;
 import cam72cam.immersiverailroading.physics.MovementSimulator;
 import cam72cam.immersiverailroading.physics.TickPos;
-import cam72cam.immersiverailroading.Config.ConfigDebug;
-import cam72cam.immersiverailroading.entity.EntityBuildableRollingStock;
-import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock.CouplerType;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;

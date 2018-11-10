@@ -1,12 +1,12 @@
 package cam72cam.immersiverailroading.track;
 
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.Vec3d;
 import cam72cam.immersiverailroading.IRBlocks;
 import cam72cam.immersiverailroading.library.TrackDirection;
 import cam72cam.immersiverailroading.library.TrackItems;
 import cam72cam.immersiverailroading.tile.TileRail;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Vec3d;
 
 public class TrackRail extends TrackBase {
 

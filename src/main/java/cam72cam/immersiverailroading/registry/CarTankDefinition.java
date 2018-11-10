@@ -6,12 +6,12 @@ import java.util.List;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import cam72cam.immersiverailroading.ImmersiveRailroading;
+import cam72cam.immersiverailroading.entity.CarTank;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiText;
 import cam72cam.immersiverailroading.util.FluidQuantity;
-import cam72cam.immersiverailroading.ImmersiveRailroading;
-import cam72cam.immersiverailroading.entity.CarTank;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;

@@ -1,13 +1,14 @@
 package util;
 
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.Vec3d;
-
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector3f;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3f;
+
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.Vec3d;
 
 /**
  * Copyright (C) 2013 Chicken-Bones

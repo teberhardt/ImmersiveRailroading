@@ -2,8 +2,8 @@ package cam72cam.immersiverailroading.registry;
 
 import com.google.gson.JsonObject;
 
-import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.CarPassenger;
+import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import net.minecraft.world.World;
 
 public class CarPassengerDefinition extends EntityRollingStockDefinition {

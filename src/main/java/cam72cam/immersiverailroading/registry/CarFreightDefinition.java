@@ -6,10 +6,10 @@ import java.util.List;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import cam72cam.immersiverailroading.entity.CarFreight;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiText;
-import cam72cam.immersiverailroading.entity.CarFreight;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 

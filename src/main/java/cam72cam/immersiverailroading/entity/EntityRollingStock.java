@@ -1,11 +1,5 @@
 package cam72cam.immersiverailroading.entity;
 
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,8 +7,8 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 
-import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.Config.ConfigDamage;
+import cam72cam.immersiverailroading.IRItems;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.StockDeathType;
@@ -30,6 +24,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public abstract class EntityRollingStock extends Entity implements IEntityAdditionalSpawnData {
 	

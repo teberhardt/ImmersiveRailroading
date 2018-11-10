@@ -1,6 +1,7 @@
 package cam72cam.immersiverailroading.gui;
 
 import java.io.IOException;
+
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicate;
@@ -8,9 +9,9 @@ import com.google.common.base.Predicate;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.items.ItemTrackBlueprint;
 import cam72cam.immersiverailroading.items.nbt.ItemGauge;
+import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.GuiText;
 import cam72cam.immersiverailroading.library.TrackDirection;
-import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.TrackItems;
 import cam72cam.immersiverailroading.library.TrackPositionType;
 import cam72cam.immersiverailroading.net.ItemRailUpdatePacket;
@@ -21,14 +22,14 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.init.Items;
-import net.minecraftforge.fml.client.config.GuiCheckBox;
-import net.minecraftforge.fml.client.config.GuiSlider;
-import net.minecraftforge.oredict.OreDictionary;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.client.config.GuiCheckBox;
+import net.minecraftforge.fml.client.config.GuiSlider;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class TrackGui extends GuiScreen {
 	private GuiButton typeButton;
