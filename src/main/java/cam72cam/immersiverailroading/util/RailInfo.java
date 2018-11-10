@@ -213,7 +213,9 @@ public class RailInfo {
 		}
 		
 		if (player.isCreative() && ConfigDamage.creativePlacementClearsBlocks) {
-			builder.clearArea();
+			if (!world.isRemote) {
+				builder.clearArea();
+			}
 		}
 		
 
