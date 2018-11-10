@@ -78,7 +78,7 @@ public class ChunkManager implements ForgeChunkManager.LoadingCallback, ForgeChu
 			ImmersiveRailroading.debug("NEW CHUNK %s %s", pos.chunkX, pos.chunkZ);
 		}
 		// max 5s before unload
-		CHUNK_MAP.put(pos, Math.max(100, Math.min(10, currTicks)));
+		CHUNK_MAP.put(pos, Math.max(10, Math.min(100, currTicks)));
 	}
 	
 	/* Call once per tick */

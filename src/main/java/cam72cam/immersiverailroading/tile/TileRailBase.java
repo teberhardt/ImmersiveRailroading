@@ -109,7 +109,7 @@ public class TileRailBase extends SyncdTileEntity implements ITrack, ITickable {
 		this.markDirty();
 	}
 	public boolean setAugmentFilter(String definitionID) {
-		if (definitionID != augmentFilterID) {
+		if (!definitionID.equals(augmentFilterID)) {
 			this.augmentFilterID = definitionID;
 		} else {
 			this.augmentFilterID = null;

@@ -576,7 +576,7 @@ public abstract class EntityRollingStockDefinition {
 		String[] sp = this.defID.replaceAll(".json", "").split("/");
 		String localStr = String.format("%s:entity.%s.%s", ImmersiveRailroading.MODID, sp[sp.length-2], sp[sp.length-1]); 
 		String transStr = TextUtil.translate(localStr);
-		return localStr != transStr ? transStr : name;
+		return !localStr.equals(transStr) ? transStr : name;
 	}
 
 	public List<String> getTooltip(Gauge gauge) {
