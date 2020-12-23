@@ -55,7 +55,8 @@ public class TrackBlueprintItemModel implements ItemRender.IItemModel {
 				GL11.glTranslated(-0.5, 0, -0.5);
 				RailBaseRender.draw(info, world);
 			}
-			RailBuilderRender.renderRailBuilder(info, world);
+
+			RailBuilderRender.renderSingle(info, world);
 		}
 	}
 

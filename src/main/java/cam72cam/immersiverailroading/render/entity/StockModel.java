@@ -1,47 +1,34 @@
 package cam72cam.immersiverailroading.render.entity;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import cam72cam.immersiverailroading.ConfigGraphics;
 import cam72cam.immersiverailroading.library.ValveGearType;
-import cam72cam.mod.MinecraftClient;
 import cam72cam.mod.math.Vec3d;
 import cam72cam.mod.render.OpenGL;
+import friedrichlp.renderlib.render.PartProperty;
+import friedrichlp.renderlib.tracking.RenderObject;
 import org.lwjgl.opengl.GL11;
 
 import cam72cam.immersiverailroading.ImmersiveRailroading;
-import cam72cam.immersiverailroading.entity.EntityBuildableRollingStock;
 import cam72cam.immersiverailroading.entity.EntityMoveableRollingStock;
 import cam72cam.immersiverailroading.library.Gauge;
-import cam72cam.immersiverailroading.library.ItemComponentType;
 import cam72cam.immersiverailroading.library.RenderComponentType;
 import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.model.MultiRenderComponent;
-import cam72cam.mod.model.obj.OBJModel;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.entity.Freight;
-import cam72cam.immersiverailroading.entity.LocomotiveDiesel;
 import cam72cam.immersiverailroading.entity.LocomotiveSteam;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.registry.FreightDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
-import cam72cam.mod.render.obj.OBJRender;
 import cam72cam.immersiverailroading.util.VecUtil;
 
-public class StockModel extends OBJRender {
+public class StockModel {
 	private static final int MALLET_ANGLE_REAR = -45;
 
-	public StockModel(OBJModel objModel, Collection<String> textureNames) {
-		super(objModel, textureNames, ConfigGraphics.textureCacheSeconds);
-	}
+	private static double distanceTraveled;
 
-	private boolean isBuilt;
-	private List<RenderComponentType> availComponents;
-
-	private double distanceTraveled;
-	private void initComponents(EntityBuildableRollingStock stock) {
+	/*private void initComponents(EntityBuildableRollingStock stock) {
 		this.isBuilt = stock.isBuilt();
 		
 		if (!isBuilt) {
@@ -50,63 +37,34 @@ public class StockModel extends OBJRender {
 				this.availComponents.addAll(item.render);
 			}
 		}
-	}
-	
-	private void drawComponent(RenderComponent component) {
-		if (component != null) {
-			if (!isBuilt) {
-				if (!availComponents.contains(component.type)) {
-					// MISSING COMPONENT
-					return;
-				}
-				// remove first
-				availComponents.remove(component.type);
-			}
-			MinecraftClient.startProfiler("render");
-			try (OpenGL.With matrix = OpenGL.matrix()) {
-			GL11.glScaled(component.scale, component.scale, component.scale);
-			drawGroups(component.modelIDs);
-			}
-			MinecraftClient.endProfiler();
-		}
-	}
-	
-	private void drawComponents(List<RenderComponent> components) {
-		if (components == null) {
-			return;
-		}
-		for (RenderComponent component : components) {
-			this.drawComponent(component);
-		}
-	}
+	}*/
 
-	public void draw(EntityRollingStock stock, float partialTicks) {
-
-		boolean isFarAway = MinecraftClient.getPlayer().getPosition().distanceTo(stock.getPosition()) > 100;
+	public static void update(EntityRollingStock stock, float partialTicks) {
+		RenderObject o = stock.getRenderObject();
+		Vec3d pos = stock.getPosition();
+		o.setPosition((float)pos.x, (float)pos.y, (float)pos.z);
+		o.setRotation(stock.getRotationPitch(), stock.getRotationYaw() - 90, 0);
 
 		if (stock instanceof EntityMoveableRollingStock) {
 			EntityMoveableRollingStock mstock = (EntityMoveableRollingStock) stock;
-			this.distanceTraveled = mstock.distanceTraveled + mstock.getCurrentSpeed().minecraft() * mstock.getTickSkew() * partialTicks * 1.1; 
+			distanceTraveled = mstock.distanceTraveled + mstock.getCurrentSpeed().minecraft() * mstock.getTickSkew() * partialTicks * 1.1;
 		} else {
-			this.distanceTraveled = 0;
+			distanceTraveled = 0;
 		}
 
-		try (OpenGL.With tex = this.bindTexture(stock.getTexture(), isFarAway)) {
-			if (stock instanceof LocomotiveSteam) {
-				drawSteamLocomotive((LocomotiveSteam) stock);
-			} else if (stock instanceof LocomotiveDiesel) {
-				drawDieselLocomotive((LocomotiveDiesel) stock);
-			} else if (stock instanceof EntityMoveableRollingStock) {
-				drawStandardStock((EntityMoveableRollingStock) stock);
-			} else {
-				draw();
-			}
+		/*if (stock instanceof LocomotiveSteam) {
+			updateSteamLocomotive((LocomotiveSteam) stock);
+		} else if (stock instanceof EntityMoveableRollingStock) {
+			updateStandardStock((EntityMoveableRollingStock) stock);
+		}*/
+		//updateStandardStock((EntityMoveableRollingStock) stock);
 
-			drawCargo(stock);
-		}
+		// ToDo: Implement
+		//updateCargo(stock);
 	}
-	
-	public void drawCargo(EntityRollingStock stock) {
+
+	// ToDo: do update when stock cargo actually changes
+	private static void updateCargo(EntityRollingStock stock) {
 		if (stock instanceof Freight) {
 			Freight freight = (Freight) stock;
 			FreightDefinition def = freight.getDefinition();
@@ -117,7 +75,7 @@ public class StockModel extends OBJRender {
 				//this sorts through all the cargoLoad objects
 				for (RenderComponent cargoLoad : cargoLoads) {
 					if (cargoLoad.id <= fill) {
-						drawComponent(cargoLoad);
+						//drawComponent(cargoLoad);
 						//if the stock should only render the current cargo load it'll stop at the highest matching load
 						if (def.shouldShowCurrentLoadOnly()) {
 							break;
@@ -128,71 +86,66 @@ public class StockModel extends OBJRender {
 		}
 	}
 
-	private void drawStandardStock(EntityMoveableRollingStock stock) {
+	private static void updateStandardStock(EntityMoveableRollingStock stock) {
 		EntityRollingStockDefinition def = stock.getDefinition();
-		
-		initComponents(stock);
-		
-		drawComponent(def.getComponent(RenderComponentType.FRAME, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.SHELL, stock.gauge));
-		
-		drawFrameWheels(stock);
+		RenderObject o = stock.getRenderObject();
+
+		updateFrameWheels(stock);
 
 		if (def.getComponent(RenderComponentType.BOGEY_POS, "FRONT", stock.gauge) != null) {
-			try (OpenGL.With matrix = OpenGL.matrix()) {
-				GL11.glTranslated(-def.getBogeyFront(stock.gauge), 0, 0);
-				GL11.glRotated(180 - stock.getFrontYaw(), 0, 1, 0);
-				GL11.glRotated(-(180 - stock.getRotationYaw()), 0, 1, 0);
-				GL11.glTranslated(def.getBogeyFront(stock.gauge), 0, 0);
-				drawComponent(def.getComponent(RenderComponentType.BOGEY_POS, "FRONT", stock.gauge));
-				List<RenderComponent> wheels = def.getComponents(RenderComponentType.BOGEY_POS_WHEEL_X, "FRONT", stock.gauge);
-				if (wheels != null) {
-					for (RenderComponent wheel : wheels) {
-						double circumference = wheel.height() * (float) Math.PI;
-						double relDist = distanceTraveled % circumference;
-						Vec3d wheelPos = wheel.center();
-						try (OpenGL.With wheelMatrix = OpenGL.matrix()) {
-							GL11.glTranslated(wheelPos.x, wheelPos.y, wheelPos.z);
-							GL11.glRotated((float) (360 * relDist / circumference), 0, 0, 1);
-							GL11.glTranslated(-wheelPos.x, -wheelPos.y, -wheelPos.z);
-							drawComponent(wheel);
-						}
+			RenderComponent bogeyRear = def.getComponent(RenderComponentType.BOGEY_POS, "FRONT", stock.gauge);
+			for (String partName : bogeyRear.modelIDs) {
+				PartProperty part = o.getPart(partName);
+				part.setOrigin(def.getBogeyRear(stock.gauge), 0, 0);
+				part.setRotation(0, 180 - stock.getRearYaw(), 0);
+				part.rotate(0, -(180 - stock.getRotationYaw()), 0);
+			}
+
+			List<RenderComponent> wheels = def.getComponents(RenderComponentType.BOGEY_POS_WHEEL_X, "FRONT", stock.gauge);
+			if (wheels != null) {
+				for (RenderComponent wheel : wheels) {
+					double circumference = wheel.height() * (float) Math.PI;
+					double relDist = distanceTraveled % circumference;
+					Vec3d wheelPos = wheel.center();
+
+					for (String partName : wheel.modelIDs) {
+						PartProperty part = o.getPart(partName);
+						part.setOrigin((float)wheelPos.x, (float)wheelPos.y, (float)wheelPos.z);
+						part.setRotation(0, 0, (float) (360 * relDist / circumference));
 					}
 				}
 			}
 		}
 		
 		if (def.getComponent(RenderComponentType.BOGEY_POS, stock.gauge) != null) {
-			try (OpenGL.With matrix = OpenGL.matrix()) {
-				GL11.glTranslated(-def.getBogeyRear(stock.gauge), 0, 0);
-				GL11.glRotated(180 - stock.getRearYaw(), 0, 1, 0);
-				GL11.glRotated(-(180 - stock.getRotationYaw()), 0, 1, 0);
-				GL11.glTranslated(def.getBogeyRear(stock.gauge), 0, 0);
-				drawComponent(def.getComponent(RenderComponentType.BOGEY_POS, "REAR", stock.gauge));
-				List<RenderComponent> wheels = def.getComponents(RenderComponentType.BOGEY_POS_WHEEL_X, "REAR", stock.gauge);
-				if (wheels != null) {
-					for (RenderComponent wheel : wheels) {
-						double circumference = wheel.height() * (float) Math.PI;
-						double relDist = distanceTraveled % circumference;
-						Vec3d wheelPos = wheel.center();
-						try (OpenGL.With wheelMatrix = OpenGL.matrix()) {
-							GL11.glTranslated(wheelPos.x, wheelPos.y, wheelPos.z);
-							GL11.glRotated((float) (360 * relDist / circumference), 0, 0, 1);
-							GL11.glTranslated(-wheelPos.x, -wheelPos.y, -wheelPos.z);
-							drawComponent(wheel);
-						}
+			RenderComponent bogeyRear = def.getComponent(RenderComponentType.BOGEY_POS, "REAR", stock.gauge);
+			for (String partName : bogeyRear.modelIDs) {
+				PartProperty part = o.getPart(partName);
+				part.setOrigin(def.getBogeyRear(stock.gauge), 0, 0);
+				part.setRotation(0, 180 - stock.getRearYaw(), 0);
+				part.rotate(0, -(180 - stock.getRotationYaw()), 0);
+			}
+
+			List<RenderComponent> wheels = def.getComponents(RenderComponentType.BOGEY_POS_WHEEL_X, "REAR", stock.gauge);
+			if (wheels != null) {
+				for (RenderComponent wheel : wheels) {
+					double circumference = wheel.height() * (float) Math.PI;
+					double relDist = distanceTraveled % circumference;
+					Vec3d wheelPos = wheel.center();
+
+					for (String partName : wheel.modelIDs) {
+						PartProperty part = o.getPart(partName);
+						part.setOrigin((float)wheelPos.x, (float)wheelPos.y, (float)wheelPos.z);
+						part.setRotation(0, 0, (float) (360 * relDist / circumference));
 					}
 				}
 			}
 		}
-
-		if (this.isBuilt) {
-			drawComponent(def.getComponent(RenderComponentType.REMAINING, stock.gauge));
-		}
 	}
 
-	private void drawFrameWheels(EntityMoveableRollingStock stock) {
+	private static void updateFrameWheels(EntityMoveableRollingStock stock) {
 		EntityRollingStockDefinition def = stock.getDefinition();
+		RenderObject o = stock.getRenderObject();
 		
 		List<RenderComponent> wheels = def.getComponents(RenderComponentType.FRAME_WHEEL_X, stock.gauge);
 		if (wheels != null) {
@@ -200,174 +153,126 @@ public class StockModel extends OBJRender {
 				double circumference = wheel.height() * (float) Math.PI;
 				double relDist = distanceTraveled % circumference;
 				Vec3d wheelPos = wheel.center();
-				try (OpenGL.With matrix = OpenGL.matrix()) {
-					GL11.glTranslated(wheelPos.x, wheelPos.y, wheelPos.z);
-					GL11.glRotated((float) (360 * relDist / circumference), 0, 0, 1);
-					GL11.glTranslated(-wheelPos.x, -wheelPos.y, -wheelPos.z);
-					drawComponent(wheel);
+
+				for (String partName : wheel.modelIDs) {
+					PartProperty part = o.getPart(partName);
+					part.setOrigin((float)wheelPos.x, (float)wheelPos.y, (float)wheelPos.z);
+					part.setRotation(0, 0, (float) (360 * relDist / circumference));
 				}
 			}
 		}
 	}
 
-	private void drawDieselLocomotive(EntityMoveableRollingStock stock) {
-		EntityRollingStockDefinition def = stock.getDefinition();
-		
-		drawStandardStock(stock);
 
-		drawComponent(def.getComponent(RenderComponentType.FUEL_TANK, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.ALTERNATOR, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.ENGINE_BLOCK, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.GEARBOX, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.FLUID_COUPLING, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.FINAL_DRIVE, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.TORQUE_CONVERTER, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.FAN_X, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.DRIVE_SHAFT_X, stock.gauge));
-		
-		drawComponents(def.getComponents(RenderComponentType.CAB, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.WHISTLE, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.BELL, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.HORN, stock.gauge));
-	}
-
-
-	private void drawSteamLocomotive(LocomotiveSteam stock) {
+	private static void updateSteamLocomotive(LocomotiveSteam stock) {
 		LocomotiveSteamDefinition def = stock.getDefinition();
-		
-		initComponents(stock);
 
-		drawBogies(stock);
-		drawFrameWheels(stock);
+		updateBogies(stock);
+		updateFrameWheels(stock);
 
 		switch (def.getValveGear()) {
-		case WALSCHAERTS:
-			{
+			case WALSCHAERTS: {
 				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
-				drawDrivingWheels(stock, wheels);
+				updateDrivingWheels(stock, wheels);
 				MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
 				RenderComponent wheel = wheels.get(wheels.size() / 2);
-				drawWalschaerts(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center(), false);
-				drawWalschaerts(stock, "RIGHT", -90, wheel.height(), center.center(), wheel.center(), false);
+				updateWalschaerts(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center(), false);
+				updateWalschaerts(stock, "RIGHT", -90, wheel.height(), center.center(), wheel.center(), false);
 			}
 			break;
-		case TRI_WALSCHAERTS:{
-			List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
-			drawDrivingWheels(stock, wheels);
-			MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
-			RenderComponent wheel = wheels.get(wheels.size() / 2);
-			drawWalschaerts(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center(), false);
-			drawWalschaerts(stock, "RIGHT", -240, wheel.height(), center.center(), wheel.center(), false);
-			drawWalschaerts(stock, "CENTER", -120, wheel.height(), wheels.get(0).center(), wheels.get(0).center(), false);
-			break;
-		}
-		case MALLET_WALSCHAERTS:
-        case GARRAT:
-			try (OpenGL.With matrix = OpenGL.matrix()) {
-				RenderComponent frontLocomotive = def.getComponent(RenderComponentType.FRONT_LOCOMOTIVE, stock.gauge);
+			case TRI_WALSCHAERTS: {
+				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
+				updateDrivingWheels(stock, wheels);
+				MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
+				RenderComponent wheel = wheels.get(wheels.size() / 2);
+				updateWalschaerts(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center(), false);
+				updateWalschaerts(stock, "RIGHT", -240, wheel.height(), center.center(), wheel.center(), false);
+				updateWalschaerts(stock, "CENTER", -120, wheel.height(), wheels.get(0).center(), wheels.get(0).center(), false);
+				break;
+			}
+			case MALLET_WALSCHAERTS:
+			case GARRAT:
+				try (OpenGL.With matrix = OpenGL.matrix()) {
+					RenderComponent frontLocomotive = def.getComponent(RenderComponentType.FRONT_LOCOMOTIVE, stock.gauge);
 
-                Vec3d frontVec = frontLocomotive.center();
-                Vec3d frontPos = stock.predictFrontBogeyPosition((float) (-frontVec.x - def.getBogeyFront(stock.gauge)));
-                Vec3d frontNext = stock.predictFrontBogeyPosition((float) (-frontVec.x - def.getBogeyFront(stock.gauge) - 0.5));
-                float frontWheelYaw = VecUtil.toYaw(frontPos.subtract(frontNext));
-                float frontYaw = VecUtil.toYaw(frontPos)+stock.getRotationYaw()+180;
-				float frontPitch = -VecUtil.toPitch(VecUtil.rotateYaw(frontPos, stock.getRotationYaw()+180))+90 +stock.getRotationPitch();
+					Vec3d frontVec = frontLocomotive.center();
+					Vec3d frontPos = stock.predictFrontBogeyPosition((float) (-frontVec.x - def.getBogeyFront(stock.gauge)));
+					Vec3d frontNext = stock.predictFrontBogeyPosition((float) (-frontVec.x - def.getBogeyFront(stock.gauge) - 0.5));
+					float frontWheelYaw = VecUtil.toYaw(frontPos.subtract(frontNext));
+					float frontYaw = VecUtil.toYaw(frontPos) + stock.getRotationYaw() + 180;
+					float frontPitch = -VecUtil.toPitch(VecUtil.rotateYaw(frontPos, stock.getRotationYaw() + 180)) + 90 + stock.getRotationPitch();
 
-                GL11.glRotated(frontYaw, 0, 1, 0);
-                GL11.glRotated(frontPitch, 0, 0, 1);
+					GL11.glRotated(frontYaw, 0, 1, 0);
+					GL11.glRotated(frontPitch, 0, 0, 1);
 
-                if (frontPos.distanceTo(frontNext) > 0.1) {
-					GL11.glTranslated(frontVec.x, frontVec.y, frontVec.z);
-					GL11.glRotated(frontWheelYaw + stock.getRotationYaw() - frontYaw + 180, 0, 1, 0);
-					GL11.glTranslated(-frontVec.x, -frontVec.y, -frontVec.z);
+					if (frontPos.distanceTo(frontNext) > 0.1) {
+						GL11.glTranslated(frontVec.x, frontVec.y, frontVec.z);
+						GL11.glRotated(frontWheelYaw + stock.getRotationYaw() - frontYaw + 180, 0, 1, 0);
+						GL11.glTranslated(-frontVec.x, -frontVec.y, -frontVec.z);
+					}
+
+					List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_FRONT_X, stock.gauge);
+					MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
+					//drawComponent(def.getComponent(RenderComponentType.STEAM_CHEST_FRONT, stock.gauge));
+					//drawComponent(frontLocomotive);
+					updateDrivingWheels(stock, wheels);
+					RenderComponent wheel = wheels.get(wheels.size() / 2);
+					boolean reverse = def.getValveGear() == ValveGearType.GARRAT;
+					updateWalschaerts(stock, "LEFT_FRONT", 0, wheel.height(), center.center(), wheel.center(), reverse);
+					updateWalschaerts(stock, "RIGHT_FRONT", -90, wheel.height(), center.center(), wheel.center(), reverse);
 				}
-
-				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_FRONT_X, stock.gauge);
-				MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
-				drawComponent(def.getComponent(RenderComponentType.STEAM_CHEST_FRONT, stock.gauge));
-				drawComponent(frontLocomotive);
-				drawDrivingWheels(stock, wheels);
-				RenderComponent wheel = wheels.get(wheels.size() / 2);
-				boolean reverse = def.getValveGear() == ValveGearType.GARRAT;
-				drawWalschaerts(stock, "LEFT_FRONT", 0, wheel.height(), center.center(), wheel.center(), reverse);
-				drawWalschaerts(stock, "RIGHT_FRONT", -90, wheel.height(), center.center(), wheel.center(), reverse);
-			}
 			{
 				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_REAR_X, stock.gauge);
 				MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
-				drawDrivingWheels(stock, wheels);
+				updateDrivingWheels(stock, wheels);
 				RenderComponent wheel = wheels.get(wheels.size() / 2);
-				drawWalschaerts(stock, "LEFT_REAR", 0 + MALLET_ANGLE_REAR, center.height(), center.center(), wheel.center(), false);
-				drawWalschaerts(stock, "RIGHT_REAR", -90 + MALLET_ANGLE_REAR, center.height(), center.center(), wheel.center(), false);
+				updateWalschaerts(stock, "LEFT_REAR", 0 + MALLET_ANGLE_REAR, center.height(), center.center(), wheel.center(), false);
+				updateWalschaerts(stock, "RIGHT_REAR", -90 + MALLET_ANGLE_REAR, center.height(), center.center(), wheel.center(), false);
 			}
 			break;
-		case CLIMAX:
-			break;
-		case SHAY:
-			break;
-		case HIDDEN:
-			{
+			case CLIMAX:
+				break;
+			case SHAY:
+				break;
+			case HIDDEN: {
 				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
-				drawDrivingWheels(stock, wheels);
+				updateDrivingWheels(stock, wheels);
 			}
 			break;
-		case STEPHENSON:
-			{
+			case STEPHENSON: {
 				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_X, stock.gauge);
 				RenderComponent wheel = wheels.get(wheels.size() / 2);
-				drawDrivingWheels(stock, wheels);
+				updateDrivingWheels(stock, wheels);
 				MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
-				drawStephenson(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center());
-				drawStephenson(stock, "RIGHT", -90, wheel.height(), center.center(), wheel.center());
+				updateStephenson(stock, "LEFT", 0, wheel.height(), center.center(), wheel.center());
+				updateStephenson(stock, "RIGHT", -90, wheel.height(), center.center(), wheel.center());
 			}
 			break;
-		case T1:
-			drawComponent(def.getComponent(RenderComponentType.STEAM_CHEST_FRONT, stock.gauge));
+			case T1:
+				//drawComponent(def.getComponent(RenderComponentType.STEAM_CHEST_FRONT, stock.gauge));
 			{
 				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_FRONT_X, stock.gauge);
-				drawDrivingWheels(stock, wheels);
+				updateDrivingWheels(stock, wheels);
 				MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
 				RenderComponent wheel = wheels.get(wheels.size() / 2);
-				drawT1(stock, "LEFT_FRONT", 0, wheel.height(), center.center(), wheel.center());
-				drawT1(stock, "RIGHT_FRONT", -90, wheel.height(), center.center(), wheel.center());
+				updateT1(stock, "LEFT_FRONT", 0, wheel.height(), center.center(), wheel.center());
+				updateT1(stock, "RIGHT_FRONT", -90, wheel.height(), center.center(), wheel.center());
 			}
 			{
 				List<RenderComponent> wheels = def.getComponents(RenderComponentType.WHEEL_DRIVER_REAR_X, stock.gauge);
-				drawDrivingWheels(stock, wheels);
+				updateDrivingWheels(stock, wheels);
 				MultiRenderComponent center = new MultiRenderComponent(wheels).scale(stock.gauge);
 				RenderComponent wheel = wheels.get(wheels.size() / 2);
-				
-				drawT1(stock, "LEFT_REAR", 0 + MALLET_ANGLE_REAR, wheel.height(), center.center(), wheel.center());
-				drawT1(stock, "RIGHT_REAR", -90 + MALLET_ANGLE_REAR, wheel.height(), center.center(), wheel.center());
+
+				updateT1(stock, "LEFT_REAR", 0 + MALLET_ANGLE_REAR, wheel.height(), center.center(), wheel.center());
+				updateT1(stock, "RIGHT_REAR", -90 + MALLET_ANGLE_REAR, wheel.height(), center.center(), wheel.center());
 			}
 			break;
-		}
-		
-		// Draw remaining groups
-
-		drawComponent(def.getComponent(RenderComponentType.FRAME, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.SHELL, stock.gauge));
-		
-		drawComponents(def.getComponents(RenderComponentType.BOILER_SEGMENT_X, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.FIREBOX, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.SMOKEBOX, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.STEAM_CHEST, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.STEAM_CHEST_REAR, stock.gauge));
-		drawComponent(def.getComponent(RenderComponentType.PIPING, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.CYLINDER_SIDE, stock.gauge));
-		
-		drawComponents(def.getComponents(RenderComponentType.CAB, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.WHISTLE, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.BELL, stock.gauge));
-		drawComponents(def.getComponents(RenderComponentType.HORN, stock.gauge));
-		
-		if (stock.isBuilt()) {
-			drawComponent(def.getComponent(RenderComponentType.REMAINING, stock.gauge));
 		}
 	}
 
 
-	private void drawDrivingWheels(LocomotiveSteam stock, List<RenderComponent> wheels) {
+	private static void updateDrivingWheels(LocomotiveSteam stock, List<RenderComponent> wheels) {
 		RenderComponent center = wheels.get(wheels.size() / 2);
 		double circumference = center.height() * (float) Math.PI;
 		double relDist = distanceTraveled % circumference;
@@ -382,13 +287,13 @@ public class StockModel extends OBJRender {
 			GL11.glTranslated(wheelPos.x, wheelPos.y, wheelPos.z);
 			GL11.glRotated((float) wheelAngle, 0, 0, 1);
 			GL11.glTranslated(-wheelPos.x, -wheelPos.y, -wheelPos.z);
-			drawComponent(wheel);
+			//drawComponent(wheel);
 			}
 		}
 	}
 
 
-	private void drawBogies(EntityMoveableRollingStock stock) {
+	private static void updateBogies(EntityMoveableRollingStock stock) {
 		EntityRollingStockDefinition def = stock.getDefinition();
 		
 		RenderComponent frontBogey = def.getComponent(RenderComponentType.BOGEY_FRONT, stock.gauge);
@@ -414,7 +319,7 @@ public class StockModel extends OBJRender {
 					GL11.glTranslated(-frontVec.x, -frontVec.y, -frontVec.z);
 				}
 
-				drawComponent(frontBogey);
+				//drawComponent(frontBogey);
 				if (frontBogeyWheels != null) {
 					for (RenderComponent wheel : frontBogeyWheels) {
 						double circumference = wheel.height() * (float) Math.PI;
@@ -424,7 +329,7 @@ public class StockModel extends OBJRender {
 							GL11.glTranslated(wheelPos.x, wheelPos.y, wheelPos.z);
 							GL11.glRotatef((float) (360 * relDist / circumference), 0, 0, 1);
 							GL11.glTranslated(-wheelPos.x, -wheelPos.y, -wheelPos.z);
-							drawComponent(wheel);
+							//drawComponent(wheel);
 						}
 					}
 				}
@@ -450,7 +355,7 @@ public class StockModel extends OBJRender {
 					GL11.glTranslated(-rearVec.x, -rearVec.y, -rearVec.z);
 				}
 
-				drawComponent(rearBogey);
+				//drawComponent(rearBogey);
 				if (rearBogeyWheels != null) {
 					for (RenderComponent wheel : rearBogeyWheels) {
 						double circumference = wheel.height() * (float) Math.PI;
@@ -460,7 +365,7 @@ public class StockModel extends OBJRender {
 							GL11.glTranslated(wheelPos.x, wheelPos.y, wheelPos.z);
 							GL11.glRotatef((float) (360 * relDist / circumference), 0, 0, 1);
 							GL11.glTranslated(-wheelPos.x, -wheelPos.y, -wheelPos.z);
-							drawComponent(wheel);
+							//drawComponent(wheel);
 						}
 					}
 				}
@@ -469,7 +374,8 @@ public class StockModel extends OBJRender {
 	}
 	
 	// PISTON/MAIN/SIDE
-	private void drawStephenson(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter, Vec3d wheelCenter, Vec3d wheelPos) {
+	private static void updateStephenson(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter,
+										 Vec3d wheelCenter, Vec3d wheelPos) {
 		LocomotiveSteamDefinition def = stock.getDefinition();
 		
 		double circumference = diameter * (float) Math.PI;
@@ -496,7 +402,7 @@ public class StockModel extends OBJRender {
 			// Apply connection rod movement
 			GL11.glTranslated(connRodMovment.x, connRodMovment.z, 0);
 			
-			drawComponent(connectingRod);
+			//drawComponent(connectingRod);
 		}
 		
 		// X: rear driving rod X - driving rod height/2 (hack assuming diameter == height)
@@ -520,7 +426,7 @@ public class StockModel extends OBJRender {
 			// Move back from rot point center
 			GL11.glTranslated(-drivingRodRotPoint.x, -drivingRodRotPoint.y, -drivingRodRotPoint.z);
 			
-			drawComponent(drivingRod);
+			//drawComponent(drivingRod);
 		}
 		
 		// Piston movement is rod movement offset by the rotation radius
@@ -530,11 +436,12 @@ public class StockModel extends OBJRender {
 		// Draw piston rod and cross head
 		try (OpenGL.With matrix = OpenGL.matrix()) {
 			GL11.glTranslated(pistonDelta, 0, 0);
-			drawComponent(pistonRod);
+			//drawComponent(pistonRod);
 		}
 	}
 	
-	private void drawT1(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter, Vec3d wheelCenter, Vec3d wheelPos) {
+	private static void updateT1(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter,
+								 Vec3d wheelCenter, Vec3d wheelPos) {
 		LocomotiveSteamDefinition def = stock.getDefinition();
 		
 		double circumference = diameter * (float) Math.PI;
@@ -560,7 +467,7 @@ public class StockModel extends OBJRender {
 			// Apply connection rod movement
 			GL11.glTranslated(connRodMovment.x, connRodMovment.z, 0);
 			
-			drawComponent(connectingRod);
+			//drawComponent(connectingRod);
 		}
 		
 		// X: rear driving rod X - driving rod height/2 (hack assuming diameter == height)
@@ -584,7 +491,7 @@ public class StockModel extends OBJRender {
 			// Move back from rot point center
 			GL11.glTranslated(-drivingRodRotPoint.x, -drivingRodRotPoint.y, -drivingRodRotPoint.z);
 			
-			drawComponent(drivingRod);
+			//drawComponent(drivingRod);
 		}
 		
 		// Piston movement is rod movement offset by the rotation radius
@@ -594,11 +501,12 @@ public class StockModel extends OBJRender {
 		// Draw piston rod and cross head
 		try (OpenGL.With matrix = OpenGL.matrix()) {
 			GL11.glTranslated(pistonDelta, 0, 0);
-			drawComponent(pistonRod);
+			//drawComponent(pistonRod);
 		}
 	}
 	
-	private RenderComponent requireComponent(LocomotiveSteamDefinition def, RenderComponentType rct, String side, Gauge gauge) {
+	private static RenderComponent requireComponent(LocomotiveSteamDefinition def, RenderComponentType rct, String side,
+											  		Gauge gauge) {
 		RenderComponent comp = def.getComponent(rct, side, gauge);
 		if (comp == null) {
 			ImmersiveRailroading.error("Missing component for %s: %s %s", def.name(), rct, side);
@@ -607,7 +515,8 @@ public class StockModel extends OBJRender {
 		return comp;
 	}
 	
-	private void drawWalschaerts(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter, Vec3d wheelCenter, Vec3d wheelPos, boolean reverse) {
+	private static void updateWalschaerts(LocomotiveSteam stock, String side, int wheelAngleOffset, double diameter,
+										  Vec3d wheelCenter, Vec3d wheelPos, boolean reverse) {
 		LocomotiveSteamDefinition def = stock.getDefinition();
 		
 		double circumference = diameter * (float) Math.PI;
@@ -642,7 +551,7 @@ public class StockModel extends OBJRender {
 			// Apply connection rod movement
 			GL11.glTranslated(connRodMovment.x, connRodMovment.z, 0);
 			
-			drawComponent(connectingRod);
+			//drawComponent(connectingRod);
 		}
 		
 		// X: rear driving rod X - driving rod height/2 (hack assuming diameter == height)
@@ -666,7 +575,7 @@ public class StockModel extends OBJRender {
 			// Move back from rot point center
 			GL11.glTranslated(-drivingRodRotPoint.x, -drivingRodRotPoint.y, -drivingRodRotPoint.z);
 			
-			drawComponent(drivingRod);
+			//drawComponent(drivingRod);
 		}
 		
 		// Piston movement is rod movement offset by the rotation radius
@@ -676,8 +585,8 @@ public class StockModel extends OBJRender {
 		// Draw piston rod and cross head
 		try (OpenGL.With matrix = OpenGL.matrix()) {
 			GL11.glTranslated(pistonDelta, 0, 0);
-			drawComponent(pistonRod);
-			drawComponent(crossHead);
+			//drawComponent(pistonRod);
+			//drawComponent(crossHead);
 		}
 
 		Vec3d returnCrankRotPoint = reverse ?
@@ -695,7 +604,7 @@ public class StockModel extends OBJRender {
 			GL11.glRotated(returnCrankAngle, 0, 0, 1);
 			// Draw return crank at current position
 			GL11.glTranslated(-returnCrankRotPoint.x, -returnCrankRotPoint.y, 0);
-			drawComponent(returnCrank);			
+			//drawComponent(returnCrank);
 		}
 
 		// We take the length of the crank and subtract the radius on either side.
@@ -729,7 +638,7 @@ public class StockModel extends OBJRender {
 			
 			// Draw return crank rod at current position
 			GL11.glTranslated(-returnCrankRodRotPoint.x, -returnCrankRodRotPoint.y, 0);
-			drawComponent(returnCrankRod);
+			//drawComponent(returnCrankRod);
 		}
 		
 		Vec3d returnCrankRodRotationOffset = VecUtil.fromWrongYaw(returnCrankRodLength, returnCrankRodRot+(reverse ? -90 : 90));
@@ -746,7 +655,7 @@ public class StockModel extends OBJRender {
 			
 			// Draw slotted link at current position
 			GL11.glTranslated(-slottedLinkRotPoint.x, -slottedLinkRotPoint.y, 0);
-			drawComponent(slottedLink);
+			//drawComponent(slottedLink);
 		}
 		
 		float throttle = stock.getThrottle();
@@ -776,7 +685,7 @@ public class StockModel extends OBJRender {
 			GL11.glTranslated(radiusBarClose.x, radiusBarClose.y, 0);
 			GL11.glRotated(raidiusBarAngle, 0, 0, 1);
 			GL11.glTranslated(-radiusBarClose.x, -radiusBarClose.y, 0);
-			drawComponent(radiusBar);
+			//drawComponent(radiusBar);
 		}
 		
 		Vec3d radiusBarFar = reverse ? radiusBar.max() : radiusBar.min();
@@ -794,7 +703,7 @@ public class StockModel extends OBJRender {
 			GL11.glTranslated(combinationLeverRotPos.x, combinationLeverRotPos.y, 0);
 			GL11.glRotated(combinationLeverAngle, 0, 0, 1);
 			GL11.glTranslated(-combinationLeverRotPos.x, -combinationLeverRotPos.y, 0);
-			drawComponent(combinationLever);
+			//drawComponent(combinationLever);
 		}
 	}
 }

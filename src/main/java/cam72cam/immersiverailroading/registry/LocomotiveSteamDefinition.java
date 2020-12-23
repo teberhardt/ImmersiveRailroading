@@ -9,6 +9,7 @@ import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.util.FluidQuantity;
 import cam72cam.mod.resource.Identifier;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,8 +106,8 @@ public class LocomotiveSteamDefinition extends LocomotiveDefinition {
     }
 
     @Override
-    protected Set<String> parseComponents() {
-        Set<String> groups = super.parseComponents();
+    protected Set<String> parseComponents(ObjectSet<String> parts) {
+        Set<String> groups = super.parseComponents(parts);
 
         switch (this.valveGear) {
             case STEPHENSON:

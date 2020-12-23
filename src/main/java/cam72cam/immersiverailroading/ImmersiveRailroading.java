@@ -13,8 +13,8 @@ import cam72cam.immersiverailroading.net.*;
 import cam72cam.immersiverailroading.registry.DefinitionManager;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.render.SmokeParticle;
-import cam72cam.immersiverailroading.render.StockRenderCache;
 import cam72cam.immersiverailroading.render.block.RailBaseModel;
+import cam72cam.immersiverailroading.render.entity.StockModel;
 import cam72cam.immersiverailroading.render.item.*;
 import cam72cam.immersiverailroading.render.multiblock.MBBlueprintRender;
 import cam72cam.immersiverailroading.render.multiblock.TileMultiblockRender;
@@ -140,14 +140,7 @@ public class ImmersiveRailroading extends ModCore.Mod {
 				ItemRender.register(IRItems.ITEM_MANUAL, new Identifier(MODID, "items/engineerslexicon"));
 				ItemRender.register(IRItems.ITEM_TRACK_EXCHANGER, new TrackExchangerModel());
 
-				IEntityRender<EntityRollingStock> stockRender = (entity, partialTicks) -> {
-					try (
-						OpenGL.With light = OpenGL.bool(GL11.GL_LIGHTING, true);
-						OpenGL.With cull = OpenGL.bool(GL11.GL_CULL_FACE, false);
-					) {
-						StockRenderCache.getRender(entity.getDefinitionID()).draw(entity, partialTicks);
-					}
-				};
+				IEntityRender<EntityRollingStock> stockRender = StockModel::update;
 				EntityRenderer.register(LocomotiveSteam.class, stockRender);
 				EntityRenderer.register(LocomotiveDiesel.class, stockRender);
 				EntityRenderer.register(CarPassenger.class, stockRender);
@@ -192,8 +185,7 @@ public class ImmersiveRailroading extends ModCore.Mod {
 				} catch (IOException e) {
 					throw new RuntimeException("Unable to load IR definitions", e);
 				}
-
-				StockRenderCache.clearRenderCache();
+				// ToDo: fix reload! Currently this might completely break RenderLib
 				break;
 		}
 	}

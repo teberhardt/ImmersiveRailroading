@@ -2,107 +2,128 @@ package cam72cam.immersiverailroading.render.rail;
 
 import cam72cam.immersiverailroading.model.TrackModel;
 import cam72cam.immersiverailroading.registry.DefinitionManager;
-import cam72cam.immersiverailroading.render.DisplayListCache;
-import cam72cam.mod.MinecraftClient;
-import cam72cam.mod.render.GlobalRender;
-import cam72cam.mod.render.OpenGL;
-import cam72cam.mod.render.obj.OBJRender;
-import cam72cam.immersiverailroading.render.StockRenderCache;
+import cam72cam.immersiverailroading.tile.TileRail;
+import cam72cam.mod.math.Vec3d;
+import cam72cam.mod.math.Vec3i;
+import cam72cam.mod.render.Layers;
 import cam72cam.immersiverailroading.track.BuilderBase.VecYawPitch;
 import cam72cam.immersiverailroading.util.RailInfo;
+import cam72cam.mod.render.OpenGL;
 import cam72cam.mod.world.World;
-import org.lwjgl.BufferUtils;
+import friedrichlp.renderlib.library.RenderMode;
+import friedrichlp.renderlib.math.TVector3;
+import friedrichlp.renderlib.math.Vector3;
+import friedrichlp.renderlib.render.MultiRender;
+import friedrichlp.renderlib.render.ViewBoxes;
+import friedrichlp.renderlib.tracking.RenderLayer;
+import friedrichlp.renderlib.tracking.RenderObject;
+import friedrichlp.renderlib.tracking.RenderManager;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import org.lwjgl.opengl.GL11;
-import util.Matrix4;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class RailBuilderRender {
+    private static HashMap<Vec3i, List<RenderObject>> objectCache = new HashMap<>();
 
-    private static DisplayListCache displayLists = new DisplayListCache();
-    public static void renderRailBuilder(RailInfo info, World world) {
-
-        TrackModel model = DefinitionManager.getTrack(info.settings.track, info.settings.gauge.value());
-        if (model == null) {
+    /**
+     * Renders a single RailInfo immediately to the screen.
+     */
+    public static void renderSingle(RailInfo info, World world) {
+        TrackModel mdl = DefinitionManager.getTrack(info.settings.track, info.settings.gauge.value());
+        if (mdl == null) {
             return;
         }
-        OBJRender trackRenderer = StockRenderCache.getTrackRenderer(model);
 
-        Integer displayList = displayLists.get(info.uniqueID);
-        if (displayList == null) {
-            displayList = GL11.glGenLists(1);
-            GL11.glNewList(displayList, GL11.GL_COMPILE);
+        ObjectSet<String> parts = mdl.model.getParts().get().data.keySet();
 
-            try (OpenGL.With matrix = OpenGL.matrix()) {
-                for (VecYawPitch piece : info.getBuilder(world).getRenderData()) {
-                    Matrix4 m = new Matrix4();
-                    //m.rotate(Math.toRadians(info.placementInfo.yaw), 0, 1, 0);
-                    m.translate(piece.x, piece.y, piece.z);
-                    m.rotate(Math.toRadians(piece.getYaw()), 0, 1, 0);
-                    m.rotate(Math.toRadians(piece.getPitch()), 1, 0, 0);
-                    m.rotate(Math.toRadians(-90), 0, 1, 0);
-
-                    if (piece.getLength() != -1) {
-                        m.scale(piece.getLength() / info.settings.gauge.scale(), 1, 1);
-                    }
-                    double scale = info.settings.gauge.scale();
-                    m.scale(scale, scale, scale);
-
-                    m.transpose();
-                    FloatBuffer fbm = BufferUtils.createFloatBuffer(16);
-                    fbm.put(new float[]{
-                            (float) m.m00, (float) m.m01, (float) m.m02, (float) m.m03,
-                            (float) m.m10, (float) m.m11, (float) m.m12, (float) m.m13,
-                            (float) m.m20, (float) m.m21, (float) m.m22, (float) m.m23,
-                            (float) m.m30, (float) m.m31, (float) m.m32, (float) m.m33
-                    });
-                    fbm.flip();
-                    OpenGL.multMatrix(fbm);
-
-
+        try (MultiRender r = MultiRender.get(mdl.model, RenderMode.USE_FFP_MATS)) {
+            for (VecYawPitch piece : info.getBuilder(world).getRenderData()) {
+                try (OpenGL.With matrix = OpenGL.matrix()) {
+                    RenderObject obj = RenderObject.single(mdl.model);
                     if (piece.getGroups().size() != 0) {
-                        // TODO static
-                        ArrayList<String> groups = new ArrayList<String>();
-                        for (String baseGroup : piece.getGroups()) {
-                            for (String groupName : trackRenderer.model.groups()) {
-                                if (groupName.contains(baseGroup)) {
-                                    groups.add(groupName);
+                        obj.setAllPartsHidden(true);
+                        for (String group : piece.getGroups()) {
+                            for (String part : parts) {
+                                if (part.contains(group)) {
+                                    obj.setPartHidden(part, false);
                                 }
                             }
                         }
-
-
-                        trackRenderer.drawGroups(groups);
-                    } else {
-                        trackRenderer.draw();
                     }
-                    try {
-                        m.invert();
-                        fbm = BufferUtils.createFloatBuffer(16);
-                        fbm.put(new float[]{
-                                (float) m.m00, (float) m.m01, (float) m.m02, (float) m.m03,
-                                (float) m.m10, (float) m.m11, (float) m.m12, (float) m.m13,
-                                (float) m.m20, (float) m.m21, (float) m.m22, (float) m.m23,
-                                (float) m.m30, (float) m.m31, (float) m.m32, (float) m.m33
-                        });
-                        fbm.flip();
-                        OpenGL.multMatrix(fbm);
-                    } catch (Exception | Error e) {
-                        // Some weird math happened.  Do this the slow way and reset the matrix
-                        GL11.glPopMatrix();
-                        GL11.glPushMatrix();
+
+                    GL11.glTranslated(piece.x, piece.y, piece.z);
+                    GL11.glRotated(piece.getYaw(), 0, 1, 0);
+                    GL11.glRotated(piece.getPitch(), 1, 0, 0);
+                    GL11.glRotated(-90, 0, 1, 0);
+                    if (piece.getLength() != -1) {
+                        GL11.glScaled((float) (piece.getLength() / info.settings.gauge.scale()), 1, 1);
                     }
+                    double scale = info.settings.gauge.scale();
+                    GL11.glScaled(scale, scale, scale);
+
+                    r.updateMatrices();
+                    obj.renderSingle(r);
                 }
             }
-            GL11.glEndList();
-            displayLists.put(info.uniqueID, displayList);
+        }
+    }
+
+    public static void tryAddRail(RailInfo info, TileRail rail) {
+        if (rail.renderState == TileRail.RenderState.NONE) {
+            rail.renderState = TileRail.RenderState.ACTIVE;
+            Vec3i pos = rail.getPos();
+
+            TrackModel mdl = DefinitionManager.getTrack(info.settings.track, info.settings.gauge.value());
+            if (mdl == null) {
+                return;
+            }
+
+            List<RenderObject> objects = new ArrayList<>();
+            ObjectSet<String> parts = mdl.model.getParts().get().data.keySet();
+
+            for (VecYawPitch piece : info.getBuilder(rail.getWorld()).getRenderData()) {
+                RenderObject obj = Layers.TILES.addRenderObject(mdl.model);
+                if (piece.getGroups().size() != 0) {
+                    obj.setAllPartsHidden(true);
+                    for (String group : piece.getGroups()) {
+                        for (String part : parts) {
+                            if (part.contains(group)) {
+                                obj.setPartHidden(part, false);
+                            }
+                        }
+                    }
+                }
+
+                Vec3d pp = info.placementInfo.placementPosition;
+                TVector3 position = TVector3.create(pos.x, pos.y, pos.z)
+                        .add((float)piece.x, (float)piece.y, (float)piece.z)
+                        .add((float)pp.x, (float)pp.y, (float)pp.z);
+                obj.setPosition(position);
+
+                obj.rotate(piece.getPitch(), 90 - piece.getYaw(), 0);
+                if (piece.getLength() != -1) {
+                    obj.scale((float) (piece.getLength() / info.settings.gauge.scale()), 1, 1);
+                }
+                float scale = (float) info.settings.gauge.scale();
+                obj.scale(scale, scale, scale);
+
+                objects.add(obj);
+            }
+
+            objectCache.put(pos, objects);
+        }
+    }
+
+    public static void breakRail(TileRail rail) {
+        List<RenderObject> objects = objectCache.remove(rail.getPos());
+
+        if (objects != null) {
+            objects.forEach(Layers.TILES::removeRenderObject);
         }
 
-        try (OpenGL.With tex = trackRenderer.bindTexture()) {
-            MinecraftClient.startProfiler("dl");
-            GL11.glCallList(displayList);
-            MinecraftClient.endProfiler();
-        }
+        rail.renderState = TileRail.RenderState.DISABLED;
     }
 }

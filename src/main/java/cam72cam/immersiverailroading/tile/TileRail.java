@@ -3,6 +3,7 @@ package cam72cam.immersiverailroading.tile;
 import cam72cam.immersiverailroading.entity.EntityCoupleableRollingStock;
 import cam72cam.immersiverailroading.library.SwitchState;
 import cam72cam.immersiverailroading.library.TrackItems;
+import cam72cam.immersiverailroading.render.rail.RailBuilderRender;
 import cam72cam.immersiverailroading.track.TrackBase;
 import cam72cam.immersiverailroading.util.RailInfo;
 import cam72cam.mod.entity.boundingbox.IBoundingBox;
@@ -23,6 +24,13 @@ public class TileRail extends TileRailBase {
 	public RailInfo info;
 	@TagField(value = "drops", typeHint = ItemStack.class, mapper = DropsMapper.class)
 	private List<ItemStack> drops;
+
+	public RenderState renderState = RenderState.NONE;
+	public enum RenderState {
+		NONE,
+		ACTIVE,
+		DISABLED
+	}
 
 	private IBoundingBox boundingBox;
 	@Override
@@ -153,6 +161,8 @@ public class TileRail extends TileRailBase {
 
 	@Override
 	public void onBreak() {
+		RailBuilderRender.breakRail(this);
+
 		this.spawnDrops();
 		super.onBreak();
 	}

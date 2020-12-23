@@ -12,9 +12,11 @@ import cam72cam.mod.entity.*;
 import cam72cam.mod.entity.sync.TagSync;
 import cam72cam.mod.entity.custom.*;
 import cam72cam.mod.item.ClickResult;
+import cam72cam.mod.render.Layers;
 import cam72cam.mod.serialization.StrictTagMapper;
 import cam72cam.mod.serialization.TagField;
 import com.google.gson.JsonObject;
+import friedrichlp.renderlib.tracking.RenderObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ public class EntityRollingStock extends CustomEntity implements ITickable, IClic
 	@TagSync
 	@TagField(value = "texture", mapper = StrictTagMapper.class)
 	private String texture = null;
+
+	private RenderObject rObj;
 
 	public void setup(String defID, Gauge gauge, String texture) {
 		this.defID = defID;
@@ -68,6 +72,12 @@ public class EntityRollingStock extends CustomEntity implements ITickable, IClic
 			ImmersiveRailroading.error(error);
 			return error;
 		}
+
+		if (getWorld().isClient) {
+			rObj = Layers.ENTITY.addRenderObject(getDefinition().getModel());
+			rObj.setDynamic(true);
+		}
+
 		return null;
 	}
 
@@ -147,7 +157,7 @@ public class EntityRollingStock extends CustomEntity implements ITickable, IClic
 
 	@Override
 	public void onRemoved() {
-
+		Layers.ENTITY.removeRenderObject(rObj);
 	}
 
 	protected boolean shouldDropItems(DamageType type, float amount) {
@@ -193,5 +203,9 @@ public class EntityRollingStock extends CustomEntity implements ITickable, IClic
 
 	public String getTexture() {
 		return texture;
+	}
+
+	public RenderObject getRenderObject() {
+		return rObj;
 	}
 }

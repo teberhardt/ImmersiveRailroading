@@ -7,6 +7,7 @@ import cam72cam.immersiverailroading.library.RenderComponentType;
 import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.util.Speed;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 
 import java.util.List;
 import java.util.Set;
@@ -52,8 +53,8 @@ public abstract class LocomotiveDefinition extends FreightDefinition {
     }
 
     @Override
-    protected Set<String> parseComponents() {
-        Set<String> groups = super.parseComponents();
+    protected Set<String> parseComponents(ObjectSet<String> parts) {
+        Set<String> groups = super.parseComponents(parts);
 
         addComponentIfExists(RenderComponent.parse(RenderComponentType.CAB, this, groups), true);
         addComponentIfExists(RenderComponent.parse(RenderComponentType.BELL, this, groups), true);

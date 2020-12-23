@@ -13,8 +13,8 @@ import cam72cam.immersiverailroading.model.RenderComponent;
 import cam72cam.immersiverailroading.util.RealBB;
 import cam72cam.mod.entity.EntityRegistry;
 import cam72cam.mod.math.Vec3d;
-import cam72cam.mod.model.obj.OBJModel;
 import cam72cam.mod.resource.Identifier;
+import cam72cam.mod.resource.IdentifierFileContainer;
 import cam72cam.mod.serialization.TagField;
 import cam72cam.mod.serialization.TagMapped;
 import cam72cam.mod.text.TextUtil;
@@ -22,9 +22,14 @@ import cam72cam.mod.world.World;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import friedrichlp.renderlib.library.RenderEffect;
+import friedrichlp.renderlib.math.HitBox3;
+import friedrichlp.renderlib.model.ModelLoaderProperty;
+import friedrichlp.renderlib.tracking.Model;
+import friedrichlp.renderlib.tracking.ModelInfo;
+import friedrichlp.renderlib.tracking.ModelManager;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 
-import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -33,9 +38,18 @@ import java.util.regex.Pattern;
 
 @TagMapped(EntityRollingStockDefinition.TagMapper.class)
 public abstract class EntityRollingStockDefinition {
-    private static Identifier default_wheel_sound = new Identifier(ImmersiveRailroading.MODID, "sounds/default/track_wheels.ogg");
-    private static Identifier default_clackFront = new Identifier(ImmersiveRailroading.MODID, "sounds/default/clack.ogg");
-    private static Identifier default_clackRear = new Identifier(ImmersiveRailroading.MODID, "sounds/default/clack.ogg");
+    private static Identifier default_wheel_sound = new Identifier(
+            ImmersiveRailroading.MODID,
+            "sounds/default/track_wheels.ogg"
+    );
+    private static Identifier default_clackFront = new Identifier(
+            ImmersiveRailroading.MODID,
+            "sounds/default/clack.ogg"
+    );
+    private static Identifier default_clackRear = new Identifier(
+            ImmersiveRailroading.MODID,
+            "sounds/default/clack.ogg"
+    );
 
     public final String defID;
     private final Class<? extends EntityRollingStock> type;
@@ -46,31 +60,29 @@ public abstract class EntityRollingStockDefinition {
     public Identifier wheel_sound;
     public Identifier clackFront;
     public Identifier clackRear;
+    protected ModelInfo model;
+    protected double frontBounds;
+    protected double rearBounds;
+    protected double heightBounds;
+    protected double widthBounds;
+    protected Map<RenderComponentType, List<RenderComponent>> renderComponents;
     double internal_model_scale;
     double internal_inv_scale;
     private String name = "Unknown";
     private String modelerName = "N/A";
     private String packName = "N/A";
-    private OBJModel model;
     private Vec3d passengerCenter = new Vec3d(0, 0, 0);
     private float bogeyFront;
     private float bogeyRear;
     private float couplerOffsetFront;
     private float couplerOffsetRear;
     private boolean scalePitch;
-    private double frontBounds;
-    private double rearBounds;
-    private double heightBounds;
-    private double widthBounds;
     private double passengerCompartmentLength;
     private double passengerCompartmentWidth;
     private int weight;
     private int maxPassengers;
-    private Map<RenderComponentType, List<RenderComponent>> renderComponents;
     private ArrayList<ItemComponentType> itemComponents;
-    private Map<RenderComponent, float[][]> partMapCache = new HashMap<>();
-    private int xRes;
-    private int zRes;
+    private HeightmapCache cache;
 
     public EntityRollingStockDefinition(Class<? extends EntityRollingStock> type, String defID, JsonObject data) throws Exception {
         this.type = type;
@@ -86,7 +98,15 @@ public abstract class EntityRollingStockDefinition {
 
         parseJson(data);
 
-        addComponentIfExists(RenderComponent.parse(RenderComponentType.REMAINING, this, parseComponents()), true);
+        model.getParts().onInit(parts -> {
+            model.getHitbox().onInit(box -> {
+                RenderComponent rc = RenderComponent.parse(RenderComponentType.REMAINING, this,
+                                                           parseComponents(parts.data.keySet()));
+                addComponentIfExists(rc, true);
+            });
+        });
+
+        cache = model.getAdditionalCacheData(HeightmapCache.class);
     }
 
     public final EntityRollingStock spawn(World world, Vec3d pos, float yaw, Gauge gauge, String texture) {
@@ -131,7 +151,23 @@ public abstract class EntityRollingStockDefinition {
             internal_inv_scale = Gauge.STANDARD / recommended_gauge.value();
         }
 
-        model = new OBJModel(new Identifier(data.get("model").getAsString()), darken, internal_model_scale);
+        model = ModelManager.registerModel(
+                new IdentifierFileContainer(new Identifier(data.get("model").getAsString())),
+                new ModelLoaderProperty(darken).addAdditionalCacheData(HeightmapCache.class)
+        );
+        //model.addRenderEffect(RenderEffect.NORMAL_LIGHTING);
+
+        // recalculate the cache if the model is loaded from the obj file (when the cache is updated)
+        model.registerMeshHook(mesh -> {
+            cache.recalculate(this, mesh);
+        });
+        model.getHitbox().onInit(box -> {
+            frontBounds = -box.minX + couplerOffsetFront;
+            rearBounds = box.maxX + couplerOffsetRear;
+            widthBounds = box.maxZ - box.minZ;
+        });
+        model.forceLoad();
+
         textureNames = new LinkedHashMap<>();
         textureNames.put(null, "Default");
         if (data.has("tex_variants")) {
@@ -156,7 +192,9 @@ public abstract class EntityRollingStockDefinition {
         }
 
         JsonObject passenger = data.get("passenger").getAsJsonObject();
-        passengerCenter = new Vec3d(0, passenger.get("center_y").getAsDouble() - 0.35, passenger.get("center_x").getAsDouble()).scale(internal_model_scale);
+        passengerCenter = new Vec3d(0, passenger.get("center_y").getAsDouble() - 0.35,
+                                    passenger.get("center_x").getAsDouble()
+        ).scale(internal_model_scale);
         passengerCompartmentLength = passenger.get("length").getAsDouble() * internal_model_scale;
         passengerCompartmentWidth = passenger.get("width").getAsDouble() * internal_model_scale;
         maxPassengers = passenger.get("slots").getAsInt();
@@ -169,7 +207,8 @@ public abstract class EntityRollingStockDefinition {
 
         dampeningAmount = 0.75f;
         if (data.has("sound_dampening_percentage")) {
-            if (data.get("sound_dampening_percentage").getAsFloat() >= 0.0f && data.get("sound_dampening_percentage").getAsFloat() <= 1.0f) {
+            if (data.get("sound_dampening_percentage").getAsFloat() >= 0.0f && data.get(
+                    "sound_dampening_percentage").getAsFloat() <= 1.0f) {
                 dampeningAmount = data.get("sound_dampening_percentage").getAsFloat();
             }
         }
@@ -180,39 +219,43 @@ public abstract class EntityRollingStockDefinition {
         }
 
         if (data.has("couplers")) {
-            couplerOffsetFront = (float) (data.get("couplers").getAsJsonObject().get("front_offset").getAsFloat() * internal_model_scale);
-            couplerOffsetRear = (float) (data.get("couplers").getAsJsonObject().get("rear_offset").getAsFloat() * internal_model_scale);
+            couplerOffsetFront = (float) (data.get("couplers").getAsJsonObject().get(
+                    "front_offset").getAsFloat() * internal_model_scale);
+            couplerOffsetRear = (float) (data.get("couplers").getAsJsonObject().get(
+                    "rear_offset").getAsFloat() * internal_model_scale);
         }
 
-        frontBounds = -model.minOfGroup(model.groups()).x + couplerOffsetFront;
-        rearBounds = model.maxOfGroup(model.groups()).x + couplerOffsetRear;
-        widthBounds = model.widthOfGroups(model.groups());
-
         // Bad hack for height bounds
-        ArrayList<String> heightGroups = new ArrayList<>();
-        for (String group : model.groups()) {
-            boolean ignore = false;
-            for (RenderComponentType rct : RenderComponentType.values()) {
-                if (rct.collisionsEnabled) {
-                    continue;
-                }
-                for (int i = 0; i < 10; i++) {
-                    if (Pattern.matches(rct.regex.replace("#ID#", "" + i), group)) {
-                        ignore = true;
+        model.getParts().onInit(parts -> {
+            ArrayList<String> heightParts = new ArrayList<>();
+            for (String part : parts.data.keySet()) {
+                boolean ignore = false;
+                for (RenderComponentType rct : RenderComponentType.values()) {
+                    if (rct.collisionsEnabled) {
+                        continue;
+                    }
+                    for (int i = 0; i < 10; i++) {
+                        if (Pattern.matches(rct.regex.replace("#ID#", "" + i), part)) {
+                            ignore = true;
+                            break;
+                        }
+                    }
+                    if (ignore) {
                         break;
                     }
                 }
-                if (ignore) {
-                    break;
+                if (!ignore) {
+                    heightParts.add(part);
                 }
             }
-            if (!ignore) {
-                heightGroups.add(group);
-            }
-        }
-        heightBounds = model.heightOfGroups(heightGroups);
 
-        weight = (int) Math.ceil(data.get("properties").getAsJsonObject().get("weight_kg").getAsInt() * internal_inv_scale);
+            model.getHitbox(heightParts).onSet(box -> {
+                heightBounds = box.maxY - box.minY;
+            });
+        });
+
+        weight = (int) Math.ceil(
+                data.get("properties").getAsJsonObject().get("weight_kg").getAsInt() * internal_inv_scale);
 
         wheel_sound = default_wheel_sound;
         clackFront = default_clackFront;
@@ -221,18 +264,29 @@ public abstract class EntityRollingStockDefinition {
         JsonObject sounds = data.has("sounds") ? data.get("sounds").getAsJsonObject() : null;
         if (sounds != null) {
             if (sounds.has("wheels")) {
-                wheel_sound = new Identifier(ImmersiveRailroading.MODID, sounds.get("wheels").getAsString()).getOrDefault(default_wheel_sound);
+                wheel_sound = new Identifier(
+                        ImmersiveRailroading.MODID,
+                        sounds.get("wheels").getAsString()
+                ).getOrDefault(default_wheel_sound);
             }
 
             if (sounds.has("clack")) {
-                clackFront = new Identifier(ImmersiveRailroading.MODID, sounds.get("clack").getAsString()).getOrDefault(default_clackFront);
-                clackRear = new Identifier(ImmersiveRailroading.MODID, sounds.get("clack").getAsString()).getOrDefault(default_clackRear);
+                clackFront = new Identifier(ImmersiveRailroading.MODID, sounds.get("clack").getAsString()).getOrDefault(
+                        default_clackFront);
+                clackRear = new Identifier(ImmersiveRailroading.MODID, sounds.get("clack").getAsString()).getOrDefault(
+                        default_clackRear);
             }
             if (sounds.has("clack_front")) {
-                clackFront = new Identifier(ImmersiveRailroading.MODID, sounds.get("clack_front").getAsString()).getOrDefault(default_clackFront);
+                clackFront = new Identifier(
+                        ImmersiveRailroading.MODID,
+                        sounds.get("clack_front").getAsString()
+                ).getOrDefault(default_clackFront);
             }
             if (sounds.has("clack_rear")) {
-                clackRear = new Identifier(ImmersiveRailroading.MODID, sounds.get("clack_rear").getAsString()).getOrDefault(default_clackRear);
+                clackRear = new Identifier(
+                        ImmersiveRailroading.MODID,
+                        sounds.get("clack_rear").getAsString()
+                ).getOrDefault(default_clackRear);
             }
         }
     }
@@ -255,20 +309,31 @@ public abstract class EntityRollingStockDefinition {
     }
 
 
-
-    protected Set<String> parseComponents() {
+    protected Set<String> parseComponents(ObjectSet<String> parts) {
         renderComponents = new HashMap<>();
         itemComponents = new ArrayList<>();
 
-        Set<String> groups = new HashSet<>(model.groups());
+        Set<String> groups = new HashSet<>(parts);
 
         for (int i = 100; i >= 0; i--) {
             if (unifiedBogies()) {
-                addComponentIfExists(RenderComponent.parsePosID(RenderComponentType.BOGEY_POS_WHEEL_X, this, groups, "FRONT", i), true);
-                addComponentIfExists(RenderComponent.parsePosID(RenderComponentType.BOGEY_POS_WHEEL_X, this, groups, "REAR", i), true);
+                addComponentIfExists(
+                        RenderComponent.parsePosID(RenderComponentType.BOGEY_POS_WHEEL_X, this, groups, "FRONT", i),
+                        true
+                );
+                addComponentIfExists(
+                        RenderComponent.parsePosID(RenderComponentType.BOGEY_POS_WHEEL_X, this, groups, "REAR", i),
+                        true
+                );
             } else {
-                addComponentIfExists(RenderComponent.parseID(RenderComponentType.BOGEY_FRONT_WHEEL_X, this, groups, i), true);
-                addComponentIfExists(RenderComponent.parseID(RenderComponentType.BOGEY_REAR_WHEEL_X, this, groups, i), true);
+                addComponentIfExists(
+                        RenderComponent.parseID(RenderComponentType.BOGEY_FRONT_WHEEL_X, this, groups, i),
+                        true
+                );
+                addComponentIfExists(
+                        RenderComponent.parseID(RenderComponentType.BOGEY_REAR_WHEEL_X, this, groups, i),
+                        true
+                );
             }
             addComponentIfExists(RenderComponent.parseID(RenderComponentType.FRAME_WHEEL_X, this, groups, i), true);
         }
@@ -367,6 +432,12 @@ public abstract class EntityRollingStockDefinition {
     }
 
     public List<ItemComponentType> getItemComponents() {
+        if (itemComponents == null) {
+            // wait until the model is loaded so that the components
+            // are properly initialized.
+            model.awaitLoad();
+        }
+
         return itemComponents;
     }
 
@@ -389,67 +460,8 @@ public abstract class EntityRollingStockDefinition {
         }
     }
 
-    void initHeightMap() {
-        ImmersiveRailroading.debug("Generating heightmap %s", defID);
-
-        double ratio = 8;
-        xRes = (int) Math.ceil((this.frontBounds + this.rearBounds) * ratio);
-        zRes = (int) Math.ceil(this.widthBounds * ratio);
-
-        int precision = (int) Math.ceil(this.heightBounds * 4);
-
-        for (List<RenderComponent> rcl : this.renderComponents.values()) {
-            for (RenderComponent rc : rcl) {
-                if (!rc.type.collisionsEnabled) {
-                    continue;
-                }
-                float[][] heightMap = new float[xRes][zRes];
-                for (String group : rc.modelIDs) {
-                    int[] faces = model.groups.get(group);
-                    for (int face : faces) {
-                        Path2D path = new Path2D.Double();
-                        float fheight = 0;
-                        boolean first = true;
-                        for (int[] point : model.points(face)) {
-                            float vertX = model.vertex(point[0], OBJModel.Vert.X);
-                            float vertY = model.vertex(point[0], OBJModel.Vert.Y);
-                            float vertZ = model.vertex(point[0], OBJModel.Vert.Z);
-                            vertX += this.frontBounds;
-                            vertZ += this.widthBounds / 2;
-                            if (first) {
-                                path.moveTo(vertX * ratio, vertZ * ratio);
-                                first = false;
-                            } else {
-                                path.lineTo(vertX * ratio, vertZ * ratio);
-                            }
-                            fheight += vertY / 3; // We know we are using tris
-                        }
-                        Rectangle2D bounds = path.getBounds2D();
-                        if (bounds.getWidth() * bounds.getHeight() < 1) {
-                            continue;
-                        }
-                        for (int x = 0; x < xRes; x++) {
-                            for (int z = 0; z < zRes; z++) {
-                                float relX = ((xRes - 1) - x);
-                                float relZ = z;
-                                if (bounds.contains(relX, relZ) && path.contains(relX, relZ)) {
-                                    float relHeight = fheight / (float)heightBounds;
-                                    relHeight = ((int) Math.ceil(relHeight * precision)) / (float) precision;
-                                    heightMap[x][z] = Math.max(heightMap[x][z], relHeight);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                partMapCache.put(rc, heightMap);
-            }
-        }
-    }
-
     public float[][] createHeightMap(EntityBuildableRollingStock stock) {
-        float[][] heightMap = new float[xRes][zRes];
-
+        float[][] heightMap = new float[cache.xRes][cache.zRes];
 
         List<RenderComponentType> availComponents = new ArrayList<>();
         for (ItemComponentType item : stock.getItemComponents()) {
@@ -469,9 +481,10 @@ public abstract class EntityRollingStockDefinition {
                 } else {
                     continue;
                 }
-                float[][] pm = partMapCache.get(rc);
-                for (int x = 0; x < xRes; x++) {
-                    for (int z = 0; z < zRes; z++) {
+
+                float[][] pm = cache.partMapCache.get(rc);
+                for (int x = 0; x < cache.xRes; x++) {
+                    for (int z = 0; z < cache.zRes; z++) {
                         heightMap[x][z] = Math.max(heightMap[x][z], pm[x][z]);
                     }
                 }
@@ -483,7 +496,8 @@ public abstract class EntityRollingStockDefinition {
 
     public RealBB getBounds(EntityMoveableRollingStock stock, Gauge gauge) {
         return new RealBB(gauge.scale() * frontBounds, gauge.scale() * -rearBounds, gauge.scale() * widthBounds,
-                gauge.scale() * heightBounds, stock.getRotationYaw()).offset(stock.getPosition());
+                          gauge.scale() * heightBounds, stock.getRotationYaw()
+        ).offset(stock.getPosition());
     }
 
     public String name() {
@@ -500,7 +514,8 @@ public abstract class EntityRollingStockDefinition {
         tips.add(GuiText.PACK_TOOLTIP.toString(packName));
         return tips;
     }
-    public OBJModel getModel() {
+
+    public ModelInfo getModel() {
         return model;
     }
 

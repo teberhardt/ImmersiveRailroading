@@ -10,6 +10,7 @@ import cam72cam.immersiverailroading.library.Gauge;
 import cam72cam.immersiverailroading.library.RenderComponentType;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.mod.math.Vec3d;
+import friedrichlp.renderlib.math.HitBox3;
 
 public class RenderComponent {
 	public final RenderComponentType type;
@@ -67,15 +68,16 @@ public class RenderComponent {
 		}
 		
 
-		Vec3d min = def.getModel().minOfGroup(modelIDs);
-		Vec3d max = def.getModel().maxOfGroup(modelIDs);
+		HitBox3 box = def.getModel().getHitboxNow(modelIDs);
+		Vec3d min = new Vec3d(box.minX, box.minY, box.minZ);
+		Vec3d max = new Vec3d(box.maxX, box.maxY, box.maxZ);
 		
 		groups.removeAll(modelIDs);
 		
 		return new RenderComponent(modelIDs, name, id, side, pos, 1, wooden, min, max);
 	}
 
-	private RenderComponent(Set<String> modelIDs, RenderComponentType type, int id, String side, String pos, double scale, boolean wooden, Vec3d min, Vec3d max) {
+	public RenderComponent(Set<String> modelIDs, RenderComponentType type, int id, String side, String pos, double scale, boolean wooden, Vec3d min, Vec3d max) {
 		this.modelIDs = modelIDs;
 		this.type = type;
 		this.id = id;
@@ -124,5 +126,22 @@ public class RenderComponent {
 	@Override
 	public String toString() {
 		return String.format("%s%s%s%s%s", this.type, this.id, this.side, this.pos, this.scale);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof RenderComponent) {
+			RenderComponent rc = (RenderComponent)obj;
+			return rc.type == type
+					&& rc.id == id
+					&& rc.side.equals(side)
+					&& rc.modelIDs.equals(modelIDs)
+					&& rc.pos.equals(pos)
+					&& rc.scale == scale
+					&& rc.min.equals(min)
+					&& rc.max.equals(max);
+		} else {
+			return false;
+		}
 	}
 }

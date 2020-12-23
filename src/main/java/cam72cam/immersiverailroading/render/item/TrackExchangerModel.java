@@ -65,12 +65,12 @@ public class TrackExchangerModel implements ItemRender.IItemModel {
 
 			GL11.glTranslated(-15.15, 0.75, -8.75);
 			RailBaseRender.draw(info, world);
-			RailBuilderRender.renderRailBuilder(info, world);
+			RailBuilderRender.renderSingle(info, world);
 
 			if (lookInfo != null) {
 				GL11.glTranslated(-22.05, 0, 0);
 				RailBaseRender.draw(lookInfo, world);
-				RailBuilderRender.renderRailBuilder(lookInfo, world);
+				RailBuilderRender.renderSingle(info, world);
 			}
 		}
 	}

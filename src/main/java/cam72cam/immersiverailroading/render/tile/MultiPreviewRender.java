@@ -18,7 +18,7 @@ public class MultiPreviewRender {
     private static ExpireableList<Pair<World, Vec3i>, TileRailPreview> previews = new ExpireableList<>();
 
     static {
-        GlobalRender.registerRender(MultiPreviewRender::render);
+        GlobalRender.registerBlockRender(MultiPreviewRender::render);
     }
 
     private static void render(float partialTicks) {

@@ -1,26 +1,38 @@
 package cam72cam.immersiverailroading.model;
 
-import cam72cam.mod.model.obj.OBJModel;
-import cam72cam.mod.resource.Identifier;
+import cam72cam.mod.resource.IdentifierFileContainer;
+import friedrichlp.renderlib.model.ModelLoaderProperty;
+import friedrichlp.renderlib.tracking.ModelInfo;
+import friedrichlp.renderlib.tracking.ModelManager;
 
 import java.util.ArrayList;
 
-public class TrackModel extends OBJModel {
+public class TrackModel {
     private final String compare;
     private final double size;
-    private final double height;
+    private double height;
 
-    public TrackModel(String condition, String resource) throws Exception {
-        super(new Identifier(resource), 0);
+    public final ModelInfo model;
+
+    public TrackModel(String condition, String resource) {
         this.compare = condition.substring(0, 1);
         this.size = Double.parseDouble(condition.substring(1));
-        ArrayList<String> groups = new ArrayList<>();
-        for (String group : groups()) {
-            if (group.contains("RAIL_LEFT") || group.contains("RAIL_RIGHT")) {
-                groups.add(group);
+
+        model = ModelManager.registerModel(new IdentifierFileContainer(resource), new ModelLoaderProperty(0));
+        model.forceLoad();
+
+        model.getParts().onInit(parts -> {
+            ArrayList<String> groups = new ArrayList<>();
+            for (String group : parts.data.keySet()) {
+                if (group.contains("RAIL_LEFT") || group.contains("RAIL_RIGHT")) {
+                    groups.add(group);
+                }
             }
-        }
-        height = maxOfGroup(groups).y;
+
+            model.getHitbox(groups).onSet(box -> {
+                height = box.maxY;
+            });
+        });
     }
 
     public boolean canRender(double gauge) {

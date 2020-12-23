@@ -25,9 +25,8 @@ public class RailRenderUtil {
 					MinecraftClient.endProfiler();
 				}
 			}
-			MinecraftClient.startProfiler("rail");
-			RailBuilderRender.renderRailBuilder(info, world);
-			MinecraftClient.endProfiler();
+
+			RailBuilderRender.renderSingle(info, world);
 		}
 	}
 }
