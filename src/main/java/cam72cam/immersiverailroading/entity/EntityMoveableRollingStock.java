@@ -85,7 +85,6 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
 
     private float[][] getHeightMap() {
         if (this.heightMapCache == null) {
-            System.out.println("Null heightMapCache for " + getDefinition().name());
             this.heightMapCache = this.getDefinition().createHeightMap(this);
             System.out.println(heightMapCache[0]);
         }
@@ -95,7 +94,6 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
     @Override
     public RealBB getCollision() {
         if (this.boundingBox == null) {
-            System.out.println("Null RealBB for " + getDefinition().name());
             this.boundingBox = this.getDefinition().getBounds(this, this.gauge)
                     .withHeightMap(this.getHeightMap())
                     .contract(new Vec3d(0, 0.5 * this.gauge.scale(), 0)).offset(new Vec3d(0, 0.5 * this.gauge.scale(), 0));
@@ -407,8 +405,6 @@ public abstract class EntityMoveableRollingStock extends EntityRidableRollingSto
     }
 
     protected void clearPositionCache() {
-        System.out.println("Clear pos cache for " + getDefinition().name());
-        new Throwable().printStackTrace();
         this.boundingBox = null;
     }
 

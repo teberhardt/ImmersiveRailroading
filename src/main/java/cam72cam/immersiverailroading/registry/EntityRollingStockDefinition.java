@@ -166,7 +166,10 @@ public abstract class EntityRollingStockDefinition {
             rearBounds = box.maxX + couplerOffsetRear;
             widthBounds = box.maxZ - box.minZ;
         });
-        model.forceLoad();
+
+        if (!model.isCached()) {
+            model.forceLoad();
+        }
 
         textureNames = new LinkedHashMap<>();
         textureNames.put(null, "Default");

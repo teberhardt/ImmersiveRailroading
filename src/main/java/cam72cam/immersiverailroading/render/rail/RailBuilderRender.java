@@ -114,6 +114,8 @@ public class RailBuilderRender {
             }
 
             objectCache.put(pos, objects);
+
+            System.out.println("Add track to world");
         }
     }
 
