@@ -81,12 +81,15 @@ public enum ModelComponentType {
 	TRAIN_BRAKE("TRAIN_BRAKE"),
 	INDEPENDENT_BRAKE("INDEPENDENT_BRAKE"),
 
+	// Lights
+	HEADLIGHT_X("HEADLIGHT_#ID#"),
+
 	// REST
 	IMMERSIVERAILROADING_BASE_COMPONENT("IMMERSIVERAILROADING_BASE_COMPNOENT"),
 	REMAINING(""),
 	;
-	
-	public final String regex;
+
+    public final String regex;
 	public final boolean collisionsEnabled;
 	
 	ModelComponentType(String regex) {
