@@ -101,6 +101,10 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
         } else {
             draw.render(firebox);
         }
+
+        if (drivingWheels != null) {
+            drivingWheels.render(distanceTraveled, stock.getReverser(), draw);
+        }
         draw.render(components);
 
         whistle.render(draw);

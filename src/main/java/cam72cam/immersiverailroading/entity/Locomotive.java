@@ -6,6 +6,7 @@ import cam72cam.immersiverailroading.items.ItemRadioCtrlCard;
 import cam72cam.immersiverailroading.library.ChatText;
 import cam72cam.immersiverailroading.library.KeyTypes;
 import cam72cam.immersiverailroading.library.ModelComponentType;
+import cam72cam.immersiverailroading.model.part.Control;
 import cam72cam.immersiverailroading.registry.LocomotiveDefinition;
 import cam72cam.immersiverailroading.util.Speed;
 import cam72cam.mod.entity.Entity;
@@ -145,18 +146,18 @@ public abstract class Locomotive extends FreightTank {
 		}
 	}
 
-	public void onDrag(ModelComponentType component, double deltaX, double deltaY) {
+	public void onDrag(Control component, double deltaX, double deltaY) {
+		super.onDrag(component, deltaX, deltaY);
 		System.out.println("DRAG " + component + ": "+ deltaX + deltaY);
-		int factor = 4;
-		switch (component) {
-			case THROTTLE:
-				setThrottle(Math.min(1, Math.max(0, (float) -(deltaY+deltaX) * factor + getThrottle())));
+		switch (component.part.type) {
+			case THROTTLE_X:
+				setThrottle(getControlPosition(component));
 				break;
-			case TRAIN_BRAKE:
-				setAirBrake(Math.min(1, Math.max(0, (float) -deltaY * factor + getAirBrake())));
+			case TRAIN_BRAKE_X:
+				setAirBrake(getControlPosition(component));
 				break;
-			case REVERSER:
-				setReverser(Math.min(1, Math.max(-1, (float) (deltaY + deltaX) * factor + getReverser())));
+			case REVERSER_X:
+				setReverser((0.5f-getControlPosition(component))*2);
 				break;
 		}
 	}
@@ -270,6 +271,7 @@ public abstract class Locomotive extends FreightTank {
 	}
 	public void setThrottle(float newThrottle) {
 		if (this.getThrottle() != newThrottle) {
+			setControlPositions(ModelComponentType.THROTTLE_X, newThrottle);
 			throttle = newThrottle;
 			triggerResimulate();
 		}
@@ -280,6 +282,7 @@ public abstract class Locomotive extends FreightTank {
 	}
 	public void setReverser(float newReverser) {
 		if (this.getReverser() != newReverser) {
+			setControlPositions(ModelComponentType.REVERSER_X, newReverser/-2 + 0.5f);
 			reverser = newReverser;
 			triggerResimulate();
 		}
@@ -312,6 +315,7 @@ public abstract class Locomotive extends FreightTank {
 	}
 	public void setAirBrake(float newAirBrake) {
 		if (this.getAirBrake() != newAirBrake) {
+			setControlPositions(ModelComponentType.TRAIN_BRAKE_X, newAirBrake);
 			airBrake = newAirBrake;
 			triggerResimulate();
 		}
