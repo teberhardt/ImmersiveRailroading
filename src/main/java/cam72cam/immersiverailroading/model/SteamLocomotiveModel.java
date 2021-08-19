@@ -17,19 +17,12 @@ import java.util.UUID;
 
 public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
     private List<ModelComponent> components;
-    private DrivingAssembly drivingWheels;
-    private ModelComponent frameFront;
-    private ModelComponent frameRear;
-    private DrivingAssembly drivingWheelsFront;
-    private DrivingAssembly drivingWheelsRear;
 
     private Whistle whistle;
     private SteamChimney chimney;
     private PressureValve pressureValve;
     private ModelComponent firebox;
 
-    private final ExpireableList<UUID, TrackFollower> frontTrackers = new ExpireableList<>();
-    private final ExpireableList<UUID, TrackFollower> rearTrackers = new ExpireableList<>();
     private final PartSound idleSounds;
 
     public SteamLocomotiveModel(LocomotiveSteamDefinition def) throws Exception {
@@ -39,8 +32,7 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
 
     @Override
     protected void parseComponents(ComponentProvider provider, EntityRollingStockDefinition def) {
-        frameFront = provider.parse(ModelComponentType.FRONT_FRAME);
-        frameRear = provider.parse(ModelComponentType.REAR_FRAME);
+        super.parseComponents(provider, def);
 
         firebox = provider.parse(ModelComponentType.FIREBOX);
         components = provider.parse(
@@ -56,13 +48,6 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
 
         chimney = SteamChimney.get(provider);
         pressureValve = PressureValve.get(provider, ((LocomotiveSteamDefinition) def).pressure);
-
-        ValveGearType type = def.getValveGear();
-        drivingWheelsFront = DrivingAssembly.get(type,provider, "FRONT", 0);
-        drivingWheelsRear = DrivingAssembly.get(type, provider, "REAR", 45);
-        drivingWheels = DrivingAssembly.get(type, provider, null, 0);
-
-        super.parseComponents(provider, def);
     }
 
     @Override
@@ -100,8 +85,6 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
     protected void removed(LocomotiveSteam stock) {
         super.removed(stock);
 
-        frontTrackers.put(stock.getUUID(), null);
-        rearTrackers.put(stock.getUUID(), null);
         pressureValve.removed(stock);
         idleSounds.removed(stock);
         whistle.removed(stock);
@@ -121,37 +104,5 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
         draw.render(components);
 
         whistle.render(draw);
-
-        if (drivingWheels != null) {
-            drivingWheels.render(distanceTraveled, stock.getReverser(), draw);
-        }
-        if (drivingWheelsFront != null) {
-            try (ComponentRenderer matrix = draw.push()) {
-                if (frameFront != null) {
-                    TrackFollower data = frontTrackers.get(stock.getUUID());
-                    if (data == null) {
-                        data = new TrackFollower(frameFront.center);
-                        frontTrackers.put(stock.getUUID(), data);
-                    }
-                    data.apply(stock);
-                    matrix.render(frameFront);
-                }
-                drivingWheelsFront.render(distanceTraveled, stock.getReverser(), matrix);
-            }
-        }
-        if (drivingWheelsRear != null) {
-            try (ComponentRenderer matrix = draw.push()) {
-                if (frameRear != null) {
-                    TrackFollower data = rearTrackers.get(stock.getUUID());
-                    if (data == null) {
-                        data = new TrackFollower(frameRear.center);
-                        rearTrackers.put(stock.getUUID(), data);
-                    }
-                    data.apply(stock);
-                    matrix.render(frameRear);
-                }
-                drivingWheelsRear.render(distanceTraveled, stock.getReverser(), matrix);
-            }
-        }
     }
 }

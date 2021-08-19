@@ -12,6 +12,7 @@ import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.mod.entity.*;
 import cam72cam.mod.entity.sync.TagSync;
 import cam72cam.mod.entity.custom.*;
+import cam72cam.mod.event.CommonEvents;
 import cam72cam.mod.item.ClickResult;
 import cam72cam.mod.serialization.StrictTagMapper;
 import cam72cam.mod.serialization.TagField;
@@ -190,4 +191,7 @@ public class EntityRollingStock extends CustomEntity implements ITickable, IClic
 
 	public void onDrag(ModelComponentType component, double deltaX, double deltaY) {
 	}
+    public boolean internalLightsEnabled() {
+		return false;
+    }
 }
