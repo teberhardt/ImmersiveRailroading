@@ -118,9 +118,6 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
     @Override
     protected void render(T stock, ComponentRenderer draw, double distanceTraveled) {
         super.render(stock, draw, distanceTraveled);
-        try (ComponentRenderer light = draw.withBrightGroups(true)) {
-            light.render(components);
-        }
         bell.render(draw);
 
         if (drivingWheels != null) {
@@ -174,6 +171,12 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
         throttles.forEach(throttle -> throttle.render(stock.getControlPosition(throttle), draw));
         reversers.forEach(reverser -> reverser.render((stock.getControlPosition(reverser)-0.5f), draw));
         train_brakes.forEach(train_brake -> train_brake.render(stock.getControlPosition(train_brake), draw));
+    }
+
+    @Override
+    protected void renderWithInteriorLighting(T stock, ComponentRenderer draw) {
+        super.renderWithInteriorLighting(stock, draw);
+        draw.render(components);
     }
 
     @Override
