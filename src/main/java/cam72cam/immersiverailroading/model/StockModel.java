@@ -132,10 +132,6 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
             renderWithInteriorLighting(stock, light);
         }
 
-        doors.forEach(c -> c.render(stock.getControlPosition(c), draw));
-        windows.forEach(c -> c.render(stock.getControlPosition(c), draw));
-        widgets.forEach(c -> c.render(stock.getControlPosition(c), draw));
-
         if (bogeyFront != null) {
             try (ComponentRenderer matrix = draw.push()) {
                 if (frontTrackers != null) {
@@ -176,6 +172,9 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
     protected void renderWithInteriorLighting(T stock, ComponentRenderer draw) {
         draw.render(shell);
         draw.render(remaining);
+        doors.forEach(c -> c.render(stock.getControlPosition(c), draw));
+        windows.forEach(c -> c.render(stock.getControlPosition(c), draw));
+        widgets.forEach(c -> c.render(stock.getControlPosition(c), draw));
     }
 
     protected void postRender(T stock, ComponentRenderer draw, double distanceTraveled) {
