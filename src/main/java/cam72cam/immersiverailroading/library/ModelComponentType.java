@@ -85,6 +85,7 @@ public enum ModelComponentType {
 	INDEPENDENT_BRAKE_X("(INDEPENDENT|IND)_BRAKE_#ID#"),
 	DOOR_X("DOOR_#ID#"),
 	WINDOW_X("WINDOW_#ID#"),
+	WIDGET_X("WIDGET_#ID#"),
 
 	// Lights
 	HEADLIGHT_X("HEADLIGHT_#ID#"),
