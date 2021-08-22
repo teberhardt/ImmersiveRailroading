@@ -83,7 +83,11 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
     }
 
     protected void effects(T stock) {
-        headlights.forEach(x -> x.effects(stock, 0));
+        if (!stock.externalLightsEnabled()) {
+            headlights.forEach(x -> x.removed(stock));
+        } else {
+            headlights.forEach(x -> x.effects(stock, 0));
+        }
     }
 
     public final void onClientRemoved(EntityMoveableRollingStock stock) {
@@ -111,7 +115,7 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
             double distanceTraveled = stock.distanceTraveled + stock.getCurrentSpeed().minecraft() * stock.getTickSkew() * partialTicks * 1.1;
             distanceTraveled /= stock.gauge.scale();
 
-            try (ComponentRenderer draw = new ComponentRenderer(bound, available, !hasInterior)) {
+            try (ComponentRenderer draw = new ComponentRenderer(bound, available, hasInterior)) {
                 GL11.glScaled(stock.gauge.scale(), stock.gauge.scale(), stock.gauge.scale());
                 //noinspection unchecked
                 render((T) stock, draw, distanceTraveled);
@@ -180,7 +184,9 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
     }
 
     protected void postRender(T stock, ComponentRenderer draw, double distanceTraveled) {
-        headlights.forEach(x -> x.postRender(stock, 0));
+        if (stock.externalLightsEnabled()) {
+            headlights.forEach(x -> x.postRender(stock, 0));
+        }
     }
 
     public List<Control> getDraggableComponents() {
