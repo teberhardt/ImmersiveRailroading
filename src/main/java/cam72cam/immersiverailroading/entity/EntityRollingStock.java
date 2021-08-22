@@ -196,8 +196,8 @@ public class EntityRollingStock extends CustomEntity implements ITickable, IClic
 	@TagField(value="controlPositions", mapper = ControlPositionMapper.class)
 	protected Map<String, Float> controlPositions = new HashMap<>();
 
-	public void onDrag(Control component, double deltaX, double deltaY) {
-		setControlPosition(component, (float)-(deltaY+deltaX) * 4 + getControlPosition(component));
+	public void onDrag(Control component, double delta) {
+		setControlPosition(component, (float)delta + getControlPosition(component));
 	}
 
 	public void onDragRelease(Control component) {
