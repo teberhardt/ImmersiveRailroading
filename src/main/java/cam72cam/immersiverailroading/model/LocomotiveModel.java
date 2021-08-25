@@ -63,8 +63,8 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
         throttles = Control.get(this, provider, ModelComponentType.THROTTLE_X);
         reversers = Control.get(this, provider, ModelComponentType.REVERSER_X);
         train_brakes = Control.get(this, provider, ModelComponentType.TRAIN_BRAKE_X);
-        headlightsFront = LightFlare.get(provider, ModelComponentType.HEADLIGHT_POS_X, "FRONT");
-        headlightsRear = LightFlare.get(provider, ModelComponentType.HEADLIGHT_POS_X, "REAR");
+        headlightsFront = LightFlare.get(def, provider, ModelComponentType.HEADLIGHT_POS_X, "FRONT");
+        headlightsRear = LightFlare.get(def, provider, ModelComponentType.HEADLIGHT_POS_X, "REAR");
 
         super.parseComponents(provider, def);
     }
