@@ -172,9 +172,9 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
             }
         }
 
-        throttles.forEach(throttle -> throttle.render(stock.getControlPosition(throttle), draw));
-        reversers.forEach(reverser -> reverser.render((stock.getControlPosition(reverser)-0.5f), draw));
-        train_brakes.forEach(train_brake -> train_brake.render(stock.getControlPosition(train_brake), draw));
+        throttles.forEach(throttle -> throttle.render(stock, draw));
+        reversers.forEach(reverser -> reverser.render(stock, draw));
+        train_brakes.forEach(train_brake -> train_brake.render(stock, draw));
     }
 
     @Override
@@ -208,5 +208,8 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
                 }
             }
         }
+        throttles.forEach(throttle -> throttle.postRender(stock));
+        reversers.forEach(reverser -> reverser.postRender(stock));
+        train_brakes.forEach(train_brake -> train_brake.postRender(stock));
     }
 }

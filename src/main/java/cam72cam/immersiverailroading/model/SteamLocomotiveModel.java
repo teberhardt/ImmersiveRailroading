@@ -4,16 +4,13 @@ import cam72cam.immersiverailroading.Config;
 import cam72cam.immersiverailroading.ImmersiveRailroading;
 import cam72cam.immersiverailroading.entity.LocomotiveSteam;
 import cam72cam.immersiverailroading.library.ModelComponentType;
-import cam72cam.immersiverailroading.library.ValveGearType;
 import cam72cam.immersiverailroading.model.components.ComponentProvider;
 import cam72cam.immersiverailroading.model.components.ModelComponent;
 import cam72cam.immersiverailroading.model.part.*;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
-import cam72cam.immersiverailroading.render.ExpireableList;
 
 import java.util.List;
-import java.util.UUID;
 
 public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
     private List<ModelComponent> components;
@@ -112,7 +109,7 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
         }
 
         whistle.render(draw);
-        whistleControls.forEach(c -> c.render(stock.getControlPosition(c), draw));
+        whistleControls.forEach(c -> c.render(stock, draw));
     }
 
     @Override

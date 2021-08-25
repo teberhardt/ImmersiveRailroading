@@ -1,5 +1,6 @@
 package cam72cam.immersiverailroading.model.part;
 
+import cam72cam.immersiverailroading.ConfigGraphics;
 import cam72cam.immersiverailroading.entity.EntityRollingStock;
 import cam72cam.immersiverailroading.library.ModelComponentType;
 import cam72cam.immersiverailroading.model.ComponentRenderer;
@@ -11,9 +12,9 @@ import cam72cam.mod.ModCore;
 import cam72cam.mod.entity.Player;
 import cam72cam.mod.entity.boundingbox.IBoundingBox;
 import cam72cam.mod.math.Vec3d;
-import cam72cam.mod.math.Vec3i;
 import cam72cam.mod.model.obj.OBJGroup;
 import cam72cam.mod.model.obj.OBJModel;
+import cam72cam.mod.render.GlobalRender;
 import cam72cam.mod.util.Axis;
 import org.apache.commons.lang3.ArrayUtils;
 import org.lwjgl.opengl.GL11;
@@ -74,11 +75,14 @@ public class Control {
         }
     }
 
-    public void render(float valuePercent, ComponentRenderer draw) {
+    public void render(EntityRollingStock stock, ComponentRenderer draw) {
         if (rotationPoint == null && translations.isEmpty()) {
             draw.render(part);
             return;
         }
+
+        float valuePercent = getValue(stock);
+
         try (ComponentRenderer matrix = draw.push()) {
             translations.forEach((axis, val) -> {
                 GL11.glTranslated(
@@ -101,7 +105,33 @@ public class Control {
         }
     }
 
-    public Vec3d transform(Vec3d point, float valuePercent, double scale) {
+    public void postRender(EntityRollingStock stock) {
+        if (!ConfigGraphics.interactiveComponentsOverlay) {
+            return;
+        }
+
+        if (MinecraftClient.getPlayer().getPosition().distanceTo(stock.getPosition()) > stock.getDefinition().getLength(stock.gauge)) {
+            return;
+        }
+
+        Vec3d pos = transform(part.center, stock);
+        Vec3d playerPos = new Matrix4().rotate(Math.toRadians(stock.getRotationYaw() - 90), 0, 1, 0).apply(MinecraftClient.getPlayer().getPositionEyes().add(MinecraftClient.getPlayer().getLookVector()).subtract(stock.getPosition()));
+        if (playerPos.distanceTo(pos) > 0.5) {
+            return;
+        }
+
+        GlobalRender.drawText(part.type.name().replace("_X", ""), pos, 0.2f, 180 - stock.getRotationYaw() - 90);
+    }
+
+    public float getValue(EntityRollingStock stock) {
+        return stock.getControlPosition(this) - (part.type == ModelComponentType.REVERSER_X ? 0.5f : 0);
+    }
+
+    public Vec3d transform(Vec3d point, EntityRollingStock stock) {
+        return transform(point, getValue(stock), stock.gauge.scale());
+    }
+
+    protected Vec3d transform(Vec3d point, float valuePercent, double scale) {
         Matrix4 m = new Matrix4();
         m = m.scale(scale, scale, scale);
         for (Map.Entry<Axis, Float> entry : translations.entrySet()) {
@@ -128,10 +158,9 @@ public class Control {
     }
 
     public IBoundingBox getBoundingBox(EntityRollingStock stock) {
-        float controlPosition = stock.getControlPosition(this);
         return IBoundingBox.from(
-                transform(part.min, controlPosition, stock.gauge.scale()),
-                transform(part.max, controlPosition, stock.gauge.scale())
+                transform(part.min, stock),
+                transform(part.max, stock)
         );
     }
 
@@ -157,9 +186,10 @@ public class Control {
             Vec3d movement = current.subtract(lastClientLook);
             Vec3d partPos = part.center;
             float applied = (float) (movement.length());
-            Vec3d grabComponent = transform(partPos, stock.getControlPosition(this), stock.gauge.scale()).add(movement);
-            Vec3d grabComponentNext = transform(partPos, stock.getControlPosition(this) + applied, stock.gauge.scale());
-            Vec3d grabComponentPrev = transform(partPos, stock.getControlPosition(this) - applied, stock.gauge.scale());
+            float value = getValue(stock);
+            Vec3d grabComponent = transform(partPos, value, stock.gauge.scale()).add(movement);
+            Vec3d grabComponentNext = transform(partPos, value + applied, stock.gauge.scale());
+            Vec3d grabComponentPrev = transform(partPos, value - applied, stock.gauge.scale());
             if (grabComponent.distanceTo(grabComponentNext) < grabComponent.distanceTo(grabComponentPrev)) {
                 delta += applied;
             } else {
@@ -173,30 +203,5 @@ public class Control {
 
     public void stopClientDragging() {
         lastClientLook = null;
-    }
-
-    private static final Map<UUID, Integer> cooldown = new HashMap<>();
-
-    public boolean isAtOpenDoor(Player player, EntityRollingStock stock) {
-        if (this.part.type != ModelComponentType.DOOR_X) {
-            return false;
-        }
-        int cool = cooldown.getOrDefault(player.getUUID(), 0);
-        if (player.getTickCount() < cool + 10 && player.getTickCount() > cool) {
-            return false;
-        }
-        if (stock.getControlPosition(this) < 0.75 || player.getPosition().distanceTo(stock.getPosition()) > stock.getDefinition().getLength(stock.gauge)) {
-            return false;
-        }
-        Vec3d playerPos = new Matrix4().rotate(Math.toRadians(stock.getRotationYaw() - 90), 0, 1, 0).apply(player.getPosition().add(0, 0.5, 0).subtract(stock.getPosition()));
-        IBoundingBox bb = IBoundingBox.from(
-                transform(part.min, 0, stock.gauge.scale()),
-                transform(part.max, 0, stock.gauge.scale())
-        ).grow(new Vec3d(0.5, 0.5, 0.5));
-        if (!bb.contains(playerPos)) {
-            return false;
-        }
-        cooldown.put(player.getUUID(), player.getTickCount());
-        return true;
     }
 }
