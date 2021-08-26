@@ -78,11 +78,7 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
     }
 
     protected void effects(T stock) {
-        if (!stock.externalLightsEnabled()) {
-            headlights.forEach(x -> x.removed(stock));
-        } else {
-            headlights.forEach(x -> x.effects(stock, 0));
-        }
+        headlights.forEach(x -> x.effects(stock, 0));
     }
 
     public final void onClientRemoved(EntityMoveableRollingStock stock) {
@@ -126,7 +122,7 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
         frame.render(distanceTraveled, draw);
 
         try (ComponentRenderer light = draw.withBrightGroups(true)) {
-            headlights.forEach(x -> x.render(light));
+            headlights.forEach(x -> x.render(light, stock));
         }
 
         try (ComponentRenderer light = stock.internalLightsEnabled() ? draw.withBrightGroups(true).withInteriorLight(stock) : draw) {
@@ -179,9 +175,7 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
     }
 
     protected void postRender(T stock, ComponentRenderer draw, double distanceTraveled) {
-        if (stock.externalLightsEnabled()) {
-            headlights.forEach(x -> x.postRender(stock, 0));
-        }
+        headlights.forEach(x -> x.postRender(stock, 0));
         doors.forEach(c -> c.postRender(stock));
         windows.forEach(c -> c.postRender(stock));
         widgets.forEach(c -> c.postRender(stock));
