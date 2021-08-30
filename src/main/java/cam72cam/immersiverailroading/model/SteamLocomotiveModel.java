@@ -22,6 +22,8 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
 
     private final PartSound idleSounds;
     private List<Control> whistleControls;
+    private List<Readout> temperatureGauges;
+    private List<Readout> pressureGauges;
 
     public SteamLocomotiveModel(LocomotiveSteamDefinition def) throws Exception {
         super(def);
@@ -31,6 +33,8 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
     @Override
     protected void parseComponents(ComponentProvider provider, EntityRollingStockDefinition def) {
         super.parseComponents(provider, def);
+        temperatureGauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_TEMPERATURE_X);
+        pressureGauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_BOILER_PRESSURE_X);
 
         firebox = provider.parse(ModelComponentType.FIREBOX);
         components = provider.parse(
@@ -42,7 +46,7 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
                 ModelComponentType.BOILER_SEGMENT_X
         ));
 
-        whistleControls = Control.get(this, provider, ModelComponentType.WHISTLE_CONTROL_X);
+        whistleControls = Control.get(provider, ModelComponentType.WHISTLE_CONTROL_X);
         whistle = Whistle.get(provider, ((LocomotiveSteamDefinition) def).quill, ((LocomotiveSteamDefinition) def).whistle);
 
         chimney = SteamChimney.get(provider);
@@ -78,6 +82,9 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
 
         idleSounds.effects(stock, stock.getBoilerTemperature() > stock.ambientTemperature() + 5 ? 0.1f : 0);
         whistle.effects(stock, stock.getBoilerPressure() > 0 || !Config.isFuelRequired(stock.gauge) ? stock.getHornTime() : 0, stock.getHornPlayer());
+
+        temperatureGauges.forEach(g -> g.setValue(stock, stock.getBoilerTemperature() / 100f));
+        pressureGauges.forEach(g -> g.setValue(stock, stock.getBoilerPressure() / stock.getDefinition().getMaxPSI(stock.gauge)));
     }
 
     @Override
@@ -97,6 +104,14 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
     }
 
     @Override
+    public List<Readout> getReadouts() {
+        List<Readout> readouts = super.getReadouts();
+        readouts.addAll(pressureGauges);
+        readouts.addAll(temperatureGauges);
+        return readouts;
+    }
+
+    @Override
     protected void render(LocomotiveSteam stock, ComponentRenderer draw, double distanceTraveled) {
         super.render(stock, draw, distanceTraveled);
 
@@ -109,7 +124,6 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
         }
 
         whistle.render(draw);
-        whistleControls.forEach(c -> c.render(stock, draw));
     }
 
     @Override

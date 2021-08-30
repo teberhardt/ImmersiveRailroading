@@ -6,14 +6,12 @@ import cam72cam.immersiverailroading.library.ModelComponentType;
 import cam72cam.immersiverailroading.model.ComponentRenderer;
 import cam72cam.immersiverailroading.model.components.ComponentProvider;
 import cam72cam.immersiverailroading.model.components.ModelComponent;
-import cam72cam.immersiverailroading.util.VecUtil;
 import cam72cam.mod.MinecraftClient;
 import cam72cam.mod.ModCore;
 import cam72cam.mod.entity.Player;
 import cam72cam.mod.entity.boundingbox.IBoundingBox;
 import cam72cam.mod.math.Vec3d;
 import cam72cam.mod.model.obj.OBJGroup;
-import cam72cam.mod.model.obj.OBJModel;
 import cam72cam.mod.render.GlobalRender;
 import cam72cam.mod.util.Axis;
 import org.apache.commons.lang3.ArrayUtils;
@@ -28,20 +26,20 @@ import java.util.stream.Collectors;
 public class Control {
     public final ModelComponent part;
     public final String controlGroup;
-    private final String label;
+    public final String label;
+    public final boolean toggle;
+    public final boolean press;
     private Vec3d rotationPoint = null;
     private int rotationDegrees = 0;
-    private Axis rotationAxis = null;
-    private Map<Axis, Float> translations = new HashMap<>();
+    private final Map<Axis, Float> rotations = new HashMap<>();
+    private final Map<Axis, Float> translations = new HashMap<>();
+    private final Map<Axis, Float> scales = new HashMap<>();
 
-    public static List<Control> get(OBJModel model, ComponentProvider provider, ModelComponentType type) {
-        return provider.parseAll(type).stream().map(part -> {
-            OBJGroup rot = model.groups.values().stream().filter(g -> Pattern.matches(type.regex.replaceAll("#ID#",  part.id + "_ROT"), g.name)).findFirst().orElse(null);
-            return new Control(part, rot);
-        }).collect(Collectors.toList());
+    public static List<Control> get(ComponentProvider provider, ModelComponentType type) {
+        return provider.parseAll(type).stream().map(Control::new).collect(Collectors.toList());
     }
 
-    public Control(ModelComponent part, OBJGroup rot) {
+    public Control(ModelComponent part) {
         this.part = part;
         this.controlGroup = part.modelIDs.stream().map(group -> {
             Matcher matcher = Pattern.compile("_CG_([^_]+)").matcher(group);
@@ -51,7 +49,13 @@ public class Control {
             Matcher matcher = Pattern.compile("_LABEL_([^_]+)").matcher(group);
             return matcher.find() ? matcher.group(1) : null;
         }).filter(Objects::nonNull).findFirst().orElse(part.type.name().replace("_X", ""));
-        if (rot != null) {
+        this.toggle = part.modelIDs.stream().anyMatch(g -> g.contains("_TOGGLE_") || g.startsWith("TOGGLE_") || g.endsWith("_TOGGLE"));
+        this.press = part.modelIDs.stream().anyMatch(g -> g.contains("_PRESS_") || g.startsWith("PRESS_") || g.endsWith("_PRESS"));
+
+        OBJGroup rot = part.groups().stream()
+                .filter(g -> Pattern.matches(part.type.regex.replaceAll("#ID#",  part.id + "_ROT"), g.name))
+                .findFirst().orElse(null);
+        if (rot != null && rot.normal != null) {
             this.rotationPoint = rot.max.add(rot.min).scale(0.5);
             String[] split = rot.name.split("_");
             int idx = ArrayUtils.indexOf(split, "ROT");
@@ -63,12 +67,10 @@ public class Control {
                     ModCore.error("Unable to parse rotation point '%s': %s", rot.name, e);
                 }
             }
-            Vec3d delta = rot.min.subtract(rot.max);
-            if (Math.abs(delta.x) > Math.abs(delta.y) && Math.abs(delta.x) > Math.abs(delta.z)) {
-                rotationAxis = Axis.X;
-            } else {
-                rotationAxis = Math.abs(delta.y) > Math.abs(delta.z) ? Axis.Y : Axis.Z;
-            }
+
+            rotations.put(Axis.X, (float) rot.normal.x);
+            rotations.put(Axis.Y, (float) rot.normal.y);
+            rotations.put(Axis.Z, (float) rot.normal.z);
         }
 
         Pattern pattern = Pattern.compile("TL_([^_]*)_([^_]*)");
@@ -76,6 +78,13 @@ public class Control {
             Matcher matcher = pattern.matcher(modelID);
             while (matcher.find()) {
                 translations.put(Axis.valueOf(matcher.group(2)), Float.parseFloat(matcher.group(1)));
+            }
+        }
+        pattern = Pattern.compile("SCALE_([^_]*)_([^_]*)");
+        for (String modelID : part.modelIDs) {
+            Matcher matcher = pattern.matcher(modelID);
+            while (matcher.find()) {
+                scales.put(Axis.valueOf(matcher.group(2)), Float.parseFloat(matcher.group(1)));
             }
         }
     }
@@ -100,11 +109,18 @@ public class Control {
                 GL11.glTranslated(rotationPoint.x, rotationPoint.y, rotationPoint.z);
                 GL11.glRotated(
                         valuePercent * rotationDegrees,
-                        rotationAxis == Axis.X ? 1 : 0,
-                        rotationAxis == Axis.Y ? 1 : 0,
-                        rotationAxis == Axis.Z ? 1 : 0
+                        rotations.getOrDefault(Axis.X, 0f),
+                        rotations.getOrDefault(Axis.Y, 0f),
+                        rotations.getOrDefault(Axis.Z, 0f)
                 );
                 GL11.glTranslated(-rotationPoint.x, -rotationPoint.y, -rotationPoint.z);
+            }
+            if (!scales.isEmpty()) {
+                GL11.glScalef(
+                        scales.containsKey(Axis.X) ? scales.get(Axis.X) * valuePercent : 1,
+                        scales.containsKey(Axis.Y) ? scales.get(Axis.Y) * valuePercent : 1,
+                        scales.containsKey(Axis.Z) ? scales.get(Axis.Z) * valuePercent : 1
+                );
             }
             matrix.render(part);
         }
@@ -156,9 +172,9 @@ public class Control {
             m = m.translate(rotationPoint.x, rotationPoint.y, rotationPoint.z);
             m = m.rotate(
                     Math.toRadians(valuePercent * rotationDegrees),
-                    rotationAxis == Axis.X ? 1 : 0,
-                    rotationAxis == Axis.Y ? 1 : 0,
-                    rotationAxis == Axis.Z ? 1 : 0
+                    rotations.getOrDefault(Axis.X, 0f),
+                    rotations.getOrDefault(Axis.Y, 0f),
+                    rotations.getOrDefault(Axis.Z, 0f)
             );
             m = m.translate(-rotationPoint.x, -rotationPoint.y, -rotationPoint.z);
         }
@@ -184,6 +200,10 @@ public class Control {
         -Z * +Z
           +X
          */
+
+        if (press) {
+            return 1;
+        }
 
         float delta = 0;
 

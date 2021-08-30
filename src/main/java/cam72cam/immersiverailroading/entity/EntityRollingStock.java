@@ -210,7 +210,12 @@ public class EntityRollingStock extends CustomEntity implements ITickable, IClic
 	}
 
 	public void onDragRelease(Control component) {
-
+		if (component.toggle) {
+			setControlPosition(component, Math.abs(getControlPosition(component) - 1));
+		}
+		if (component.press) {
+			setControlPosition(component, 0);
+		}
 	}
 
 	public Matrix4 getModelMatrix() {

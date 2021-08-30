@@ -14,12 +14,13 @@ import cam72cam.immersiverailroading.render.ExpireableList;
 import java.util.List;
 import java.util.UUID;
 
-public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
+public class LocomotiveModel<T extends Locomotive> extends FreightTankModel<T> {
     private List<ModelComponent> components;
     private Bell bell;
     private List<Control> throttles;
     private List<Control> reversers;
     private List<Control> train_brakes;
+    private List<Readout> speed_gauges;
 
     protected DrivingAssembly drivingWheels;
     protected ModelComponent frameFront;
@@ -60,9 +61,10 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
                 provider,
                 ((LocomotiveDefinition)def).bell
         );
-        throttles = Control.get(this, provider, ModelComponentType.THROTTLE_X);
-        reversers = Control.get(this, provider, ModelComponentType.REVERSER_X);
-        train_brakes = Control.get(this, provider, ModelComponentType.TRAIN_BRAKE_X);
+        throttles = Control.get(provider, ModelComponentType.THROTTLE_X);
+        reversers = Control.get(provider, ModelComponentType.REVERSER_X);
+        train_brakes = Control.get(provider, ModelComponentType.TRAIN_BRAKE_X);
+        speed_gauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_SPEED_X);
         headlightsFront = LightFlare.get(def, provider, ModelComponentType.HEADLIGHT_POS_X, "FRONT");
         headlightsRear = LightFlare.get(def, provider, ModelComponentType.HEADLIGHT_POS_X, "REAR");
 
@@ -76,6 +78,13 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
         draggable.addAll(reversers);
         draggable.addAll(train_brakes);
         return draggable;
+    }
+
+    @Override
+    public List<Readout> getReadouts() {
+        List<Readout> readouts = super.getReadouts();
+        readouts.addAll(speed_gauges);
+        return readouts;
     }
 
     @Override
@@ -100,6 +109,7 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
                 flare.effects(stock, offset);
             }
         }
+        speed_gauges.forEach(g -> g.setValue(stock, (float) (stock.getCurrentSpeed().metric() / stock.getDefinition().getMaxSpeed(stock.gauge).metric())));
     }
 
     @Override
@@ -166,10 +176,6 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
                 }
             }
         }
-
-        throttles.forEach(throttle -> throttle.render(stock, draw));
-        reversers.forEach(reverser -> reverser.render(stock, draw));
-        train_brakes.forEach(train_brake -> train_brake.render(stock, draw));
     }
 
     @Override
@@ -179,8 +185,8 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
     }
 
     @Override
-    protected void postRender(T stock, ComponentRenderer draw, double distanceTraveled) {
-        super.postRender(stock, draw, distanceTraveled);
+    protected void postRender(T stock) {
+        super.postRender(stock);
         if (drivingWheelsFront != null) {
             float offset = 0;
             if (frameFront != null) {
@@ -201,8 +207,5 @@ public class LocomotiveModel<T extends Locomotive> extends FreightModel<T> {
                 flare.postRender(stock, offset);
             }
         }
-        throttles.forEach(throttle -> throttle.postRender(stock));
-        reversers.forEach(reverser -> reverser.postRender(stock));
-        train_brakes.forEach(train_brake -> train_brake.postRender(stock));
     }
 }
