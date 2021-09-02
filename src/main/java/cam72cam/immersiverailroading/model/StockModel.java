@@ -79,6 +79,7 @@ public class StockModel<T extends EntityMoveableRollingStock> extends OBJModel {
 
     protected void effects(T stock) {
         headlights.forEach(x -> x.effects(stock, 0));
+        getDraggableComponents().forEach(c -> c.effects(stock));
     }
 
     public final void onClientRemoved(EntityMoveableRollingStock stock) {

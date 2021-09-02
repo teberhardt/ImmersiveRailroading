@@ -109,7 +109,7 @@ public class LocomotiveModel<T extends Locomotive> extends FreightTankModel<T> {
                 flare.effects(stock, offset);
             }
         }
-        speed_gauges.forEach(g -> g.setValue(stock, (float) (stock.getCurrentSpeed().metric() / stock.getDefinition().getMaxSpeed(stock.gauge).metric())));
+        speed_gauges.forEach(g -> g.setValue(stock, (float) (Math.abs(stock.getCurrentSpeed().metric()) / stock.getDefinition().getMaxSpeed(stock.gauge).metric())));
     }
 
     @Override
