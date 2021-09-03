@@ -18,7 +18,7 @@ public class DieselLocomotiveModel extends LocomotiveModel<LocomotiveDiesel> {
     private final PartSound idle;
     private List<Control> engineStarters;
     private List<Control> hornControls;
-    private List<Readout> temperatureGauges;
+    private List<Readout<LocomotiveDiesel>> gauges;
 
     public DieselLocomotiveModel(LocomotiveDieselDefinition def) throws Exception {
         super(def);
@@ -29,7 +29,7 @@ public class DieselLocomotiveModel extends LocomotiveModel<LocomotiveDiesel> {
     protected void parseComponents(ComponentProvider provider, EntityRollingStockDefinition def) {
         super.parseComponents(provider, def);
 
-        temperatureGauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_TEMPERATURE_X);
+        gauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_TEMPERATURE_X, stock -> stock.getEngineTemperature() / 150f);
 
         components = provider.parse(
                 ModelComponentType.FUEL_TANK,
@@ -66,8 +66,6 @@ public class DieselLocomotiveModel extends LocomotiveModel<LocomotiveDiesel> {
                         ? stock.getDefinition().getHornSus() ? stock.getHornTime() / 10f : 1
                         : 0);
         idle.effects(stock, stock.isRunning() ? Math.max(0.1f, stock.getSoundThrottle()) : 0, 0.7f+stock.getSoundThrottle()/4);
-
-        temperatureGauges.forEach(g -> g.setValue(stock, stock.getEngineTemperature() / 150f));
     }
 
     @Override
@@ -86,9 +84,9 @@ public class DieselLocomotiveModel extends LocomotiveModel<LocomotiveDiesel> {
     }
 
     @Override
-    public List<Readout> getReadouts() {
-        List<Readout> readouts = super.getReadouts();
-        readouts.addAll(temperatureGauges);
+    public List<Readout<LocomotiveDiesel>> getReadouts() {
+        List<Readout<LocomotiveDiesel>> readouts = super.getReadouts();
+        readouts.addAll(gauges);
         return readouts;
     }
 

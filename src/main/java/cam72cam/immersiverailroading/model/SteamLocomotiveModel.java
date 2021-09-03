@@ -10,6 +10,7 @@ import cam72cam.immersiverailroading.model.part.*;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveSteamDefinition;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
@@ -22,8 +23,7 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
 
     private final PartSound idleSounds;
     private List<Control> whistleControls;
-    private List<Readout> temperatureGauges;
-    private List<Readout> pressureGauges;
+    private List<Readout<LocomotiveSteam>> gauges;
 
     public SteamLocomotiveModel(LocomotiveSteamDefinition def) throws Exception {
         super(def);
@@ -33,8 +33,9 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
     @Override
     protected void parseComponents(ComponentProvider provider, EntityRollingStockDefinition def) {
         super.parseComponents(provider, def);
-        temperatureGauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_TEMPERATURE_X);
-        pressureGauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_BOILER_PRESSURE_X);
+        gauges = new ArrayList<>();
+        gauges.addAll(Readout.getReadouts(provider, ModelComponentType.GAUGE_TEMPERATURE_X, stock -> stock.getBoilerTemperature() / 100f));
+        gauges.addAll(Readout.getReadouts(provider, ModelComponentType.GAUGE_BOILER_PRESSURE_X, stock -> stock.getBoilerPressure() / stock.getDefinition().getMaxPSI(stock.gauge)));
 
         firebox = provider.parse(ModelComponentType.FIREBOX);
         components = provider.parse(
@@ -82,9 +83,6 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
 
         idleSounds.effects(stock, stock.getBoilerTemperature() > stock.ambientTemperature() + 5 ? 0.1f : 0);
         whistle.effects(stock, stock.getBoilerPressure() > 0 || !Config.isFuelRequired(stock.gauge) ? stock.getHornTime() : 0, stock.getHornPlayer());
-
-        temperatureGauges.forEach(g -> g.setValue(stock, stock.getBoilerTemperature() / 100f));
-        pressureGauges.forEach(g -> g.setValue(stock, stock.getBoilerPressure() / stock.getDefinition().getMaxPSI(stock.gauge)));
     }
 
     @Override
@@ -104,10 +102,9 @@ public class SteamLocomotiveModel extends LocomotiveModel<LocomotiveSteam> {
     }
 
     @Override
-    public List<Readout> getReadouts() {
-        List<Readout> readouts = super.getReadouts();
-        readouts.addAll(pressureGauges);
-        readouts.addAll(temperatureGauges);
+    public List<Readout<LocomotiveSteam>> getReadouts() {
+        List<Readout<LocomotiveSteam>> readouts = super.getReadouts();
+        readouts.addAll(gauges);
         return readouts;
     }
 

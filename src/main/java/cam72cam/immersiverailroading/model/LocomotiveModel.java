@@ -11,6 +11,7 @@ import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveDefinition;
 import cam72cam.immersiverailroading.render.ExpireableList;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public class LocomotiveModel<T extends Locomotive> extends FreightTankModel<T> {
     private List<Control> throttles;
     private List<Control> reversers;
     private List<Control> train_brakes;
-    private List<Readout> speed_gauges;
+    private List<Readout<T>> gauges;
 
     protected DrivingAssembly drivingWheels;
     protected ModelComponent frameFront;
@@ -64,10 +65,13 @@ public class LocomotiveModel<T extends Locomotive> extends FreightTankModel<T> {
         throttles = Control.get(provider, ModelComponentType.THROTTLE_X);
         reversers = Control.get(provider, ModelComponentType.REVERSER_X);
         train_brakes = Control.get(provider, ModelComponentType.TRAIN_BRAKE_X);
-        speed_gauges = Readout.getReadouts(provider, ModelComponentType.GAUGE_SPEED_X);
-        headlightsFront = LightFlare.get(def, provider, ModelComponentType.HEADLIGHT_POS_X, "FRONT");
-        headlightsRear = LightFlare.get(def, provider, ModelComponentType.HEADLIGHT_POS_X, "REAR");
-
+        gauges = new ArrayList<>();
+        gauges.addAll(Readout.getReadouts(provider, ModelComponentType.GAUGE_SPEED_X,
+                stock -> (float) (Math.abs(stock.getCurrentSpeed().metric()) / stock.getDefinition().getMaxSpeed(stock.gauge).metric()))
+        );
+        gauges.addAll(Readout.getReadouts(provider, ModelComponentType.GAUGE_THROTTLE_X, Locomotive::getThrottle));
+        gauges.addAll(Readout.getReadouts(provider, ModelComponentType.GAUGE_REVERSER_X, Locomotive::getReverser));
+        gauges.addAll(Readout.getReadouts(provider, ModelComponentType.GAUGE_TRAIN_BRAKE_X, Locomotive::getAirBrake));
         super.parseComponents(provider, def);
     }
 
@@ -81,9 +85,9 @@ public class LocomotiveModel<T extends Locomotive> extends FreightTankModel<T> {
     }
 
     @Override
-    public List<Readout> getReadouts() {
-        List<Readout> readouts = super.getReadouts();
-        readouts.addAll(speed_gauges);
+    public List<Readout<T>> getReadouts() {
+        List<Readout<T>> readouts = super.getReadouts();
+        readouts.addAll(gauges);
         return readouts;
     }
 
@@ -109,7 +113,6 @@ public class LocomotiveModel<T extends Locomotive> extends FreightTankModel<T> {
                 flare.effects(stock, offset);
             }
         }
-        speed_gauges.forEach(g -> g.setValue(stock, (float) (Math.abs(stock.getCurrentSpeed().metric()) / stock.getDefinition().getMaxSpeed(stock.gauge).metric())));
     }
 
     @Override
