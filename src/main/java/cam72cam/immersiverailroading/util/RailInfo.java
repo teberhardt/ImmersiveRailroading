@@ -23,19 +23,19 @@ import java.util.stream.Collectors;
 @TagMapped(RailInfo.TagMapper.class)
 public class RailInfo {
 	@TagField("settings")
-	public final RailSettings settings;
+	public RailSettings settings;
 	@TagField("placement")
-	public final PlacementInfo placementInfo;
+	public PlacementInfo placementInfo;
 	@TagField("custom")
-	public final PlacementInfo customInfo;
+	public PlacementInfo customInfo;
 
 	// Used for tile rendering only
 	@TagField("switchState")
-	public final SwitchState switchState;
+	public SwitchState switchState;
 	@TagField("switchForced")
-	public final SwitchState switchForced;
+	public SwitchState switchForced;
 	@TagField("tablePos")
-	public final double tablePos;
+	public double tablePos;
 
 	public final String uniqueID;
 	public final boolean itemHeld;

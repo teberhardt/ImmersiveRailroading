@@ -19,7 +19,7 @@ import java.util.List;
 
 public abstract class FreightTank extends Freight {
 	@TagField("tank")
-	public final FluidTank theTank = new FluidTank(null, 0);
+	public FluidTank theTank = new FluidTank(null, 0);
 
 	@TagSync
 	@TagField("FLUID_AMOUNT")
@@ -30,7 +30,7 @@ public abstract class FreightTank extends Freight {
 	private String fluidType = null;
 
 	/*
-	 * 
+	 *
 	 * Specifications
 	 */
 	public abstract FluidQuantity getTankCapacity();
@@ -56,25 +56,25 @@ public abstract class FreightTank extends Freight {
 	}
 
 	/*
-	 * 
+	 *
 	 * Freight Specification Overrides
 	 */
 	@Override
 	public int getInventorySize() {
 		return 2;
 	}
-	
+
 	public int getLiquidAmount() {
 		return fluidAmount;
 	}
-	
+
 	public Fluid getLiquid() {
 		if (fluidType == null) {
 			return null;
 		}
 		return Fluid.getFluid(fluidType);
 	}
-	
+
 	@Override
 	protected void initContainerFilter() {
 		cargoItems.filter.clear();
@@ -82,14 +82,14 @@ public abstract class FreightTank extends Freight {
 		cargoItems.filter.put(1, SlotFilter.FLUID_CONTAINER);
 		cargoItems.defaultFilter = SlotFilter.NONE;
 	}
-	
-	
+
+
 	/*
-	 * 
+	 *
 	 * Server functions
-	 * 
+	 *
 	 */
-	
+
 	@Override
 	public void onAssemble() {
 		super.onAssemble();
@@ -98,7 +98,7 @@ public abstract class FreightTank extends Freight {
 		this.theTank.onChanged(this::onTankContentsChanged);
 		onTankContentsChanged();
 	}
-	
+
 	@Override
 	public void onDissassemble() {
 		super.onDissassemble();
@@ -110,7 +110,7 @@ public abstract class FreightTank extends Freight {
 		if (getWorld().isClient) {
 			return;
 		}
-		
+
 		fluidAmount =  theTank.getContents().getAmount();
 		if (theTank.getContents().getFluid() == null) {
 			fluidType = null;
@@ -118,13 +118,13 @@ public abstract class FreightTank extends Freight {
 			fluidType = theTank.getContents().getFluid().ident;
 		}
 	}
-	
+
 	public int getServerLiquidAmount() {
 		return theTank.getContents().getAmount();
 	}
 
 	/*
-	 * 
+	 *
 	 * Freight Overrides
 	 */
 
@@ -144,11 +144,11 @@ public abstract class FreightTank extends Freight {
 		if (getWorld().isClient) {
 			return;
 		}
-		
+
 		if (!this.isBuilt()) {
 			return;
 		}
-		
+
 		if (cargoItems.getSlotCount() == 0) {
 			return;
 		}
@@ -194,7 +194,7 @@ public abstract class FreightTank extends Freight {
 								if (!ConfigDebug.debugInfiniteLiquids) {
 									// Decrease input
 									cargoItems.extract(inputSlot, 1, false);
-									
+
 									// Increase output
 									this.cargoItems.insert(slot, out, false);
 									break;
@@ -208,11 +208,11 @@ public abstract class FreightTank extends Freight {
 	}
 
 	/*
-	 * 
+	 *
 	 * ITank Overrides
-	 * 
+	 *
 	 */
-	
+
 	@Override
 	public double getWeight() {
 		double fLoad = super.getWeight();
@@ -221,7 +221,7 @@ public abstract class FreightTank extends Freight {
 		}
 		return fLoad;
 	}
-	
+
 	public int getPercentLiquidFull() {
 		return this.getLiquidAmount() * 100 / this.getTankCapacity().MilliBuckets();
 	}

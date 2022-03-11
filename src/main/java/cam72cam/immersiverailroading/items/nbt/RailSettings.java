@@ -7,29 +7,29 @@ import cam72cam.mod.serialization.*;
 
 public class RailSettings {
     @TagField(value = "gauge")
-    public final Gauge gauge;
+    public Gauge gauge;
     @TagField("type")
-    public final TrackItems type;
+    public TrackItems type;
     @TagField("length")
-    public final int length;
+    public int length;
     @TagField(value = "degrees", mapper = DegreesMapper.class)
-    public final float degrees;
+    public float degrees;
     @TagField("pos_type")
-    public final TrackPositionType posType;
+    public TrackPositionType posType;
     @TagField(value = "smoothing", mapper = SmoothingMapper.class)
-    public final TrackSmoothing smoothing;
+    public TrackSmoothing smoothing;
     @TagField("direction")
-    public final TrackDirection direction;
+    public TrackDirection direction;
     @TagField("bedItem")
-    public final ItemStack railBed;
+    public ItemStack railBed;
     @TagField("bedFill")
-    public final ItemStack railBedFill;
+    public ItemStack railBedFill;
     @TagField("isPreview")
-    public final boolean isPreview;
+    public boolean isPreview;
     @TagField("isGradeCrossing")
-    public final boolean isGradeCrossing;
+    public boolean isGradeCrossing;
     @TagField("track")
-    public final String track;
+    public String track;
 
     public RailSettings(Gauge gauge, String track, TrackItems type, int length, float degrees, TrackPositionType posType, TrackSmoothing smoothing, TrackDirection direction, ItemStack railBed, ItemStack railBedFill, boolean isPreview, boolean isGradeCrossing) {
         this.gauge = gauge;
@@ -152,7 +152,7 @@ public class RailSettings {
                 isGradeCrossing
         );
     }
-    
+
     public RailSettings withTrack(String track) {
         return new RailSettings(
                 gauge,

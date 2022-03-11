@@ -35,16 +35,16 @@ public class TileMultiblock extends BlockEntityTickable {
 	private CraftingMachineMode craftMode = CraftingMachineMode.STOPPED;
 	private long ticks;
 	private MultiblockInstance mb;
-	
+
 	//Crafting
 	@TagField("craftProgress")
 	private int craftProgress = 0;
 	@TagField("craftItem")
 	private ItemStack craftItem = ItemStack.EMPTY;
 	@TagField
-	private final ItemStackHandler container = new ItemStackHandler(0);
+	private ItemStackHandler container = new ItemStackHandler(0);
 	@TagField("energyStorage")
-    private final Energy energy = new Energy(0, 1000);
+    private Energy energy = new Energy(0, 1000);
 
 	public boolean isLoaded() {
 			//TODO FIX ME bad init
@@ -56,9 +56,9 @@ public class TileMultiblock extends BlockEntityTickable {
 		this.rotation = rot;
 		this.offset = offset;
 		this.replaced = replaced;
-		
+
 		container.setSize(this.getMultiblock().getInvSize(offset));
-		
+
 		markDirty();
 	}
 
@@ -89,22 +89,22 @@ public class TileMultiblock extends BlockEntityTickable {
 	public Vec3i getOrigin() {
 		return getPos().subtract(offset.rotate(rotation));
 	}
-	
+
 	public MultiblockInstance getMultiblock() {
 		if (this.mb == null && this.isLoaded()) {
 			this.mb = MultiblockRegistry.get(name).instance(getWorld(), getOrigin(), rotation);
 		}
 		return this.mb;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public long getRenderTicks() {
 		return this.ticks;
 	}
-	
+
 	public ItemStackHandler getContainer() {
 		if (container.getSlotCount() != getMultiblock().getInvSize(offset)) {
 			container.setSize(getMultiblock().getInvSize(offset));
@@ -124,11 +124,11 @@ public class TileMultiblock extends BlockEntityTickable {
 	public boolean onBlockActivated(Player player, Player.Hand hand) {
 		return getMultiblock().onBlockActivated(player, hand, offset);
 	}
-	
+
 	/*
 	 * Event Handlers
 	 */
-	
+
 	public void onBreakEvent() {
 		for (int slot = 0; slot < container.getSlotCount(); slot ++) {
 			ItemStack item = container.get(slot);
@@ -149,25 +149,25 @@ public class TileMultiblock extends BlockEntityTickable {
 	public double getRotation() {
 		return 180 - Facing.EAST.rotate(rotation).getAngle();
 	}
-	
+
 	/*
 	 * Crafting
 	 */
 	public int getCraftProgress() {
 		return craftProgress;
 	}
-	
+
 	public void setCraftProgress(int progress) {
 		if (craftProgress != progress) {
 			craftProgress = progress;
 			this.markDirty();
 		}
 	}
-	
+
 	public CraftingMachineMode getCraftMode() {
 		return craftMode;
 	}
-	
+
 	public void setCraftMode(CraftingMachineMode mode) {
 		if (getWorld().isServer) {
 			if (craftMode != mode) {
@@ -178,7 +178,7 @@ public class TileMultiblock extends BlockEntityTickable {
 			new MultiblockSelectCraftPacket(getPos(), craftItem, mode).sendToServer();
 		}
 	}
-	
+
 	public ItemStack getCraftItem() {
 		return craftItem;
 	}
@@ -194,7 +194,7 @@ public class TileMultiblock extends BlockEntityTickable {
 			new MultiblockSelectCraftPacket(getPos(), selected, craftMode).sendToServer();
 		}
 	}
-	
+
 	/*
 	 * Capabilities
 	 */

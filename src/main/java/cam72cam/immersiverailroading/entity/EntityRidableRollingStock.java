@@ -24,7 +24,7 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	}
 
 	@TagField(value = "payingPassengerPositions", mapper = PassengerMapper.class)
-	private final Map<UUID, Vec3d> payingPassengerPositions = new HashMap<>();
+	private Map<UUID, Vec3d> payingPassengerPositions = new HashMap<>();
 
 	@Override
 	public ClickResult onClick(Player player, Player.Hand hand) {
@@ -61,7 +61,7 @@ public abstract class EntityRidableRollingStock extends EntityBuildableRollingSt
 	public boolean canFitPassenger(Entity passenger) {
 		return getPassengerCount() < this.getDefinition().getMaxPassengers();
 	}
-	
+
 	@Override
 	public boolean shouldRiderSit(Entity passenger) {
 		if (this.getDefinition().shouldSit != null) {
